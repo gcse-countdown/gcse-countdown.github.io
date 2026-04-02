@@ -120,6 +120,7 @@ compactBtn.addEventListener('click',()=>{
     document.body.classList.toggle('compact',compactMode);
     compactBtn.classList.toggle('active',compactMode);
     saveCompact(compactMode);
+    renderExams();
 });
 
 // ── Smooth clear button animation ────────────────────────────────────────────
