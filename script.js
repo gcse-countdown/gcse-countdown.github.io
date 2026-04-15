@@ -62,11 +62,14 @@ const CATEGORIES = [
 
 const STORAGE_KEY = 'filters_v3';
 const COMPACT_KEY = 'compact_mode';
+const CAL_KEY = 'calendar_mode';
 
 function saveFilters() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...activeFilters])); } catch(e){} }
-function loadFilters()    { try { const r=localStorage.getItem(STORAGE_KEY); return r?new Set(JSON.parse(r)):new Set(); } catch(e){ return new Set(); } }
+function loadFilters() { try { const r=localStorage.getItem(STORAGE_KEY); return r?new Set(JSON.parse(r)):new Set(); } catch(e){ return new Set(); } }
 function saveCompact(v) { try { localStorage.setItem(COMPACT_KEY, v?'1':'0'); } catch(e){} }
-function loadCompact()    { try { return localStorage.getItem(COMPACT_KEY)==='1'; } catch(e){ return false; } }
+function loadCompact() { try { return localStorage.getItem(COMPACT_KEY)==='1'; } catch(e){ return false; } }
+function saveCal(active) {try {return localStorage.setItem(CAL_KEY, active ? 1 : 0);} catch(e) {return false;}}
+function loadCal() {try {return localStorage.getItem(CAL_KEY) == 1;} catch(e) {return false;}}
 
 function makeStart(dateStr, session) {
     const [d,m]=dateStr.split('/').map(Number);
@@ -75,6 +78,7 @@ function makeStart(dateStr, session) {
     else [hours,minutes]=session.split(':');
     return new Date(2026,m-1,d,+hours,+minutes,0,0);
 }
+
 function fmtDuration(min){const h=Math.floor(min/60),m=min%60;if(!h)return`${m}m`;if(!m)return`${h}h`;return`${h}h ${m}m`;}
 function fmtTime(d){return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
 function getState(start,end,now){if(now<start)return'upcoming';if(now<end)return'inprogress';return'over';}
@@ -84,6 +88,7 @@ function fracToColor(f){
     if(f<0.5){const t=f/0.5;return`rgb(239,${Math.round(68+115*t)},${Math.round(68*(1-t))})`;}
     const t=(f-0.5)/0.5;return`rgb(${Math.round(234-200*t)},${Math.round(179+18*t)},${Math.round(8+86*t)})`;
 }
+
 function fmtCountdown(ms){
     if(ms<=0)return'00d 00h 00m 00s';
     const d=Math.floor(ms/86400000),h=Math.floor((ms%86400000)/3600000),
@@ -104,22 +109,43 @@ let activeFilters=loadFilters();
 let lastFilterCount = activeFilters.size;
 activeFilters.forEach(s=>{if(!ALL_SUBJECTS.includes(s))activeFilters.delete(s);});
 
-let compactMode=loadCompact();
-if(compactMode)document.body.classList.add('compact');
+let calMode = loadCal();
+if (calMode) {document.body.classList.replace('compact', 'cal') ? null:document.body.classList.add('cal')};
+
+let compactMode= calMode ? 0:loadCompact();
+if(compactMode) {document.body.classList.replace('cal', 'compact') ? null:document.body.classList.add('compact')};
 
 // ── DOM refs ─────────────────────────────────────────────────────────────────
-const clearBtnWrap    = document.getElementById('clearBtnWrap');
+const clearBtnWrap = document.getElementById('clearBtnWrap');
 const filterCountEl = document.getElementById('filterCount');
-const compactBtn        = document.getElementById('compactBtn');
-const filterCatsEl    = document.getElementById('filterCategories');
+const compactBtn = document.getElementById('compactBtn');
+const calBtn = document.getElementById('calbtn');
+const filterCatsEl = document.getElementById('filterCategories');
 
 if(compactMode) compactBtn.classList.add('active');
+if(calMode) calBtn.classList.add('active');
+
+calBtn.addEventListener('click',()=>{
+    calMode=!calMode;
+    compactMode=0;
+    compactBtn.classList.remove('active');
+    document.body.classList.remove('compact');
+    document.body.classList.toggle('cal',calMode);
+    calBtn.classList.toggle('active',calMode);
+    saveCal(calMode);
+    saveCompact(compactMode);
+    renderExams();
+});
 
 compactBtn.addEventListener('click',()=>{
     compactMode=!compactMode;
+    calMode=0;
+    calBtn.classList.remove('active');
+    document.body.classList.remove('cal');
     document.body.classList.toggle('compact',compactMode);
     compactBtn.classList.toggle('active',compactMode);
     saveCompact(compactMode);
+    saveCal(calMode);
     renderExams();
 });
 
@@ -266,38 +292,136 @@ updateFilterCount();
 // ── Render ────────────────────────────────────────────────────────────────────
 function renderExams(){
     const list=document.getElementById('examList'),
-                emptyEl=document.getElementById('emptyState'),
-                countInfo=document.getElementById('countInfo');
+        emptyEl=document.getElementById('emptyState'),
+        countInfo=document.getElementById('countInfo');
     list.innerHTML='';
     const now=Date.now();
     const filtered=activeFilters.size===0?exams:exams.filter(e=>activeFilters.has(e.subject));
     if(!filtered.length){emptyEl.style.display='block';countInfo.textContent='';return;}
+
     emptyEl.style.display='none';
-    const upcoming    =filtered.filter(e=>getState(e.start,e.end,now)==='upcoming');
-    const inprogress=filtered.filter(e=>getState(e.start,e.end,now)==='inprogress');
-    const over            =filtered.filter(e=>getState(e.start,e.end,now)==='over');
+    const upcoming =filtered.filter(e=>getState(e.start,e.end,now)==='upcoming');
+    const inprogress = filtered.filter(e=>getState(e.start,e.end,now)==='inprogress');
+    const over =filtered.filter(e=>getState(e.start,e.end,now)==='over');
+
     countInfo.innerHTML=
         `Showing <strong>${filtered.length}</strong> exam${filtered.length!==1?'s':''} &nbsp;·&nbsp; `+
         `<strong>${over.length}</strong> over &nbsp;·&nbsp; `+
         `<strong>${inprogress.length}</strong> in progress &nbsp;·&nbsp; `+
         `<strong>${upcoming.length}</strong> upcoming`;
+    
     const halfTermStart = new Date(2026,4,23).getTime(); // 23 May 2026
     const active = [...inprogress,...upcoming];
     let halfTermInserted = false;
-    active.forEach((e,i)=>{
-        if(!halfTermInserted && e.start.getTime() >= halfTermStart){
-            const div=document.createElement('div');
-            div.className='section-divider half-term-divider';
-            div.innerHTML='🌿 Half Term';
+
+    if (!calMode) {
+        active.forEach((e,i)=>{
+            if(!halfTermInserted && e.start.getTime() >= halfTermStart){
+                const div=document.createElement('div');
+                div.className='section-divider half-term-divider';
+                div.innerHTML='🌿 Half Term';
+                list.appendChild(div);
+                halfTermInserted=true;
+            }
+            list.appendChild(makeCard(e,i));
+        });
+        if(over.length){
+            const div=document.createElement('div');div.className='section-divider';div.textContent='Exam Over';
             list.appendChild(div);
-            halfTermInserted=true;
+            over.slice().reverse().forEach((e,i)=>list.appendChild(makeCard(e,inprogress.length+upcoming.length+i)));
         }
-        list.appendChild(makeCard(e,i));
-    });
-    if(over.length){
-        const div=document.createElement('div');div.className='section-divider';div.textContent='Exam Over';
-        list.appendChild(div);
-        over.slice().reverse().forEach((e,i)=>list.appendChild(makeCard(e,inprogress.length+upcoming.length+i)));
+    } else {
+        const div = document.createElement('div');
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.className="buttonsDiv";
+        const monthBackBtn = document.createElement('button');
+        monthBackBtn.id='monthBackBtn';
+        monthBackBtn.textContent='← Prev';
+
+        const monthText = document.createElement('p');
+        monthText.textContent="Loading..."
+        const monthFwdBtn = document.createElement('button');
+        monthFwdBtn.id='monthFwdBtn';
+        monthFwdBtn.textContent='Next →';
+        buttonsDiv.appendChild(monthBackBtn);
+        buttonsDiv.appendChild(monthText);
+        buttonsDiv.appendChild(monthFwdBtn);
+        list.appendChild(buttonsDiv)
+
+        div.className='calendar';
+        function getDay(date) {let day = date.getDay(); if (day == 0) day = 7; return day - 1;}
+        let monthOffset = 0;
+        currentDate = new Date(Date.now());
+        offsetDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+monthOffset, 1)
+        monthText.textContent = offsetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+        monthBackBtn.addEventListener('click' ,() => {
+            monthOffset -= 1;
+            offsetDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+monthOffset, 1);
+            monthText.textContent = offsetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+            createCalendar(offsetDate.valueOf());
+            addExams();
+        })
+        monthFwdBtn.addEventListener('click' ,() => {
+            monthOffset += 1;
+            offsetDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+monthOffset, 1);
+            monthText.textContent = offsetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+            createCalendar(offsetDate.valueOf());
+            addExams();
+        })
+        function createCalendar(dateMS) {
+            const today = new Date(Date.now());
+            let date = new Date(dateMS);
+            const curMonth = date.getMonth();
+            //console.log(date);
+            let table = '<table id="calendar"><tr><th>MONDAY</th><th>TUESDAY</th><th>WEDNESDAY</th><th>THURSDAY</th><th>FRIDAY</th><th>SATURDAY</th><th>SUNDAY</th></tr><tr>';
+            // spaces for the first row
+            for (let i = 0; i < getDay(date); i++) {table += '<td id="0 0">'+'</td>';}
+            // <td> with actual dates
+            while (date.getMonth() == curMonth) {
+                if (date.getFullYear() == today.getFullYear() && date.getMonth() == today.getMonth() && date.getDate() == today.getDate()) {
+                    table += '<td class="curMonth today" id="' + date.getDate() + " "+ date.getMonth() + '">' + date.getDate() + '</td>';
+                } else {
+                    table += '<td class="curMonth" id="' + date.getDate() + " "+ date.getMonth() + '">' + date.getDate() + '</td>';
+                }
+                if (getDay(date) % 7 == 6) {table += '</tr><tr>';}
+                date.setDate(date.getDate() + 1);
+            }
+            // add spaces after last days of month for the last row
+            if (getDay(date) != 0) {
+                for (let i = getDay(date); i < 7; i++) {
+                    table += '<td class="nextMonth" id="' + date.getDate() + " " + date.getMonth() + '">' + Number(date.getDate()) + '</td>';
+                    date.setDate(date.getDate() + 1);
+                }
+            }
+            // close the table
+            table += '</tr></table>';
+            div.innerHTML = table;
+            list.appendChild(div);
+        }
+        
+        function addExams() {
+            let table = document.getElementById("calendar");
+            for (let i=1, row; row=table.rows[i]; i++) {
+                for (let j=0, col; col=row.cells[j]; j++) {
+                    let nday = Number(col.id.split(" ")[0])
+                    let nmonth = Number(col.id.split(" ")[1]) + 1
+                    //console.log(active);
+                    let examsOnDay = active.filter(e => [...e.date.split("/")][0] == nday && [...e.date.split("/")][1] == nmonth);
+                    if (examsOnDay.length > 0) {
+                        for (let i=0; i<examsOnDay.length; i++) {
+                            const examDiv = document.createElement('div');
+                            examDiv.className = 'cal-exam';
+                            examDiv.innerHTML = `<span class="cal-exam-subject">${examsOnDay[i].subject}</span><span class="cal-exam-component">${examsOnDay[i].component}</span>`;
+                            col.appendChild(examDiv);
+                        }
+                    }
+                    console.log(col);
+                    //console.log(examsOnDay)
+                }
+            }
+        }
+        createCalendar(offsetDate.valueOf());
+        addExams();
     }
 }
 
