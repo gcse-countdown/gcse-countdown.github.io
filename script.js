@@ -289,6 +289,8 @@ clearBtnWrap.style.marginTop=activeFilters.size>0?'12px':'0';
 if(activeFilters.size>0)clearBtnWrap.classList.add('open');
 updateFilterCount();
 
+let monthOffset = 0
+
 // ── Render ────────────────────────────────────────────────────────────────────
 function renderExams(){
     const list=document.getElementById('examList'),
@@ -350,7 +352,6 @@ function renderExams(){
 
         div.className='calendar';
         function getDay(date) {let day = date.getDay(); if (day == 0) day = 7; return day - 1;}
-        let monthOffset = 0;
         currentDate = new Date(Date.now());
         offsetDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+monthOffset, 1)
         monthText.textContent = offsetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
