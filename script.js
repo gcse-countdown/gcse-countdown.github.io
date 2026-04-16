@@ -50,6 +50,7 @@ const RAW_EXAMS = [
     {date:"16/06",board:"AQA",    level:"GCSE", code:"8692/WH",        subject:"Spanish",                        component:"Paper 4 - Writing",                                                session:"AM",        durationMin:75},
     {date:"08/05",board:"WJEC", level:"GCSE", code:"601/8420/6", subject:"Drama",                            component:"Interpreting Theatre",                                         session:"PM",        durationMin:90},
 ];
+const MAX_DAYS = 75;
 
 // ── Subject categories ──────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -82,7 +83,7 @@ function makeStart(dateStr, session) {
 function fmtDuration(min){const h=Math.floor(min/60),m=min%60;if(!h)return`${m}m`;if(!m)return`${h}h`;return`${h}h ${m}m`;}
 function fmtTime(d){return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
 function getState(start,end,now){if(now<start)return'upcoming';if(now<end)return'inprogress';return'over';}
-function getFrac(ms){return Math.max(0,Math.min(1,ms/86400000/100));}
+function getFrac(ms){return Math.max(0,Math.min(1,ms/86400000/MAX_DAYS));}
 function fracToColor(f){
     if(f<=0)return'rgb(239,68,68)';if(f>=1)return'rgb(34,197,94)';
     if(f<0.5){const t=f/0.5;return`rgb(239,${Math.round(68+115*t)},${Math.round(68*(1-t))})`;}
