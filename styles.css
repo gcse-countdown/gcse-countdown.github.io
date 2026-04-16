@@ -674,7 +674,7 @@ body.cal .exam-list {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
-    overflow: hidden;
+    overflow: visible;
     animation: slideIn 0.3s ease;
 }
 
@@ -710,6 +710,7 @@ body.cal .exam-list {
     color: var(--text-dim);
     transition: background 0.15s;
     position: relative;
+    overflow: visible;
 }
 
 /* Current-month dates */
@@ -793,6 +794,70 @@ body.cal .exam-list {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Cal-exam tooltip */
+.cal-exam {
+    position: relative;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .cal-exam:hover {
+        z-index: 200;
+    }
+}
+
+.cal-exam-tooltip {
+    display: none;
+    position: absolute;
+    z-index: 200;
+    left: 0;
+    top: calc(100% + 6px);
+    min-width: 280px;
+    max-width: 340px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    pointer-events: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+}
+
+/* Flip to above if near bottom — handled via .flip-up class added by JS */
+.cal-exam.flip-up .cal-exam-tooltip {
+    top: auto;
+    bottom: calc(100% + 6px);
+}
+
+/* Flip to left if overflowing right edge */
+.cal-exam.flip-left .cal-exam-tooltip {
+    left: auto;
+    right: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .cal-exam:hover .cal-exam-tooltip {
+        display: block;
+    }
+}
+
+.cal-tooltip-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.cal-tooltip-title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
 }
 
 /* Responsive: collapse calendar on very small screens */

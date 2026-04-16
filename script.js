@@ -292,6 +292,8 @@ updateFilterCount();
 let monthOffset = 0
 
 // ── Render ────────────────────────────────────────────────────────────────────
+let currentFiltered = exams.slice();
+
 function renderExams(){
     const list=document.getElementById('examList'),
         emptyEl=document.getElementById('emptyState'),
@@ -299,6 +301,7 @@ function renderExams(){
     list.innerHTML='';
     const now=Date.now();
     const filtered=activeFilters.size===0?exams:exams.filter(e=>activeFilters.has(e.subject));
+    currentFiltered = filtered;
     if(!filtered.length){emptyEl.style.display='block';countInfo.textContent='';return;}
 
     emptyEl.style.display='none';
@@ -410,9 +413,37 @@ function renderExams(){
                     let examsOnDay = active.filter(e => [...e.date.split("/")][0] == nday && [...e.date.split("/")][1] == nmonth);
                     if (examsOnDay.length > 0) {
                         for (let i=0; i<examsOnDay.length; i++) {
+                            const ex = examsOnDay[i];
                             const examDiv = document.createElement('div');
                             examDiv.className = 'cal-exam';
-                            examDiv.innerHTML = `<span class="cal-exam-subject">${examsOnDay[i].subject}</span><span class="cal-exam-component">${examsOnDay[i].component}</span>`;
+                            const now = Date.now();
+                            const state = getState(ex.start, ex.end, now);
+                            const statusBadge = state === 'inprogress'
+                                ? `<span class="status-badge inprogress">● IN PROGRESS</span>`
+                                : state === 'over' ? `<span class="status-badge over">EXAM OVER</span>` : '';
+                            const msLeft = ex.start - now;
+                            const timerText = state === 'upcoming' ? fmtCountdown(msLeft) : '–';
+                            examDiv.innerHTML = `<span class="cal-exam-subject">${ex.subject}</span><span class="cal-exam-component">${ex.component}</span>`;
+                            examDiv.innerHTML += `<div class="cal-exam-tooltip">
+                                <div class="cal-tooltip-top">
+                                    <div class="cal-tooltip-title-block">
+                                        <span class="exam-subject">${ex.subject}</span>
+                                        <span class="exam-component">${ex.component}</span>
+                                    </div>
+                                    ${statusBadge}
+                                </div>
+                                <div class="exam-meta">
+                                    <span class="badge">${ex.date}/26</span>
+                                    <span class="badge">${ex.board} ${ex.level}</span>
+                                    <span class="badge">${ex.code}</span>
+                                    <span class="badge">${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
+                                    <span class="badge">⏱ ${fmtDuration(ex.durationMin)}</span>
+                                </div>
+                                <div class="countdown-block">
+                                    <span class="countdown-timer${state !== 'upcoming' ? ' dim' : ''}" data-code="${ex.code}">${timerText}</span>
+                                    <div class="progress-wrap"><div class="progress-bar" data-bar="${ex.code}" style="width:${(getFrac(msLeft)*100).toFixed(3)}%;background:${fracToColor(getFrac(msLeft))}"></div></div>
+                                </div>
+                            </div>`;
                             col.appendChild(examDiv);
                         }
                     }
@@ -493,17 +524,22 @@ function tick(){
     let changed=false;
     exams.forEach(e=>{const s=getState(e.start,e.end,now);if(prevStates[e.code]!==s){prevStates[e.code]=s;changed=true;}});
     if(changed){renderExams();return;}
+
+    const first = currentFiltered.length ? currentFiltered[0] : null;
+    if (first) {
+        document.getElementById('remtime').textContent = fmtCountdown(first.start - now);
+    }
+    const last = currentFiltered.length ? currentFiltered[currentFiltered.length - 1] : null;
+    if (last) {
+        document.getElementById('endremtime').textContent = fmtCountdown(last.end - now);
+    }
+
     document.querySelectorAll('[data-code]').forEach(el=>{
         if(!el.classList.contains('countdown-timer'))return;
         const exam=exams.find(x=>x.code===el.dataset.code);
         if(!exam||getState(exam.start,exam.end,now)!=='upcoming')return;
         const msLeft=exam.start-now;
         el.textContent=fmtCountdown(msLeft);
-        if (!firstPassed) {
-            document.getElementById('remtime').textContent=fmtCountdown(msLeft);
-            firstPassed = true;
-        }
-        document.getElementById('endremtime').textContent=fmtCountdown(exam.end-now);
         const frac=getFrac(msLeft),color=fracToColor(frac);
         const bar=document.querySelector(`[data-bar="${exam.code}"]`);
         if(bar){bar.style.width=(frac*100).toFixed(3)+'%';bar.style.background=color;}
@@ -517,3 +553,20 @@ updateClock();
 setInterval(updateClock,100);
 setInterval(updateTime, 100);
 setInterval(tick,100);
+
+// Calendar tooltip flip-direction: check on mouseenter so tooltip doesn't overflow viewport
+document.getElementById('examList').addEventListener('mouseenter', e => {
+    const pill = e.target.closest('.cal-exam');
+    if (!pill) return;
+    const tooltip = pill.querySelector('.cal-exam-tooltip');
+    if (!tooltip) return;
+    // Reset first
+    pill.classList.remove('flip-up', 'flip-left');
+    tooltip.style.display = 'block';
+    const tr = tooltip.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth;
+    const vh = document.documentElement.clientHeight;
+    if (tr.bottom > vh - 10) pill.classList.add('flip-up');
+    if (tr.right > vw - 10) pill.classList.add('flip-left');
+    tooltip.style.display = '';
+}, true);
