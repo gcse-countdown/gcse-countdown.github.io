@@ -359,7 +359,7 @@ h1 span { color: var(--accent); }
     align-items: center;
     gap: 6px;
 }
-.btn::before {
+#compactbtn::before {
     content: '';
     width: 12px;
     height: 8px;
@@ -376,6 +376,24 @@ h1 span { color: var(--accent); }
     opacity: 0.7;
     transition: opacity 0.18s ease;
 }
+#calbtn::before {
+    content: '';
+    width: 12px;
+    height: 8px;
+    border-radius: 1px;
+    flex-shrink: 0;
+    background: linear-gradient(
+        to bottom,
+        currentColor 0, currentColor 1.5px,
+        transparent 1.5px, transparent 3.5px,
+        currentColor 3.5px, currentColor 5px,
+        transparent 5px, transparent 6.5px,
+        currentColor 6.5px, currentColor 8px
+    );
+    opacity: 0.7;
+    transition: opacity 0.18s ease;
+}
+
 .btn.active::before { opacity: 1; }
 @media (hover: hover) and (pointer: fine) {
     .btn:hover { border-color: var(--accent); color: var(--accent); }

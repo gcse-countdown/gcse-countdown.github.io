@@ -119,17 +119,17 @@ if(compactMode) {document.body.classList.replace('cal', 'compact') ? null:docume
 // ── DOM refs ─────────────────────────────────────────────────────────────────
 const clearBtnWrap = document.getElementById('clearBtnWrap');
 const filterCountEl = document.getElementById('filterCount');
-const compactBtn = document.getElementById('compactBtn');
+const compactbtn = document.getElementById('compactbtn');
 const calBtn = document.getElementById('calbtn');
 const filterCatsEl = document.getElementById('filterCategories');
 
-if(compactMode) compactBtn.classList.add('active');
+if(compactMode) compactbtn.classList.add('active');
 if(calMode) calBtn.classList.add('active');
 
 calBtn.addEventListener('click',()=>{
     calMode=!calMode;
     compactMode=0;
-    compactBtn.classList.remove('active');
+    compactbtn.classList.remove('active');
     document.body.classList.remove('compact');
     document.body.classList.toggle('cal',calMode);
     calBtn.classList.toggle('active',calMode);
@@ -138,13 +138,13 @@ calBtn.addEventListener('click',()=>{
     renderExams();
 });
 
-compactBtn.addEventListener('click',()=>{
+compactbtn.addEventListener('click',()=>{
     compactMode=!compactMode;
     calMode=0;
     calBtn.classList.remove('active');
     document.body.classList.remove('cal');
     document.body.classList.toggle('compact',compactMode);
-    compactBtn.classList.toggle('active',compactMode);
+    compactbtn.classList.toggle('active',compactMode);
     saveCompact(compactMode);
     saveCal(calMode);
     renderExams();
