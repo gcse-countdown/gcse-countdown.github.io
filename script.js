@@ -324,11 +324,12 @@ function renderSpeakingDates() {
         label.className = 'speaking-date-label';
         label.textContent = subj;
 
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'speaking-date-input';
-        input.dataset.subject = subj;
-        input.placeholder = 'DD/MM';
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.className = 'speaking-date-input';
+        dateInput.dataset.subject = subj;
+        dateInput.min = '2026-01-01';
+        dateInput.max = '2026-12-31';
 
         const timeInput = document.createElement('input');
         timeInput.type = 'time';
@@ -338,22 +339,22 @@ function renderSpeakingDates() {
         // Populate values from saved which may be legacy string or object
         if (saved[subj]) {
             if (typeof saved[subj] === 'string') {
-                // legacy YYYY-MM-DD -> convert to DD/MM
+                // legacy DD/MM or YYYY-MM-DD format
                 if (saved[subj].includes('-')) {
-                    const parts = saved[subj].split('-');
-                    if (parts.length === 3) input.value = `${parts[2].padStart(2,'0')}/${parts[1].padStart(2,'0')}`;
+                    dateInput.value = saved[subj]; // already YYYY-MM-DD
                 } else if (saved[subj].includes('/')) {
-                    input.value = saved[subj];
+                    const parts = saved[subj].split('/');
+                    if (parts.length === 2) dateInput.value = `2026-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
                 }
                 timeInput.value = '09:00';
             } else if (typeof saved[subj] === 'object') {
                 // saved.date might be YYYY-MM-DD or DD/MM
                 if (saved[subj].date) {
                     if (saved[subj].date.includes('-')) {
-                        const parts = saved[subj].date.split('-');
-                        if (parts.length === 3) input.value = `${parts[2].padStart(2,'0')}/${parts[1].padStart(2,'0')}`;
+                        dateInput.value = saved[subj].date;
                     } else if (saved[subj].date.includes('/')) {
-                        input.value = saved[subj].date;
+                        const parts = saved[subj].date.split('/');
+                        if (parts.length === 2) dateInput.value = `2026-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
                     }
                 }
                 timeInput.value = saved[subj].time || '09:00';
@@ -361,22 +362,20 @@ function renderSpeakingDates() {
         }
 
         function commit() {
-            const val = (input.value || '').trim();
-            const m = val.match(/^(\d{1,2})\/(\d{1,2})$/);
-            if (!m) return; // invalid format — ignore
-            const dd = Number(m[1]);
-            const mm = Number(m[2]);
-            if (!dd || !mm || mm < 1 || mm > 12 || dd < 1 || dd > 31) return;
+            const val = (dateInput.value || '').trim();
+            if (!val || !/^\d{4}-\d{2}-\d{2}$/.test(val)) return;
+            const [yyyy, mm, dd] = val.split('-').map(Number);
+            if (!dd || !mm || mm < 1 || mm > 12 || dd < 1 || dd > 31 || yyyy !== 2026) return;
             const newSaved = loadSpeaking();
-            newSaved[subj] = { date: `${String(dd).padStart(2,'0')}/${String(mm).padStart(2,'0')}`, time: timeInput.value || '09:00' };
+            newSaved[subj] = { date: val, time: timeInput.value || '09:00' };
             saveSpeaking(newSaved);
             rebuildExams();
             renderExams();
         }
 
-        input.addEventListener('change', commit);
+        dateInput.addEventListener('change', commit);
         timeInput.addEventListener('change', () => {
-            if (input.value) commit();
+            if (dateInput.value) commit();
         });
 
         // Clear button
@@ -384,9 +383,9 @@ function renderSpeakingDates() {
         clearBtn.className = 'speaking-date-clear';
         clearBtn.title = 'Clear date';
         clearBtn.textContent = '✕';
-        clearBtn.style.display = input.value ? '' : 'none';
+        clearBtn.style.display = dateInput.value ? '' : 'none';
         clearBtn.addEventListener('click', () => {
-            input.value = '';
+            dateInput.value = '';
             timeInput.value = '09:00';
             clearBtn.style.display = 'none';
             const newSaved = loadSpeaking();
@@ -395,12 +394,12 @@ function renderSpeakingDates() {
             rebuildExams();
             renderExams();
         });
-        input.addEventListener('input', () => {
-            clearBtn.style.display = input.value ? '' : 'none';
+        dateInput.addEventListener('input', () => {
+            clearBtn.style.display = dateInput.value ? '' : 'none';
         });
 
         row.appendChild(label);
-        row.appendChild(input);
+        row.appendChild(dateInput);
         row.appendChild(timeInput);
         row.appendChild(clearBtn);
         grid.appendChild(row);

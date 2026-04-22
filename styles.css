@@ -1123,12 +1123,21 @@ body.cal .exam-list {
 
 .speaking-date-input {
     flex: 1;
-    min-width: 140px;
+    min-width: 160px;
 }
 
 .speaking-time-input {
     width: 100px;
     flex: none;
+}
+
+.speaking-date-input::-webkit-calendar-picker-indicator {
+    filter: invert(0.5);
+    cursor: pointer;
+}
+
+html.light .speaking-date-input::-webkit-calendar-picker-indicator {
+    filter: none;
 }
 
 .speaking-date-input:focus,
@@ -1142,16 +1151,6 @@ body.cal .exam-list {
     .speaking-time-input:hover {
         border-color: var(--accent);
     }
-}
-
-/* Webkit date picker colorize */
-.speaking-date-input::-webkit-calendar-picker-indicator {
-    filter: invert(0.5);
-    cursor: pointer;
-}
-
-html.light .speaking-date-input::-webkit-calendar-picker-indicator {
-    filter: none;
 }
 
 .speaking-date-clear {
