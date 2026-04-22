@@ -1,3 +1,18 @@
+:root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: #2a2a38;
+    --text: #e8e8f0;
+    --text-muted: #6b6b85;
+    --text-dim: #4c4c55;
+    --accent: #c8b8ff;
+    --grid-line: rgba(200,184,255,0.03);
+    --link: darkgoldenrod;
+    --link-hover: #49371b;
+    --link-active: goldenrod;
+}
+
 /* ── Theme Variables ── */
 html.dark {
     --bg: #0a0a0f;
@@ -24,25 +39,11 @@ html.light {
     --text-dim: #a0a0b8;
     --accent: #6d4fc2;
     --grid-line: rgba(100,80,180,0.05);
-    --link: #8b6914;
-    --link-hover: #3d2e0b;
-    --link-active: #c8960c;
+    --link: #3874c8;
+    --link-hover: #143c75;
+    --link-active: #082040;
 }
 
-:root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --surface2: #1c1c26;
-    --border: #2a2a38;
-    --text: #e8e8f0;
-    --text-muted: #6b6b85;
-    --text-dim: #4c4c55;
-    --accent: #c8b8ff;
-    --grid-line: rgba(200,184,255,0.03);
-    --link: darkgoldenrod;
-    --link-hover: #49371b;
-    --link-active: goldenrod;
-}
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -789,6 +790,11 @@ body.cal .exam-list {
     font-weight: 400;
 }
 
+/* Calendar rows with staggered animation */
+#calendar tr {
+    animation: slideIn 0.3s ease;
+}
+
 /* Weekend header columns (Sat=index 5, Sun=index 6) */
 #calendar tr:first-child th:nth-child(6),
 #calendar tr:first-child th:nth-child(7) {
@@ -939,6 +945,7 @@ html.light .cal-exam {
     max-width: 340px;
     background: var(--surface2);
     border: 1px solid var(--border);
+    border-left-width: 3px;
     border-radius: 10px;
     padding: 14px 16px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5);
@@ -1211,10 +1218,6 @@ html.light .speaking-date-input::-webkit-calendar-picker-indicator {
     color: var(--accent);
     vertical-align: middle;
     margin-left: 6px;
-}
-
-.speaking-card {
-    border-left-style: dashed !important;
 }
 
 /* ══ COMPACT MODE — HOVER TOOLTIPS ══ */

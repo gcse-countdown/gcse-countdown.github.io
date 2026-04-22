@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <script src = 'https://code.jquery.com/jquery-3.6.3.min.js'></script>
+    <script>
+        if (localStorage.getItem('light_mode') === '1') {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 </head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-V4KCR1GRZR"></script>
@@ -141,12 +147,10 @@
                         <span class="time" id="date">DATE FETCH ERROR</span>
                     </div>
                 </div>
+
+                <div class="sidebar-panel-label">Time</div>
                 
                 <div class="sidebar-section">
-                    <div class="sidebar-section-header">
-                        <span class="sidebar-section-label">Time</span>
-                        <div class="sidebar-section-line"></div>
-                    </div>
                     <div class="sidebar-text">
                         <span class="time" id="time">--:--:--</span>
                     </div>
@@ -154,7 +158,7 @@
 
                 <div class="sidebar-section">
                     <div class="sidebar-section-header">
-                        <span class="sidebar-section-label">TIME UNTIL NEXT EXAM</span>
+                        <span class="sidebar-section-label">UNTIL NEXT EXAM</span>
                         <div class="sidebar-section-line"></div>
                     </div>
                     <div class="sidebar-text">
@@ -181,6 +185,7 @@
                     </div>
                     <div class="sidebar-text">
                         <span class="time" id="endremtime">--:--:--</span>
+                        <span class="sidebar-sublabel" id="endremtimeLabel"></span>
                     </div>
                 </div>
                 

@@ -50,7 +50,7 @@ const RAW_EXAMS = [
     {date:"16/06",board:"AQA",    level:"GCSE", code:"8692/WH",        subject:"Spanish",                        component:"Paper 4 - Writing",                                                session:"AM",        durationMin:75},
     {date:"08/05",board:"WJEC", level:"GCSE", code:"601/8420/6", subject:"Drama",                            component:"Interpreting Theatre",                                         session:"PM",        durationMin:90},
 ];
-const MAX_DAYS = 60;
+const MAX_DAYS = 55;
 let prevStates={};
 
 // ── MFL subjects that get speaking exams ──────────────────────────────────────
@@ -235,10 +235,6 @@ function setLightMode(on) {
     saveLight(lightMode);
 }
 
-if (loadLight()) {
-    setLightMode(1);
-}
-
 if (lightToggleTop) lightToggleTop.addEventListener('change', e => setLightMode(e.target.checked));
 
 // ── Compact mode ──────────────────────────────────────────────────────────────
@@ -277,6 +273,10 @@ function setCalMode(on) {
 
 if (calbtn) calbtn.addEventListener('click', () => setCalMode(!calMode));
 if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compactMode));
+
+// Initialize button active states on page load
+if (calMode && calbtn) calbtn.classList.add('active');
+if (compactMode && compactbtn) compactbtn.classList.add('active');
 
 
 
@@ -649,6 +649,13 @@ function renderExams(){
             table += '</tr></table>';
             div.innerHTML = table;
             list.appendChild(div);
+            // Add staggered animation delays to calendar rows
+            const calTable = document.getElementById("calendar");
+            if (calTable && calTable.rows) {
+                for (let i = 0; i < calTable.rows.length; i++) {
+                    calTable.rows[i].style.animationDelay = `${Math.min(i * 20, 300)}ms`;
+                }
+            }
         }
         
         function addExams() {
@@ -672,9 +679,9 @@ function renderExams(){
                             const timerText = state === 'upcoming' ? fmtCountdown(msLeft) : '–';
                             const frac=state==='upcoming'?getFrac(msLeft):0;
                             const color=state==='upcoming'?fracToColor(frac):state==='inprogress'?'#a855f7':'#3b82f6';
-                            examDiv.style = `border-left: 2px solid ${color};`
+                            examDiv.style.borderLeftColor = color;
                             examDiv.innerHTML = `<span class="cal-exam-subject">${ex.subject}</span><span class="cal-exam-component">${ex.component}</span>`;
-                            examDiv.innerHTML += `<div class="cal-exam-tooltip">
+                            examDiv.innerHTML += `<div class="cal-exam-tooltip" style="border-left-color: ${color}">
                                 <div class="cal-tooltip-top">
                                     <div class="cal-tooltip-title-block">
                                         <span class="exam-subject">${ex.subject}</span>
@@ -783,6 +790,9 @@ function updateSidebarTimers() {
     const last = currentFiltered.length ? currentFiltered[currentFiltered.length - 1] : null;
     if (last) {
         document.getElementById('endremtime').textContent = fmtCountdown(last.end - now);
+        document.getElementById('endremtimeLabel').textContent = `After: ${last.subject} · ${last.component}`;
+    } else {
+        document.getElementById('endremtimeLabel').textContent = '';
     }
 
     // "Until half term" — countdown to the end of the last exam BEFORE half term
