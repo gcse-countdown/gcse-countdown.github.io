@@ -153,6 +153,9 @@ function buildSpeakingExams() {
         for (let i = 0; i < RAW_EXAMS.length; i++) {
             if (RAW_EXAMS[i].subject === subj) { codePrefix = RAW_EXAMS[i].code.split('/')[0]; break; }
         }
+
+        if (!activeFilters.has(subj)) return;
+
         result.push({
             date: `${String(dd).padStart(2,'0')}/${String(mm).padStart(2,'0')}`,
             board: 'AQA',
@@ -211,8 +214,6 @@ const speakingDatesEl = document.getElementById('speakingDates');
 
 // Settings toggles (moved to controls)
 const lightToggleTop = document.getElementById('lightToggleTop');
-const compactToggleTop = document.getElementById('compactToggleTop');
-const calToggleTop = document.getElementById('calToggleTop');
 
 
 
@@ -221,12 +222,6 @@ function syncAllToggles() {
     // Light mode
     const isLight = document.documentElement.classList.contains('light');
     if (lightToggleTop) lightToggleTop.checked = isLight;
-    // Compact
-    if (compactToggleTop) compactToggleTop.checked = !!compactMode;
-    if (compactbtn) compactbtn.classList.toggle('active', !!compactMode);
-    // Cal
-    if (calToggleTop) calToggleTop.checked = !!calMode;
-    if (calbtn) calbtn.classList.toggle('active', !!calMode);
 }
 
 syncAllToggles();
@@ -254,12 +249,10 @@ function setCompactMode(on) {
         document.body.classList.remove('cal');
         document.body.classList.add('compact');
         if(calbtn) calbtn.classList.remove('active');
-        if (calToggleTop) calToggleTop.checked = false;
     } else {
         document.body.classList.remove('compact');
     }
     if(compactbtn) compactbtn.classList.toggle('active', !!on);
-    if (compactToggleTop) compactToggleTop.checked = !!on;
     saveCompact(compactMode);
     saveCal(calMode);
     renderExams();
@@ -273,12 +266,10 @@ function setCalMode(on) {
         document.body.classList.remove('compact');
         document.body.classList.add('cal');
         if(compactbtn) compactbtn.classList.remove('active');
-        if (compactToggleTop) compactToggleTop.checked = false;
     } else {
         document.body.classList.remove('cal');
     }
     if(calbtn) calbtn.classList.toggle('active', !!on);
-    if (calToggleTop) calToggleTop.checked = !!on;
     saveCal(calMode);
     saveCompact(compactMode);
     renderExams();
@@ -286,8 +277,6 @@ function setCalMode(on) {
 
 if (calbtn) calbtn.addEventListener('click', () => setCalMode(!calMode));
 if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compactMode));
-if (calToggleTop) calToggleTop.addEventListener('change', e => setCalMode(e.target.checked));
-if (compactToggleTop) compactToggleTop.addEventListener('change', e => setCompactMode(e.target.checked));
 
 
 
