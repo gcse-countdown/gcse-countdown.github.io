@@ -36,7 +36,7 @@ html.light {
     --border: #2a2a38;
     --text: #e8e8f0;
     --text-muted: #6b6b85;
-    --text-dim: #3a3a50;
+    --text-dim: #4c4c55;
     --accent: #c8b8ff;
     --grid-line: rgba(200,184,255,0.03);
     --link: darkgoldenrod;
@@ -832,10 +832,29 @@ body.cal .exam-list {
     background: rgba(0,0,0,0.12);
 }
 
+/* Light mode calendar overrides */
+html.light #calendar td.nextMonth {
+    background: #f0f0f6;
+}
+
+html.light #calendar td:not(.curMonth):not(.nextMonth) {
+    background: #e8e8f0;
+}
+
+html.light #calendar td:nth-child(6),
+html.light #calendar td:nth-child(7) {
+    background: #ebebf2;
+}
+
 /* Today highlight */
 #calendar td.today {
     background: rgba(200,184,255,0.06);
     border-color: rgba(200,184,255,0.25);
+}
+
+html.light #calendar td.today {
+    background: #f3e8ff;
+    border-color: #d8b4fe;
 }
 
 #calendar td.today::after {
@@ -864,9 +883,16 @@ body.cal .exam-list {
     transition: background 0.15s;
 }
 
+html.light .cal-exam {
+    background: #ede9f6;
+}
+
 @media (hover: hover) and (pointer: fine) {
     .cal-exam:hover {
         background: rgba(200,184,255,0.13);
+    }
+    html.light .cal-exam:hover {
+        background: #ddd4f0;
     }
 }
 
