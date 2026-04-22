@@ -576,8 +576,13 @@ function renderExams(){
         `<strong>${upcoming.length}</strong> upcoming`;
     
     const halfTermStartMs = HALF_TERM_START.getTime();
-    const active = [...inprogress,...upcoming];
+    let active = [...inprogress,...upcoming];
     let halfTermInserted = false;
+
+    // In calendar mode include finished (over) exams as well
+    if (calMode) {
+        active = filtered.slice();
+    }
 
     if (!calMode) {
         active.forEach((e,i)=>{
@@ -673,10 +678,13 @@ function renderExams(){
                             const now = Date.now();
                             const state = getState(ex.start, ex.end, now);
                             const statusBadge = state === 'inprogress'
-                                ? `<span class="status-badge inprogress">● IN PROGRESS</span>`
-                                : state === 'over' ? `<span class="status-badge over">EXAM OVER</span>` : '';
+                            ? `<span class="status-badge inprogress">● IN PROGRESS</span>`
+                            : state === 'over' ? `<span class="status-badge over">EXAM OVER</span>` : '';
                             const msLeft = ex.start - now;
                             const timerText = state === 'upcoming' ? fmtCountdown(msLeft) : '–';
+                            const frac=state==='upcoming'?getFrac(msLeft):0;
+                            const color=state==='upcoming'?fracToColor(frac):state==='inprogress'?'#a855f7':'#3b82f6';
+                            examDiv.style = `border-left: 2px solid ${color};`
                             examDiv.innerHTML = `<span class="cal-exam-subject">${ex.subject}</span><span class="cal-exam-component">${ex.component}</span>`;
                             examDiv.innerHTML += `<div class="cal-exam-tooltip">
                                 <div class="cal-tooltip-top">
