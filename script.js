@@ -147,7 +147,7 @@ function buildSpeakingExams() {
         if (!dd || !mm) return;
         const [hours, minutes] = (timeStr || '09:00').split(':').map(Number);
         const start = new Date(2026, mm-1, dd, Number.isFinite(hours) ? hours : 9, Number.isFinite(minutes) ? minutes : 0, 0, 0);
-        const end = new Date(start.getTime() + 15*60000); // ~15 min
+        const end = new Date(start.getTime() + 30*60000); // 30 min
         // Find a base code for this subject from RAW_EXAMS (first matching) to preserve code prefix
         let codePrefix = 'SPEAK';
         for (let i = 0; i < RAW_EXAMS.length; i++) {
@@ -164,7 +164,7 @@ function buildSpeakingExams() {
             subject: subj,
             component: 'Speaking Exam',
             session: fmtTime(start),
-            durationMin: 15,
+            durationMin: 30,
             start, end,
             isSpeaking: true,
         });

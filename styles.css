@@ -215,7 +215,7 @@ a:active {
     .container { padding: 0; }
 }
 
-header { margin-bottom: 48px; }
+header { margin-bottom: 16px; }
 
 .header-top {
     display: flex;
@@ -278,7 +278,7 @@ h1 span { color: var(--accent); }
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 14px;
-    margin-bottom: 32px;
+    margin-bottom: 16px;
 }
 
 /* ── Label ── */
@@ -306,15 +306,16 @@ h1 span { color: var(--accent); }
     display: flex;
     gap: 16px;
     align-items: center;
-    margin-bottom: 12px;
     flex-wrap: wrap;
 }
 .controls-settings-box .setting-row {
     display: flex;
     align-items: center;
+    justify-content: end;
     gap: 8px;
     font-size: 13px;
     color: var(--text-muted);
+    flex: 1;
 }
 .controls-settings-box .setting-row span {
     font-family: 'DM Sans', sans-serif;
