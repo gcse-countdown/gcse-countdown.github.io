@@ -206,6 +206,7 @@ let plannerMode = 0;
 // ── DOM refs ─────────────────────────────────────────────────────────────────
 const clearBtnWrap = document.getElementById('clearBtnWrap');
 const filterCountEl = document.getElementById('filterCount');
+const defaultbtn = document.getElementById('defaultbtn');
 const compactbtn = document.getElementById('compactbtn');
 const calbtn = document.getElementById('calbtn');
 const filterCatsEl = document.getElementById('filterCategories');
@@ -237,6 +238,21 @@ function setLightMode(on) {
 
 if (lightToggleTop) lightToggleTop.addEventListener('change', e => setLightMode(e.target.checked));
 
+// ── Default mode ──────────────────────────────────────────────────────────────
+function setDefaultMode(on) {
+    if (on) {
+        compactMode = 0;
+        calMode = 0;
+        document.body.classList.remove('compact', 'cal');
+        if(compactbtn) compactbtn.classList.remove('active');
+        if(calbtn) calbtn.classList.remove('active');
+    }
+    if(defaultbtn) defaultbtn.classList.toggle('active', !!on);
+    saveCompact(compactMode);
+    saveCal(calMode);
+    renderExams();
+}
+
 // ── Compact mode ──────────────────────────────────────────────────────────────
 function setCompactMode(on) {
     compactMode = on ? 1 : 0;
@@ -245,8 +261,10 @@ function setCompactMode(on) {
         document.body.classList.remove('cal');
         document.body.classList.add('compact');
         if(calbtn) calbtn.classList.remove('active');
+        if(defaultbtn) defaultbtn.classList.remove('active');
     } else {
         document.body.classList.remove('compact');
+        if(defaultbtn) defaultbtn.classList.add('active');
     }
     if(compactbtn) compactbtn.classList.toggle('active', !!on);
     saveCompact(compactMode);
@@ -262,8 +280,10 @@ function setCalMode(on) {
         document.body.classList.remove('compact');
         document.body.classList.add('cal');
         if(compactbtn) compactbtn.classList.remove('active');
+        if(defaultbtn) defaultbtn.classList.remove('active');
     } else {
         document.body.classList.remove('cal');
+        if(defaultbtn) defaultbtn.classList.add('active');
     }
     if(calbtn) calbtn.classList.toggle('active', !!on);
     saveCal(calMode);
@@ -273,8 +293,29 @@ function setCalMode(on) {
 
 if (calbtn) calbtn.addEventListener('click', () => setCalMode(!calMode));
 if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compactMode));
+if (defaultbtn) defaultbtn.addEventListener('click', () => setDefaultMode(true));
+
+// Keyboard shortcuts: z = default, x = compact, c = calendar, l = light mode
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'z' || e.key === 'Z') {
+        e.preventDefault();
+        setDefaultMode(true);
+    } else if (e.key === 'x' || e.key === 'X') {
+        e.preventDefault();
+        setCompactMode(!compactMode);
+    } else if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        setCalMode(!calMode);
+    } else if (e.key === 'l' || e.key === 'L') {
+        e.preventDefault();
+        const isLight = document.documentElement.classList.contains('light');
+        setLightMode(!isLight);
+    }
+});
 
 // Initialize button active states on page load
+const isDefaultMode = !compactMode && !calMode;
+if (isDefaultMode && defaultbtn) defaultbtn.classList.add('active');
 if (calMode && calbtn) calbtn.classList.add('active');
 if (compactMode && compactbtn) compactbtn.classList.add('active');
 

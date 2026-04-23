@@ -373,6 +373,9 @@ h1 span { color: var(--accent); }
     cursor: pointer;
     transition: all 0.18s ease;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -386,6 +389,38 @@ h1 span { color: var(--accent); }
     background: rgba(200,184,255,0.12);
     border-color: var(--accent);
     color: var(--accent);
+}
+
+.shortcut-label {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2px 5px;
+    margin-left: 4px;
+    opacity: 0.7;
+    transition: opacity 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    text-align: center;
+}
+
+.filter-btn:hover .shortcut-label {
+    opacity: 1;
+    color: var(--text-muted);
+    border-color: var(--accent);
+}
+
+.filter-btn.active .shortcut-label {
+    opacity: 1;
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(200,184,255,0.06);
 }
 
 /* ── Grid + categories ── */
@@ -424,7 +459,7 @@ h1 span { color: var(--accent); }
     align-items: center;
     gap: 6px;
 }
-#compactbtn::before {
+/* #compactbtn::before {
     content: '';
     width: 12px;
     height: 8px;
@@ -457,7 +492,7 @@ h1 span { color: var(--accent); }
     );
     opacity: 0.7;
     transition: opacity 0.18s ease;
-}
+} */
 
 .btn.active::before, #compactbtn.active::before, #calbtn.active::before { opacity: 1; }
 @media (hover: hover) and (pointer: fine) {
