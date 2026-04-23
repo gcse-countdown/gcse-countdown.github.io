@@ -311,10 +311,11 @@ h1 span { color: var(--accent); }
 .controls-settings-box .setting-row {
     display: flex;
     align-items: center;
-    justify-content: end;
+    justify-content: space-between;
     gap: 8px;
     font-size: 13px;
     color: var(--text-muted);
+    flex-wrap: wrap;
     flex: 1;
 }
 .controls-settings-box .setting-row span {
@@ -335,6 +336,8 @@ h1 span { color: var(--accent); }
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 /* ── Filter count ── */
@@ -421,6 +424,12 @@ h1 span { color: var(--accent); }
     color: var(--accent);
     border-color: var(--accent);
     background: rgba(200,184,255,0.06);
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .shortcut-label {
+        display: none;
+    }
 }
 
 /* ── Grid + categories ── */
@@ -1201,12 +1210,21 @@ html.light .cal-exam {
 }
 
 .speaking-date-input::-webkit-calendar-picker-indicator {
-    filter: invert(0.5);
+    filter: invert(1) brightness(1.2);
     cursor: pointer;
 }
 
 html.light .speaking-date-input::-webkit-calendar-picker-indicator {
-    filter: none;
+    filter: brightness(0.8);
+}
+
+.speaking-time-input::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.2);
+    cursor: pointer;
+}
+
+html.light .speaking-time-input::-webkit-calendar-picker-indicator {
+    filter: brightness(0.8);
 }
 
 .speaking-date-input:focus,
@@ -1428,8 +1446,3 @@ body.hover-cards:not(.compact):not(.cal) .exam-card .card-hover-tooltip {
 }
 
 /* Hover toggle btn in controls-topbar */
-#hoverToggleBtn::before {
-    content: '👁';
-    font-size: 11px;
-    margin-right: 2px;
-}

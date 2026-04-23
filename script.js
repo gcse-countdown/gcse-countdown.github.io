@@ -50,7 +50,7 @@ const RAW_EXAMS = [
     {date:"16/06",board:"AQA",    level:"GCSE", code:"8692/WH",        subject:"Spanish",                        component:"Paper 4 - Writing",                                                session:"AM",        durationMin:75},
     {date:"08/05",board:"WJEC", level:"GCSE", code:"601/8420/6", subject:"Drama",                            component:"Interpreting Theatre",                                         session:"PM",        durationMin:90},
 ];
-const MAX_DAYS = 55;
+const MAX_DAYS = 50;
 let prevStates={};
 
 // ── MFL subjects that get speaking exams ──────────────────────────────────────
@@ -339,7 +339,7 @@ function renderSpeakingDates() {
 
     const header = document.createElement('div');
     header.className = 'speaking-dates-header';
-    header.innerHTML = `<span class="speaking-dates-label">🎤 Speaking Exam Dates</span>
+    header.innerHTML = `<span class="speaking-dates-label"><i class="fas fa-microphone"></i> Speaking Exam Dates</span>
         <span class="speaking-dates-hint">Set your speaking exam date to add it to the list</span>`;
     wrapper.appendChild(header);
 
@@ -412,7 +412,7 @@ function renderSpeakingDates() {
         const clearBtn = document.createElement('button');
         clearBtn.className = 'speaking-date-clear';
         clearBtn.title = 'Clear date';
-        clearBtn.textContent = '✕';
+        clearBtn.innerHTML = '<i class="fas fa-times"></i>';
         clearBtn.style.display = dateInput.value ? '' : 'none';
         clearBtn.addEventListener('click', () => {
             dateInput.value = '';
@@ -618,7 +618,7 @@ function renderExams(){
             if(!halfTermInserted && e.start.getTime() >= halfTermStartMs){
                 const div=document.createElement('div');
                 div.className='section-divider half-term-divider';
-                div.innerHTML='🌿 Half Term';
+                div.innerHTML='<i class="fas fa-leaf"></i> Half Term';
                 list.appendChild(div);
                 halfTermInserted=true;
             }
@@ -735,7 +735,7 @@ function renderExams(){
                                     <span class="badge">${ex.board} ${ex.level}</span>
                                     <span class="badge">${ex.code}</span>
                                     <span class="badge">${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
-                                    <span class="badge">⏱ ${fmtDuration(ex.durationMin)}</span>
+                                    <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
                                 </div>
                                 <div class="countdown-block">
                                     <span class="countdown-timer${state !== 'upcoming' ? ' dim' : ''}" data-code="${ex.code}">${timerText}</span>
@@ -782,7 +782,7 @@ function makeCard(e,idx){
             <span class="badge">${e.board} ${e.level}</span>
             <span class="badge">${e.code}</span>
             <span class="badge">${fmtTime(e.start)} – ${fmtTime(e.end)}</span>
-            <span class="badge">⏱ ${fmtDuration(e.durationMin)}</span>
+            <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(e.durationMin)}</span>
         </div>
         <div class="countdown-block">
             <span class="countdown-timer${state!=='upcoming'?' dim':''}" data-code="${e.code}">${timerText}</span>
@@ -791,7 +791,7 @@ function makeCard(e,idx){
         <div class="card-hover-tooltip">
             <div class="cal-tooltip-top">
                 <div class="cal-tooltip-title-block">
-                    <span class="exam-subject">${e.subject}${e.isSpeaking?' 🎤':''}</span>
+                    <span class="exam-subject">${e.subject}${e.isSpeaking?' <i class="fas fa-microphone"></i>':''}</span>
                     <span class="exam-component">${e.component}</span>
                 </div>
                 ${statusBadge}
@@ -801,7 +801,7 @@ function makeCard(e,idx){
                 <span class="badge">${e.board} ${e.level}</span>
                 <span class="badge">${e.code}</span>
                 <span class="badge">${fmtTime(e.start)} – ${fmtTime(e.end)}</span>
-                <span class="badge">⏱ ${fmtDuration(e.durationMin)}</span>
+                <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(e.durationMin)}</span>
                 </div>
                 <div class="countdown-block">
                 <span class="countdown-timer${state!=='upcoming'?' dim':''}" data-code="${e.code}-hover">${timerText}</span>
