@@ -567,6 +567,49 @@ document.getElementById('clearFilters').addEventListener('click',()=>{
     updateClearBtn(); updateFilterCount(); saveFilters(); renderExams(); renderSpeakingDates();
 });
 
+// ── Filter collapse button (mobile) ──────────────────────────────────────────
+const filterCollapseBtn = document.getElementById('filterCollapseBtn');
+const filterCatsEl_ref = document.getElementById('filterCategories');
+const speakingDatesEl_ref = document.getElementById('speakingDates');
+const FILTER_COLLAPSED_KEY = 'filter_collapsed';
+
+function loadFilterCollapsed() {
+    try {
+        return localStorage.getItem(FILTER_COLLAPSED_KEY) === '1';
+    } catch(e) {
+        return false;
+    }
+}
+
+function saveFilterCollapsed(collapsed) {
+    try {
+        localStorage.setItem(FILTER_COLLAPSED_KEY, collapsed ? '1' : '0');
+    } catch(e) {}
+}
+
+function setFilterCollapsed(collapsed) {
+    if (collapsed) {
+        filterCatsEl_ref.classList.add('collapsed');
+        speakingDatesEl_ref.classList.add('collapsed');
+        filterCollapseBtn.classList.add('collapsed');
+    } else {
+        filterCatsEl_ref.classList.remove('collapsed');
+        speakingDatesEl_ref.classList.remove('collapsed');
+        filterCollapseBtn.classList.remove('collapsed');
+    }
+    saveFilterCollapsed(collapsed);
+}
+
+filterCollapseBtn.addEventListener('click', () => {
+    const isCollapsed = filterCatsEl_ref.classList.contains('collapsed');
+    setFilterCollapsed(!isCollapsed);
+});
+
+// Load initial state
+if (loadFilterCollapsed()) {
+    setFilterCollapsed(true);
+}
+
 // Init clear btn without animation
 clearBtnWrap.style.transition='none';
 clearBtnWrap.style.height=activeFilters.size>0?'auto':'0';

@@ -450,6 +450,30 @@ h1 span { color: var(--accent); }
     padding: 2px 4px;
 }
 
+/* ── Filter collapse button (mobile only) ── */
+.filter-collapse-btn {
+    display: none;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.18s ease;
+    font-size: 14px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .filter-collapse-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+}
+
 /* buttons */
 .btn {
     font-family: 'DM Sans', sans-serif;
@@ -1336,106 +1360,6 @@ body.hover-cards:not(.compact):not(.cal) .exam-card .card-hover-tooltip {
 }
 /* (In normal mode, cards already show all info, so hover tooltip is redundant — intentionally not shown) */
 
-/* ══ FLOATING SETTINGS MENU ══ */
-/* Only show on small screens when sidebars are hidden */
-.floating-settings {
-    display: none;
-    position: fixed;
-    bottom: 24px;
-    right: 20px;
-    z-index: 1000;
-}
-
-@media (max-width: 1100px) {
-    .floating-settings {
-        display: block;
-    }
-}
-
-.floating-settings-toggle {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text-muted);
-    font-size: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-    transition: all 0.18s ease;
-    position: relative;
-    z-index: 2;
-}
-
-@media (hover: hover) and (pointer: fine) {
-    .floating-settings-toggle:hover {
-        border-color: var(--accent);
-        color: var(--accent);
-    }
-}
-
-.floating-settings-panel {
-    display: none;
-    position: absolute;
-    bottom: calc(100% + 10px);
-    right: 0;
-    min-width: 200px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    animation: slideIn 0.2s ease;
-}
-
-.floating-settings-panel.open {
-    display: block;
-}
-
-.floating-settings-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.floating-settings-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-}
-
-.floating-settings-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-muted);
-}
-
-.floating-settings-row:last-child {
-    margin-bottom: 0;
-}
-
-.floating-settings-divider {
-    height: 1px;
-    background: var(--border);
-    margin: 8px 0;
-}
-
 /* ══ SIDEBAR SETTINGS PANEL — hide toggle-mode from right sidebar ══ */
 .toggle-mode { display: none !important; }
 
@@ -1523,4 +1447,21 @@ body.hover-cards:not(.compact):not(.cal) .exam-card .card-hover-tooltip {
     .quick-links-menu {
         flex-direction: column;
     }
+
+    .filter-collapse-btn {
+        display: flex;
+    }
+
+    .filter-collapse-btn.collapsed i {
+        transform: rotate(180deg);
+    }
+
+    #filterCategories.collapsed {
+    display: none;
+    }
+
+    #speakingDates.collapsed {
+        display: none;
+    }
+
 }
