@@ -1446,3 +1446,81 @@ body.hover-cards:not(.compact):not(.cal) .exam-card .card-hover-tooltip {
 }
 
 /* Hover toggle btn in controls-topbar */
+
+/* ── Quick Links Menu ── */
+.quick-links-menu {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.quick-link-box {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 14px;
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.18s ease;
+    cursor: pointer;
+}
+
+.quick-link-box:link,
+.quick-link-box:visited,
+.quick-link-box:hover,
+.quick-link-box:active {
+    background-color: var(--surface);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .quick-link-box:hover {
+        background: var(--surface2);
+        border-color: var(--accent);
+    }
+}
+
+.quick-link-box i {
+    font-size: 24px;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.quick-link-icon-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.quick-link-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.quick-link-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.quick-link-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+@media (max-width: 768px) {
+    .quick-links-menu {
+        flex-direction: column;
+    }
+}
