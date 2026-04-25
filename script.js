@@ -71,6 +71,7 @@ const CATEGORIES = [
 const STORAGE_KEY = 'filters_v3';
 const COMPACT_KEY = 'compact_mode';
 const CAL_KEY = 'calendar_mode';
+const LEGACY_CAL_KEY = 'legacy_calendar_mode';
 const LIGHT_KEY = 'light_mode';
 const PLANNER_KEY = 'planner';
 const SPEAKING_KEY = 'speaking_dates_v1';
@@ -81,6 +82,8 @@ function saveCompact(v) { try { localStorage.setItem(COMPACT_KEY, v?'1':'0'); } 
 function loadCompact() { try { return localStorage.getItem(COMPACT_KEY)==='1'; } catch(e){ return false; } }
 function saveCal(active) {try {return localStorage.setItem(CAL_KEY, active ? 1 : 0);} catch(e) {return false;}}
 function loadCal() {try {return localStorage.getItem(CAL_KEY) == 1;} catch(e) {return false;}}
+function saveLegacyCal(active) {try {return localStorage.setItem(LEGACY_CAL_KEY, active ? 1 : 0);} catch(e) {return false;}}
+function loadLegacyCal() {try {return localStorage.getItem(LEGACY_CAL_KEY) == 1;} catch(e) {return false;}}
 function saveLight(active) {try {return localStorage.setItem(LIGHT_KEY, active ? 1 : 0);} catch(e) {return false;}}
 function loadLight() {try {return localStorage.getItem(LIGHT_KEY) == 1;} catch(e) {return false;}}
 function savePlanner(keys) {try {return localStorage.setItem(PLANNER_KEY, JSON.stringify(keys));} catch(e) {return false;}}
@@ -198,7 +201,9 @@ activeFilters.forEach(s=>{if(!ALL_SUBJECTS.includes(s))activeFilters.delete(s);}
 let calMode = loadCal();
 if (calMode) {document.body.classList.replace('compact', 'cal') ? null:document.body.classList.add('cal')};
 
-let compactMode = calMode ? 0:loadCompact();
+let legacyCalMode = loadLegacyCal();
+
+let compactMode = calMode || legacyCalMode ? 0:loadCompact();
 if(compactMode) {document.body.classList.replace('cal', 'compact') ? null:document.body.classList.add('compact')};
 
 let plannerMode = 0;
@@ -209,6 +214,7 @@ const filterCountEl = document.getElementById('filterCount');
 const defaultbtn = document.getElementById('defaultbtn');
 const compactbtn = document.getElementById('compactbtn');
 const calbtn = document.getElementById('calbtn');
+const legacyCalToggle = document.getElementById('legacyCalToggle');
 const filterCatsEl = document.getElementById('filterCategories');
 const plannerbtn = document.getElementById('rev-planner');
 const speakingDatesEl = document.getElementById('speakingDates');
@@ -223,6 +229,8 @@ function syncAllToggles() {
     // Light mode
     const isLight = document.documentElement.classList.contains('light');
     if (lightToggleTop) lightToggleTop.checked = isLight;
+
+    if (legacyCalToggle) legacyCalToggle.checked = legacyCalMode;
 }
 
 syncAllToggles();
@@ -238,12 +246,25 @@ function setLightMode(on) {
 
 if (lightToggleTop) lightToggleTop.addEventListener('change', e => setLightMode(e.target.checked));
 
+function setLegacyCalMode(on) {
+    legacyCalMode = on ? 1 : 0;
+    if (legacyCalToggle) legacyCalToggle.checked = on;
+    if (!calMode) setCalMode(true);
+    saveLegacyCal(legacyCalMode);
+    renderExams();
+}
+if (legacyCalToggle) {
+    legacyCalToggle.addEventListener('change', e => {
+        setLegacyCalMode(e.target.checked);
+    });
+}
+
 // ── Default mode ──────────────────────────────────────────────────────────────
 function setDefaultMode(on) {
     if (on) {
         compactMode = 0;
         calMode = 0;
-        document.body.classList.remove('compact', 'cal');
+        document.body.classList.remove('compact', 'cal', 'multical');
         if(compactbtn) compactbtn.classList.remove('active');
         if(calbtn) calbtn.classList.remove('active');
     }
@@ -258,7 +279,7 @@ function setCompactMode(on) {
     compactMode = on ? 1 : 0;
     if (on) {
         calMode = 0;
-        document.body.classList.remove('cal');
+        document.body.classList.remove('cal', 'multical');
         document.body.classList.add('compact');
         if(calbtn) calbtn.classList.remove('active');
         if(defaultbtn) defaultbtn.classList.remove('active');
@@ -277,7 +298,7 @@ function setCalMode(on) {
     calMode = on ? 1 : 0;
     if (on) {
         compactMode = 0;
-        document.body.classList.remove('compact');
+        document.body.classList.remove('compact', 'multical');
         document.body.classList.add('cal');
         if(compactbtn) compactbtn.classList.remove('active');
         if(defaultbtn) defaultbtn.classList.remove('active');
@@ -295,7 +316,7 @@ if (calbtn) calbtn.addEventListener('click', () => setCalMode(!calMode));
 if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compactMode));
 if (defaultbtn) defaultbtn.addEventListener('click', () => setDefaultMode(true));
 
-// Keyboard shortcuts: z = default, x = compact, c = calendar, l = light mode
+// Keyboard shortcuts: z = default, x = compact, c = calendar, v = multi-month calendar, l = light mode
 document.addEventListener('keydown', (e) => {
     if (e.key === 'z' || e.key === 'Z') {
         e.preventDefault();
@@ -306,6 +327,9 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
         setCalMode(!calMode);
+    } else if (e.key === 'v' || e.key === 'V') {
+        e.preventDefault();
+        setLegacyCalMode(!legacyCalMode);
     } else if (e.key === 'l' || e.key === 'L') {
         e.preventDefault();
         const isLight = document.documentElement.classList.contains('light');
@@ -314,12 +338,11 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Initialize button active states on page load
-const isDefaultMode = !compactMode && !calMode;
+const isDefaultMode = !compactMode && !calMode && !legacyCalMode;
 if (isDefaultMode && defaultbtn) defaultbtn.classList.add('active');
 if (calMode && calbtn) calbtn.classList.add('active');
 if (compactMode && compactbtn) compactbtn.classList.add('active');
-
-
+if (legacyCalMode && legacyCalToggle) legacyCalToggle.classList.add('active');
 
 // ── Speaking exam date selectors ──────────────────────────────────────────────
 function getActiveMFLSubjects() {
@@ -626,6 +649,209 @@ let monthOffset = 0;
 // ── Render ────────────────────────────────────────────────────────────────────
 let currentFiltered = exams.slice();
 
+function renderMultiMonthCalendar(list, active, filtered) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'multi-calendar-wrapper';
+
+    // Use ALL exams (including over) for full calendar
+    const allExamsForCalendar = activeFilters.size === 0 ? exams : exams.filter(e => activeFilters.has(e.subject));
+
+    // Always show April, May, June 2026
+    const sortedMonths = [4, 5, 6].map(m => new Date(2026, m - 1, 1));
+
+    // Mon=0 … Sun=6
+    function dayCol(date) {
+        let d = date.getDay();
+        return d === 0 ? 6 : d - 1;
+    }
+
+    const today = new Date();
+
+    // Build one single table. Each week is one <tr> with 8 cells:
+    //   cell 0 = month-label column (empty most rows, shows month name on first row of each month)
+    //   cells 1–7 = Mon–Sun
+    const table = document.createElement('table');
+    table.className = 'multi-calendar continuous-calendar';
+
+    // Header row — 8 cols: label col + 7 day names
+    const thead = table.createTHead();
+    const headerRow = thead.insertRow();
+    const labelTh = document.createElement('th');
+    labelTh.className = 'cal-month-col';
+    headerRow.appendChild(labelTh);
+    ['MON','TUE','WED','THU','FRI','SAT','SUN'].forEach(name => {
+        const th = document.createElement('th');
+        th.textContent = name;
+        headerRow.appendChild(th);
+    });
+
+    const tbody = table.createTBody();
+
+    // Track cells for exam injection: { "day/month": td }
+    const cellMap = {};
+
+    sortedMonths.forEach((monthStart, mIdx) => {
+        const month = monthStart.getMonth();
+        const year = monthStart.getFullYear();
+
+        let cursor = new Date(year, month, 1);
+        let firstWeekOfMonth = true;
+        // For mid-week starts, we defer writing the label to the next row
+        let deferredLabel = null;
+
+        while (cursor.getMonth() === month) {
+            const col = dayCol(cursor);
+
+            const needNewRow = col === 0 || tbody.rows.length === 0;
+
+            if (needNewRow) {
+                const tr = tbody.insertRow();
+
+                // Month-label cell
+                const labelTd = document.createElement('td');
+                labelTd.className = 'cal-month-col';
+
+                // Write any deferred label from the previous month's mid-week start
+                if (deferredLabel) {
+                    labelTd.textContent = deferredLabel;
+                    deferredLabel = null;
+                } else if (firstWeekOfMonth && mIdx > 0 && col === 0) {
+                    // Month starts exactly on Monday — label goes here (same row as day 1)
+                    labelTd.textContent = monthStart.toLocaleString('default', { month: 'short' }).toUpperCase();
+                } else if (firstWeekOfMonth && mIdx === 0) {
+                    // Very first month ever — label goes on first row
+                    labelTd.textContent = monthStart.toLocaleString('default', { month: 'short' }).toUpperCase();
+                }
+
+                if (firstWeekOfMonth) firstWeekOfMonth = false;
+                tr.appendChild(labelTd);
+
+                // For the very first row only: pad Mon→(col-1) with empty cells
+                if (tbody.rows.length === 1 && col > 0) {
+                    for (let i = 0; i < col; i++) {
+                        const td = document.createElement('td');
+                        td.className = 'empty';
+                        tr.appendChild(td);
+                    }
+                }
+            } else if (firstWeekOfMonth) {
+                // First day of a non-first month continuing mid-row.
+                // Defer the label to the next row (below the boundary line).
+                firstWeekOfMonth = false;
+                deferredLabel = monthStart.toLocaleString('default', { month: 'short' }).toUpperCase();
+                // Leave the current row's label cell empty — it belongs to the previous month's week
+            }
+
+            // Append the day cell to the current row
+            const currentRow = tbody.rows[tbody.rows.length - 1];
+            const td = document.createElement('td');
+            const isToday = cursor.getFullYear() === today.getFullYear() &&
+                            cursor.getMonth() === today.getMonth() &&
+                            cursor.getDate() === today.getDate();
+            td.className = isToday ? 'curMonth today' : 'curMonth';
+            if (cursor.getDate() === 1 && mIdx > 0) {
+                td.classList.add('month-start');
+                td.dataset.monthStartCol = col;
+            }
+            td.dataset.day = cursor.getDate();
+            td.dataset.month = cursor.getMonth() + 1;
+            td.textContent = cursor.getDate();
+            currentRow.appendChild(td);
+
+            cellMap[`${cursor.getDate()}/${cursor.getMonth() + 1}`] = td;
+
+            cursor.setDate(cursor.getDate() + 1);
+        }
+    });
+
+    // ── Post-process: draw the ⌐-shaped month boundary borders ──────────────────
+    // For a month starting on col C:
+    //   - border-top on day 1 and everything to its right in that row
+    //   - border-top on the label cell of that same row
+    //   - if C > 0: border-top on label + cols 0..(C-1) in the NEXT row
+    //   - NO left border on day 1
+    //   - the label cell of the start row gets NO border-top (it's above the line for mid-week;
+    //     for Monday starts the label IS on the border row so it does get it)
+
+    const allRows = Array.from(tbody.rows);
+    allRows.forEach((row, rowIdx) => {
+        const startCell = Array.from(row.cells).find(c => c.classList.contains('month-start'));
+        if (!startCell) return;
+
+        const startCol = parseInt(startCell.dataset.monthStartCol); // 0=Mon…6=Sun
+        const startCellIdx = startCol + 1; // +1 for label column at index 0
+
+        if (startCol === 0) {
+            // Month starts on Monday — border runs along top of entire row including label
+            for (let i = 0; i < row.cells.length; i++) {
+                row.cells[i].classList.add('month-border-top');
+            }
+        } else {
+            // Month starts mid-week:
+            // border-top + border-left on day 1 (the corner of the ⌐ shape)
+            startCell.classList.add('month-border-left');
+            // border-top on day 1 and everything to its right in this row
+            for (let i = startCellIdx; i < row.cells.length; i++) {
+                row.cells[i].classList.add('month-border-top');
+            }
+            // border-top on label + cols 0..(startCol-1) in the NEXT row
+            if (rowIdx + 1 < allRows.length) {
+                const nextRow = allRows[rowIdx + 1];
+                nextRow.cells[0].classList.add('month-border-top');
+                for (let i = 1; i <= startCol; i++) {
+                    if (nextRow.cells[i]) nextRow.cells[i].classList.add('month-border-top');
+                }
+            }
+            // The label cell on THIS row gets no border (it's above the line, in the previous month's territory)
+        }
+    });
+
+    wrapper.appendChild(table);
+    list.appendChild(wrapper);
+
+    // Inject exam pills into the correct cells
+    allExamsForCalendar.forEach(ex => {
+        const [eDay, eMonth] = ex.date.split('/').map(Number);
+        const td = cellMap[`${eDay}/${eMonth}`];
+        if (!td) return;
+
+        const examDiv = document.createElement('div');
+        examDiv.className = 'cal-exam';
+        const now = Date.now();
+        const state = getState(ex.start, ex.end, now);
+        const statusBadge = state === 'inprogress'
+            ? `<span class="status-badge inprogress">● IN PROGRESS</span>`
+            : state === 'over' ? `<span class="status-badge over">EXAM OVER</span>` : '';
+        const msLeft = ex.start - now;
+        const timerText = state === 'upcoming' ? fmtCountdown(msLeft) : '–';
+        const frac = state === 'upcoming' ? getFrac(msLeft) : 0;
+        const color = state === 'upcoming' ? fracToColor(frac) : state === 'inprogress' ? '#a855f7' : '#3b82f6';
+        examDiv.style.borderLeftColor = color;
+        examDiv.innerHTML = `<span class="cal-exam-subject">${ex.subject}</span><span class="cal-exam-component">${ex.component}</span>`;
+        examDiv.innerHTML += `<div class="cal-exam-tooltip" style="border-left-color: ${color}">
+            <div class="cal-tooltip-top">
+                <div class="cal-tooltip-title-block">
+                    <span class="exam-subject">${ex.subject}</span>
+                    <span class="exam-component">${ex.component}</span>
+                </div>
+                ${statusBadge}
+            </div>
+            <div class="exam-meta">
+                <span class="badge">${ex.date}/26</span>
+                <span class="badge">${ex.board} ${ex.level}</span>
+                <span class="badge">${ex.code}</span>
+                <span class="badge">${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
+                <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
+            </div>
+            <div class="countdown-block">
+                <span class="countdown-timer${state !== 'upcoming' ? ' dim' : ''}" data-code="${ex.code}">${timerText}</span>
+                <div class="progress-wrap"><div class="progress-bar" data-bar="${ex.code}" style="width:${(getFrac(msLeft)*100).toFixed(3)}%;background:${fracToColor(getFrac(msLeft))}"></div></div>
+            </div>
+        </div>`;
+        td.appendChild(examDiv);
+    });
+}
+
 function renderExams(){
     const list=document.getElementById('examList'),
         emptyEl=document.getElementById('emptyState'),
@@ -673,6 +899,9 @@ function renderExams(){
             over.slice().reverse().forEach((e,i)=>list.appendChild(makeCard(e,inprogress.length+upcoming.length+i)));
         }
     } else {
+        if (!legacyCalMode) {
+        renderMultiMonthCalendar(list, active, filtered);
+        } else {
         const div = document.createElement('div');
         const buttonsDiv = document.createElement('div');
         buttonsDiv.className="buttonsDiv";
@@ -793,6 +1022,7 @@ function renderExams(){
         }
         createCalendar(offsetDate.valueOf());
         addExams();
+    }
     }
 
     // Update sidebar timers immediately after render

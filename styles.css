@@ -1077,6 +1077,168 @@ html.light .cal-exam {
     .cal-exam-component { display: none; }
 }
 
+/* ── Multi-Month Calendar View (continuous single table) ── */
+.multi-calendar-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+/* The single continuous table */
+.continuous-calendar {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: visible;
+    animation: slideIn 0.3s ease;
+}
+
+/* Month-label column — narrow, left side */
+.continuous-calendar th.cal-month-col,
+.continuous-calendar td.cal-month-col {
+    width: 42px;
+    min-width: 42px;
+    max-width: 42px;
+    padding: 6px 2px 0;
+    border: none;
+    border-right: 1px solid var(--border);
+    background: var(--surface2);
+    vertical-align: top;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Header row */
+.continuous-calendar thead tr th {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 12px 4px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    font-weight: 400;
+}
+
+/* Weekend header columns (SAT=7th child, SUN=8th child — after label col) */
+.continuous-calendar thead tr th:nth-child(7),
+.continuous-calendar thead tr th:nth-child(8) {
+    color: var(--text-dim);
+}
+
+/* Body cells */
+.continuous-calendar tbody td {
+    vertical-align: top;
+    padding: 8px 6px 6px;
+    border: 1px solid var(--border);
+    min-height: 70px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: background 0.15s;
+    position: relative;
+    overflow: visible;
+}
+
+.continuous-calendar tbody td.curMonth {
+    color: var(--text-muted);
+    background: var(--surface);
+}
+
+.continuous-calendar tbody td.empty {
+    background: rgba(0,0,0,0.15);
+}
+
+/* Weekend columns (SAT=7th, SUN=8th after label col) */
+.continuous-calendar tbody td:nth-child(7),
+.continuous-calendar tbody td:nth-child(8) {
+    background: rgba(0,0,0,0.10);
+}
+
+/* Light mode overrides */
+html.light .continuous-calendar tbody td.empty {
+    background: #ebebf2;
+}
+html.light .continuous-calendar tbody td:nth-child(7),
+html.light .continuous-calendar tbody td:nth-child(8) {
+    background: #f0f0f6;
+}
+html.light .continuous-calendar th.cal-month-col,
+html.light .continuous-calendar td.cal-month-col {
+    background: var(--surface2);
+}
+
+/* Today */
+.continuous-calendar tbody td.today {
+    background: rgba(200,184,255,0.06);
+    border-color: rgba(200,184,255,0.25);
+}
+html.light .continuous-calendar tbody td.today {
+    background: #f3e8ff;
+    border-color: #d8b4fe;
+}
+.continuous-calendar tbody td.today::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.8;
+}
+
+/* Month boundary borders — applied via JS post-processing */
+.continuous-calendar tbody td.month-border-top {
+    border-top: 2px solid rgba(200,184,255,0.5) !important;
+}
+.continuous-calendar tbody td.cal-month-col.month-border-top {
+    border-top: 2px solid rgba(200,184,255,0.5) !important;
+}
+.continuous-calendar tbody td.month-border-left {
+    border-left: 2px solid rgba(200,184,255,0.5) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .continuous-calendar th.cal-month-col,
+    .continuous-calendar td.cal-month-col {
+        width: 26px;
+        min-width: 26px;
+        max-width: 26px;
+        font-size: 6px;
+        padding: 5px 1px 0;
+        letter-spacing: 0;
+    }
+    .continuous-calendar thead tr th {
+        font-size: 7px;
+        padding: 8px 2px;
+        letter-spacing: 0;
+    }
+    .continuous-calendar tbody td {
+        padding: 5px 3px 4px;
+        font-size: 9px;
+        min-height: 52px;
+    }
+}
+
+/* Multi-month calendar mode */
+body.multical .exam-list { gap: 0; }
+
 /* ── Sidebar sublabel ── */
 .sidebar-sublabel {
     display: block;
