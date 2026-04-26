@@ -817,6 +817,7 @@ function renderMultiMonthCalendar(list, active, filtered) {
 
         const examDiv = document.createElement('div');
         examDiv.className = 'cal-exam';
+        examDiv.dataset.code = ex.code;
         const now = Date.now();
         const state = getState(ex.start, ex.end, now);
         const statusBadge = state === 'inprogress'
@@ -983,6 +984,7 @@ function renderExams(){
                             const ex = examsOnDay[i];
                             const examDiv = document.createElement('div');
                             examDiv.className = 'cal-exam';
+                            examDiv.dataset.code = ex.code;
                             const now = Date.now();
                             const state = getState(ex.start, ex.end, now);
                             const statusBadge = state === 'inprogress'
@@ -1095,38 +1097,51 @@ function updateSidebarTimers() {
     if (nextUpcoming) {
         remtimeEl.textContent = fmtCountdown(nextUpcoming.start - now);
         remtimeLabelEl.textContent = `${nextUpcoming.subject} · ${nextUpcoming.component}`;
+        remtimeEl.dataset.code = nextUpcoming.code;
     } else {
         remtimeEl.textContent = '–';
         remtimeLabelEl.textContent = '';
+        remtimeEl.dataset.code = '';
     }
 
     // "End of exams" — last exam in filtered list
     const last = currentFiltered.length ? currentFiltered[currentFiltered.length - 1] : null;
+    const endremtimeEl = document.getElementById('endremtime');
     if (last) {
-        document.getElementById('endremtime').textContent = fmtCountdown(last.end - now);
+        endremtimeEl.textContent = fmtCountdown(last.end - now);
         document.getElementById('endremtimeLabel').textContent = `After: ${last.subject} · ${last.component}`;
+        endremtimeEl.dataset.code = last.code;
     } else {
+        endremtimeEl.textContent = '–';
         document.getElementById('endremtimeLabel').textContent = '';
+        endremtimeEl.dataset.code = '';
     }
 
     // "Until half term" — countdown to the end of the last exam BEFORE half term
-    const halfTermSectionEl = document.getElementById('halfTermSection');
     const halfTermTimeEl = document.getElementById('halfTermTime');
     const halfTermLabelEl = document.getElementById('halfTermLabel');
+    const halfTermBoxEl = halfTermTimeEl?.parentElement;
     const halfTermMs = HALF_TERM_START.getTime();
     const examsBeforeHalfTerm = currentFiltered.filter(e => e.start.getTime() < halfTermMs);
     if (examsBeforeHalfTerm.length > 0) {
         const lastBeforeHT = examsBeforeHalfTerm[examsBeforeHalfTerm.length - 1];
         const msLeft = lastBeforeHT.end - now;
         if (msLeft > 0) {
-            halfTermSectionEl.style.display = '';
+            if (halfTermBoxEl) halfTermBoxEl.style.display = '';
             halfTermTimeEl.textContent = fmtCountdown(msLeft);
             halfTermLabelEl.textContent = `After: ${lastBeforeHT.subject} · ${lastBeforeHT.component}`;
+            halfTermTimeEl.dataset.code = lastBeforeHT.code;
         } else {
-            halfTermSectionEl.style.display = 'none';
+            if (halfTermBoxEl) halfTermBoxEl.style.display = 'none';
+            halfTermTimeEl.textContent = '–';
+            halfTermLabelEl.textContent = '';
+            halfTermTimeEl.dataset.code = '';
         }
     } else {
-        halfTermSectionEl.style.display = 'none';
+        if (halfTermBoxEl) halfTermBoxEl.style.display = 'none';
+        halfTermTimeEl.textContent = '–';
+        halfTermLabelEl.textContent = '';
+        halfTermTimeEl.dataset.code = '';
     }
 }
 
@@ -1228,3 +1243,42 @@ document.getElementById('examList').addEventListener('mouseenter', e => {
     if (tr.right > vw - 10) card.classList.add('tooltip-flip-left');
     tooltip.style.display = '';
 }, true);
+
+// Countdown box click handlers — scroll to the relevant exam
+function scrollToExam(examCode) {
+    if (!examCode) return;
+    
+    // Find the exam element - could be .exam-card (default), .cal-exam (calendar), or .exam-row (compact)
+    const examList = document.getElementById('examList');
+    if (!examList) return;
+    
+    let examEl = null;
+    // Search for the exam in any display mode
+    examEl = examList.querySelector(`[data-code="${examCode}"]`);
+    
+    if (examEl) {
+        // Scroll into view
+        examEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Find the containing card/row/item and add highlight
+        const container = examEl.closest('.exam-card') || examEl.closest('.cal-exam') || examEl.closest('.exam-row');
+        if (container) {
+            container.classList.add('highlight-flash');
+            setTimeout(() => container.classList.remove('highlight-flash'), 600);
+        }
+    }
+}
+
+// Add click handlers to countdown boxes - attach to parent container
+const countdownsMenu = document.querySelector('.countdowns-menu');
+if (countdownsMenu) {
+    const countdownBoxes = countdownsMenu.querySelectorAll('.countdown-box');
+    countdownBoxes[0]?.addEventListener('click', () => scrollToExam(document.getElementById('remtime')?.dataset.code));
+    countdownBoxes[1]?.addEventListener('click', () => scrollToExam(document.getElementById('halfTermTime')?.dataset.code));
+    countdownBoxes[2]?.addEventListener('click', () => scrollToExam(document.getElementById('endremtime')?.dataset.code));
+    
+    // Add cursor pointer styling
+    countdownBoxes.forEach(box => {
+        box.style.cursor = 'pointer';
+    });
+}
