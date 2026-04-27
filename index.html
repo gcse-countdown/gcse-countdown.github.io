@@ -27,6 +27,7 @@
 <body>
     <div class="top-bar">
         <span>Check all dates and times on the <a target="_blank" rel="noonpener" href="https://pupils.stpaulsschool.org.uk/api/profile/publicexams/timetables/">Pupil Portal</a> before using.</span>
+        <button id="topBarClose" class="top-bar-close" title="Hide this message">&times;</button>
     </div>
     <div class="page-layout">
 
@@ -120,7 +121,7 @@
                                 <input type="checkbox" id="legacyCalToggle">
                                 <span class="slider round"></span>
                             </label>
-                        <span>Hide Buttons</span>
+                        <span>Legacy UI</span>
                             <span class="shortcut-label" style="margin-left: 0px;">E</span>
                             <label class="switch">
                                 <input type="checkbox" id="hideMenusToggle">
@@ -228,11 +229,72 @@
                     <div class="sidebar-text">
                         <span class="time" id="time">--:--:--</span>
                     </div>
+
+                    <!-- Sidebar countdowns - only shown when hideMenus is enabled -->
+                    <div id="sidebarCountdownsWrapper" style="display:none; margin-top: 14px;">
+                        <div class="sidebar-section">
+                            <div class="sidebar-section-header">
+                                <span class="sidebar-section-label">UNTIL NEXT EXAM</span>
+                                <div class="sidebar-section-line"></div>
+                            </div>
+                            <div class="sidebar-text">
+                                <span class="time" id="sidebar-remtime">--:--:--</span>
+                                <span class="sidebar-sublabel" id="sidebar-remtimeLabel"></span>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-section" id="halfTermSection">
+                            <div class="sidebar-section-header">
+                                <span class="sidebar-section-label">UNTIL HALF TERM</span>
+                                <div class="sidebar-section-line"></div>
+                            </div>
+                            <div class="sidebar-text">
+                                <span class="time" id="sidebar-halfTermTime">--:--:--</span>
+                                <span class="sidebar-sublabel" id="sidebar-halfTermLabel"></span>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <div class="sidebar-section-header">
+                                <span class="sidebar-section-label">END OF EXAMS</span>
+                                <div class="sidebar-section-line"></div>
+                            </div>
+                            <div class="sidebar-text">
+                                <span class="time" id="sidebar-endremtime">--:--:--</span>
+                                <span class="sidebar-sublabel" id="sidebar-endremtimeLabel"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Useful Links - only shown when hideMenus is enabled -->
+            <div id="sidebarLinksWrapper" class="sidebar-panel" style="display:none;">
+                <div class="sidebar-panel-label">Useful Links</div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header">
+                        <span class="sidebar-section-label"><a href="https://spslinks.github.io?s=gcse-countdown" target="_blank" rel="noopener">SPS Links</a></span>
+                        <div class="sidebar-section-line"></div>
+                    </div>
+                    <div class="sidebar-text">
+                        <p>Easy access to links like Classroom, Intranet, Docs and more.</p>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header">
+                        <span class="sidebar-section-label"><a href="https://intranet.stpaulsschool.org.uk/exams/6th-form-revision-resources-summer-2026" target="_blank" rel="noopener">Exam resources</a></span>
+                        <div class="sidebar-section-line"></div>
+                    </div>
                 </div>
 
-
-                
-            </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header">
+                        <span class="sidebar-section-label"><a href="https://forms.gle/fVJWZuMxRHqjpF1q6" target="_blank" rel="noopener">Feedback</a></span>
+                        <div class="sidebar-section-line"></div>
+                    </div>
+                </div>
         </aside>
     </div>
 

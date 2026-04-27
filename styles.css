@@ -75,7 +75,20 @@ body::before {
     align-items: center;
     padding: 8px 20px;
     font-weight: 500;
+    justify-content: space-between;
 }
+.top-bar-close{
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+} 
+.sidebar-quick-count{margin-bottom:10px}
+.sidebar-quick-count strong{display:block;color:var(--text-muted);font-size:12px}
+.sidebar-quick-count span{display:block;font-weight:600;color:var(--accent);margin-top:4px}
+
 
 /*links*/
 a:link {

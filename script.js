@@ -602,12 +602,12 @@ document.getElementById('clearFilters').addEventListener('click',()=>{
 // ── Filter collapse button (mobile) ──────────────────────────────────────────
 // Toggle menus visibility
 function toggleMenusVisibility() {
-    hideMenus = !(quickLinksMenu && !quickLinksMenu.classList.contains('hidden')) || !(countdownsMenu && !countdownsMenu.classList.contains('hidden'));
-    // toggle based on current state
+    // flip state
     hideMenus = !hideMenus;
     if (quickLinksMenu) quickLinksMenu.classList.toggle('hidden', hideMenus);
     if (countdownsMenu) countdownsMenu.classList.toggle('hidden', hideMenus);
     if (hideMenusToggle) hideMenusToggle.checked = hideMenus;
+    updateSidebarVisibility();
     saveHideMenus(hideMenus);
 }
 
@@ -620,17 +620,29 @@ const hideMenusToggle = document.getElementById('hideMenusToggle');
 
 // initialize hide menus state
 let hideMenus = loadHideMenus();
-if (hideMenus) {
-    if (quickLinksMenu) quickLinksMenu.classList.add('hidden');
-    if (countdownsMenu) countdownsMenu.classList.add('hidden');
+function updateSidebarVisibility() {
+    const sidebarCountdowns = document.getElementById('sidebarCountdownsWrapper');
+    const sidebarLinks = document.getElementById('sidebarLinksWrapper');
+    if (hideMenus) {
+        if (quickLinksMenu) quickLinksMenu.classList.add('hidden');
+        if (countdownsMenu) countdownsMenu.classList.add('hidden');
+        if (sidebarCountdowns) sidebarCountdowns.style.display = '';
+        if (sidebarLinks) sidebarLinks.style.display = '';
+    } else {
+        if (quickLinksMenu) quickLinksMenu.classList.remove('hidden');
+        if (countdownsMenu) countdownsMenu.classList.remove('hidden');
+        if (sidebarCountdowns) sidebarCountdowns.style.display = 'none';
+        if (sidebarLinks) sidebarLinks.style.display = 'none';
+    }
 }
+
+updateSidebarVisibility();
 
 if (hideMenusToggle) {
     hideMenusToggle.checked = hideMenus;
     hideMenusToggle.addEventListener('change', (e) => {
         hideMenus = e.target.checked;
-        if (quickLinksMenu) quickLinksMenu.classList.toggle('hidden', hideMenus);
-        if (countdownsMenu) countdownsMenu.classList.toggle('hidden', hideMenus);
+        updateSidebarVisibility();
         saveHideMenus(hideMenus);
     });
 }
@@ -685,6 +697,22 @@ updateFilterCount();
 // Init speaking dates and exams
 rebuildExams();
 renderSpeakingDates();
+
+// Top bar close (persisted)
+const TOPBAR_KEY = 'topbar_hidden';
+const topBar = document.querySelector('.top-bar');
+const topBarClose = document.getElementById('topBarClose');
+function loadTopbarHidden(){ try{ return localStorage.getItem(TOPBAR_KEY)==='1'; }catch(e){return false;} }
+if (loadTopbarHidden()) {
+    if (topBar) topBar.style.display = 'none';
+}
+if (topBarClose) {
+    topBarClose.addEventListener('click', () => {
+        if (topBar) topBar.style.display = 'none';
+        try{ localStorage.setItem(TOPBAR_KEY, '1'); }catch(e){}
+    });
+}
+
 
 let monthOffset = 0;
 
@@ -1130,38 +1158,77 @@ function makeCard(e,idx){
 
 // ── Sidebar timer updates ─────────────────────────────────────────────────────
 function updateSidebarTimers() {
+    // Also update sidebar placeholders when present
+    const sidebarQuickContent = document.getElementById('sidebarQuickLinksContent');
+    const sidebarCountdownsContent = document.getElementById('sidebarCountdownsContent');
+    if (sidebarQuickContent) {
+        sidebarQuickContent.innerHTML = document.querySelector('.quick-links-menu')?.innerHTML || '';
+    }
+    if (sidebarCountdownsContent) {
+        // Build simple countdown blocks similar to main view
+        const rem = document.getElementById('remtime');
+        const half = document.getElementById('halfTermTime');
+        const end = document.getElementById('endremtime');
+        sidebarCountdownsContent.innerHTML = `
+            <div class="sidebar-quick-count"><strong>Next:</strong> <span>${rem?.textContent || '–'}</span><div class="sidebar-sublabel">${document.getElementById('remtimeLabel')?.textContent || ''}</div></div>
+            <div class="sidebar-quick-count"><strong>Half term:</strong> <span>${half?.textContent || '–'}</span><div class="sidebar-sublabel">${document.getElementById('halfTermLabel')?.textContent || ''}</div></div>
+            <div class="sidebar-quick-count"><strong>End of exams:</strong> <span>${end?.textContent || '–'}</span><div class="sidebar-sublabel">${document.getElementById('endremtimeLabel')?.textContent || ''}</div></div>
+        `;
+    }
+
     const now = Date.now();
 
     // "Time until next exam" — the next upcoming exam
     const nextUpcoming = currentFiltered.find(e => getState(e.start, e.end, now) === 'upcoming');
     const remtimeEl = document.getElementById('remtime');
+    const sidebarRemtimeEl = document.getElementById('sidebar-remtime');
     const remtimeLabelEl = document.getElementById('remtimeLabel');
+    const sidebarRemtimeLabelEl = document.getElementById('sidebar-remtimeLabel');
     if (nextUpcoming) {
-        remtimeEl.textContent = fmtCountdown(nextUpcoming.start - now);
-        remtimeLabelEl.textContent = `${nextUpcoming.subject} · ${nextUpcoming.component}`;
-        remtimeEl.dataset.code = nextUpcoming.code;
+        const countdownText = fmtCountdown(nextUpcoming.start - now);
+        const labelText = `${nextUpcoming.subject} · ${nextUpcoming.component}`;
+        if (remtimeEl) { remtimeEl.textContent = countdownText; }
+        if (sidebarRemtimeEl) { sidebarRemtimeEl.textContent = countdownText; }
+        if (remtimeLabelEl) { remtimeLabelEl.textContent = labelText; }
+        if (sidebarRemtimeLabelEl) { sidebarRemtimeLabelEl.textContent = labelText; }
+        if (remtimeEl) { remtimeEl.dataset.code = nextUpcoming.code; }
+        if (sidebarRemtimeEl) { sidebarRemtimeEl.dataset.code = nextUpcoming.code; }
     } else {
-        remtimeEl.textContent = '–';
-        remtimeLabelEl.textContent = '';
-        remtimeEl.dataset.code = '';
+        if (remtimeEl) { remtimeEl.textContent = '–'; remtimeEl.dataset.code = ''; }
+        if (sidebarRemtimeEl) { sidebarRemtimeEl.textContent = '–'; sidebarRemtimeEl.dataset.code = ''; }
+        if (remtimeLabelEl) { remtimeLabelEl.textContent = ''; }
+        if (sidebarRemtimeLabelEl) { sidebarRemtimeLabelEl.textContent = ''; }
     }
 
     // "End of exams" — last exam in filtered list
     const last = currentFiltered.length ? currentFiltered[currentFiltered.length - 1] : null;
     const endremtimeEl = document.getElementById('endremtime');
+    const sidebarEndremtimeEl = document.getElementById('sidebar-endremtime');
     if (last) {
-        endremtimeEl.textContent = fmtCountdown(last.end - now);
-        document.getElementById('endremtimeLabel').textContent = `After: ${last.subject} · ${last.component}`;
-        endremtimeEl.dataset.code = last.code;
+        const countdownText = fmtCountdown(last.end - now);
+        const labelText = `After: ${last.subject} · ${last.component}`;
+        if (endremtimeEl) { endremtimeEl.textContent = countdownText; }
+        if (sidebarEndremtimeEl) { sidebarEndremtimeEl.textContent = countdownText; }
+        const endremtimeLabelEl = document.getElementById('endremtimeLabel');
+        const sidebarEndremtimeLabelEl = document.getElementById('sidebar-endremtimeLabel');
+        if (endremtimeLabelEl) { endremtimeLabelEl.textContent = labelText; }
+        if (sidebarEndremtimeLabelEl) { sidebarEndremtimeLabelEl.textContent = labelText; }
+        if (endremtimeEl) { endremtimeEl.dataset.code = last.code; }
+        if (sidebarEndremtimeEl) { sidebarEndremtimeEl.dataset.code = last.code; }
     } else {
-        endremtimeEl.textContent = '–';
-        document.getElementById('endremtimeLabel').textContent = '';
-        endremtimeEl.dataset.code = '';
+        if (endremtimeEl) { endremtimeEl.textContent = '–'; endremtimeEl.dataset.code = ''; }
+        if (sidebarEndremtimeEl) { sidebarEndremtimeEl.textContent = '–'; sidebarEndremtimeEl.dataset.code = ''; }
+        const endremtimeLabelEl = document.getElementById('endremtimeLabel');
+        const sidebarEndremtimeLabelEl = document.getElementById('sidebar-endremtimeLabel');
+        if (endremtimeLabelEl) { endremtimeLabelEl.textContent = ''; }
+        if (sidebarEndremtimeLabelEl) { sidebarEndremtimeLabelEl.textContent = ''; }
     }
 
     // "Until half term" — countdown to the end of the last exam BEFORE half term
     const halfTermTimeEl = document.getElementById('halfTermTime');
+    const sidebarHalfTermTimeEl = document.getElementById('sidebar-halfTermTime');
     const halfTermLabelEl = document.getElementById('halfTermLabel');
+    const sidebarHalfTermLabelEl = document.getElementById('sidebar-halfTermLabel');
     const halfTermBoxEl = halfTermTimeEl?.parentElement;
     const halfTermMs = HALF_TERM_START.getTime();
     const examsBeforeHalfTerm = currentFiltered.filter(e => e.start.getTime() < halfTermMs);
@@ -1170,20 +1237,27 @@ function updateSidebarTimers() {
         const msLeft = lastBeforeHT.end - now;
         if (msLeft > 0) {
             if (halfTermBoxEl) halfTermBoxEl.style.display = '';
-            halfTermTimeEl.textContent = fmtCountdown(msLeft);
-            halfTermLabelEl.textContent = `After: ${lastBeforeHT.subject} · ${lastBeforeHT.component}`;
-            halfTermTimeEl.dataset.code = lastBeforeHT.code;
+            const countdownText = fmtCountdown(msLeft);
+            const labelText = `After: ${lastBeforeHT.subject} · ${lastBeforeHT.component}`;
+            if (halfTermTimeEl) { halfTermTimeEl.textContent = countdownText; }
+            if (sidebarHalfTermTimeEl) { sidebarHalfTermTimeEl.textContent = countdownText; }
+            if (halfTermLabelEl) { halfTermLabelEl.textContent = labelText; }
+            if (sidebarHalfTermLabelEl) { sidebarHalfTermLabelEl.textContent = labelText; }
+            if (halfTermTimeEl) { halfTermTimeEl.dataset.code = lastBeforeHT.code; }
+            if (sidebarHalfTermTimeEl) { sidebarHalfTermTimeEl.dataset.code = lastBeforeHT.code; }
         } else {
             if (halfTermBoxEl) halfTermBoxEl.style.display = 'none';
-            halfTermTimeEl.textContent = '–';
-            halfTermLabelEl.textContent = '';
-            halfTermTimeEl.dataset.code = '';
+            if (halfTermTimeEl) { halfTermTimeEl.textContent = '–'; halfTermTimeEl.dataset.code = ''; }
+            if (sidebarHalfTermTimeEl) { sidebarHalfTermTimeEl.textContent = '–'; sidebarHalfTermTimeEl.dataset.code = ''; }
+            if (halfTermLabelEl) { halfTermLabelEl.textContent = ''; }
+            if (sidebarHalfTermLabelEl) { sidebarHalfTermLabelEl.textContent = ''; }
         }
     } else {
         if (halfTermBoxEl) halfTermBoxEl.style.display = 'none';
-        halfTermTimeEl.textContent = '–';
-        halfTermLabelEl.textContent = '';
-        halfTermTimeEl.dataset.code = '';
+        if (halfTermTimeEl) { halfTermTimeEl.textContent = '–'; halfTermTimeEl.dataset.code = ''; }
+        if (sidebarHalfTermTimeEl) { sidebarHalfTermTimeEl.textContent = '–'; sidebarHalfTermTimeEl.dataset.code = ''; }
+        if (halfTermLabelEl) { halfTermLabelEl.textContent = ''; }
+        if (sidebarHalfTermLabelEl) { sidebarHalfTermLabelEl.textContent = ''; }
     }
 }
 
