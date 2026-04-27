@@ -67,6 +67,35 @@ body::before {
     z-index: 0;
 }
 
+
+.sidebar-quick-count{margin-bottom:10px}
+.sidebar-quick-count strong{display:block;color:var(--text-muted);font-size:12px}
+.sidebar-quick-count span{display:block;font-weight:600;color:var(--accent);margin-top:4px}
+
+
+/*links*/
+a:link {
+    color: var(--link);
+    background-color: transparent;
+    text-decoration: none;
+    transition: color 200ms linear;
+}
+a:visited {
+    color: var(--link);
+    background-color: transparent;
+    text-decoration: none;
+}
+a:hover {
+    color: var(--link-hover);
+    background-color: transparent;
+    text-decoration: none;
+}
+a:active {
+    color: var(--link-active);
+    background-color: transparent;
+    text-decoration: underline;
+}
+
 /* ── Top Bar ── */
 .top-bar {
     background: rgba(220, 15, 15, 0.848);
@@ -84,32 +113,14 @@ body::before {
     font-size: 20px;
     line-height: 1;
     cursor: pointer;
-} 
-.sidebar-quick-count{margin-bottom:10px}
-.sidebar-quick-count strong{display:block;color:var(--text-muted);font-size:12px}
-.sidebar-quick-count span{display:block;font-weight:600;color:var(--accent);margin-top:4px}
+}
 
+.top-bar a {
+    color: #a799ff;
+}
 
-/*links*/
-a:link {
-    color: var(--link);
-    background-color: transparent;
-    text-decoration: none;
-}
-a:visited {
-    color: var(--link);
-    background-color: transparent;
-    text-decoration: none;
-}
-a:hover {
-    color: var(--link-hover);
-    background-color: transparent;
-    text-decoration: none;
-}
-a:active {
-    color: var(--link-active);
-    background-color: transparent;
-    text-decoration: underline;
+.top-bar a:hover {
+    color: #48167d;
 }
 
 /* ── Page layout: sidebars + main ── */
@@ -408,6 +419,8 @@ h1 span { color: var(--accent); }
     .filter-btn:hover {
         border-color: var(--accent);
         color: var(--accent);
+        transform: translateY(-1px);
+        transition: transform 0.18s ease;
     }
 }
 
@@ -1595,6 +1608,9 @@ body.hover-cards:not(.compact):not(.cal) .exam-card .card-hover-tooltip {
     .quick-link-box:hover {
         background: var(--surface2);
         border-color: var(--accent);
+        transform: translateY(-2px);
+        transition: transform 0.18s ease;
+        box-shadow: 0 4px 12px rgba(200, 184, 255, 0.1);
     }
 }
 
@@ -1692,7 +1708,7 @@ body.hover-cards:not(.compact):not(.cal) .exam-card .card-hover-tooltip {
 }
 
 .countdown-box:hover {
-    background: var(--surface);
+    background: var(--surface2);
     border-color: var(--accent);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(200, 184, 255, 0.1);
