@@ -67,6 +67,16 @@ body::before {
     z-index: 0;
 }
 
+/* ── Top Bar ── */
+.top-bar {
+    background: rgba(220, 15, 15, 0.848);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 8px 20px;
+    font-weight: 500;
+}
+
 /*links*/
 a:link {
     color: var(--link);
