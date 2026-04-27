@@ -908,10 +908,10 @@ function renderMultiMonthCalendar(list, active, filtered) {
                 ${statusBadge}
             </div>
             <div class="exam-meta">
-                <span class="badge">${ex.date}/26</span>
-                <span class="badge">${ex.board} ${ex.level}</span>
-                <span class="badge">${ex.code}</span>
-                <span class="badge">${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
+                <span class="badge"><i class="fas fa-calendar"></i> ${ex.date}/26</span>
+                <span class="badge"><i class="fas fa-scroll"></i> ${ex.board} ${ex.level}</span>
+                <span class="badge"><i class="fas fa-code"></i> ${ex.code}</span>
+                <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
                 <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
             </div>
             <div class="countdown-block">
@@ -1075,10 +1075,10 @@ function renderExams(){
                                     ${statusBadge}
                                 </div>
                                 <div class="exam-meta">
-                                    <span class="badge">${ex.date}/26</span>
-                                    <span class="badge">${ex.board} ${ex.level}</span>
-                                    <span class="badge">${ex.code}</span>
-                                    <span class="badge">${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
+                                    <span class="badge"><i class="fas fa-calendar"></i> ${ex.date}/26</span>
+                                    <span class="badge"><i class="fas fa-scroll"></i> ${ex.board} ${ex.level}</span>
+                                    <span class="badge"><i class="fas fa-code"></i> ${ex.code}</span>
+                                    <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
                                     <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
                                 </div>
                                 <div class="countdown-block">
@@ -1101,15 +1101,15 @@ function renderExams(){
     updateSidebarTimers();
 }
 
-function makeCard(e,idx){
-    const now=Date.now(),state=getState(e.start,e.end,now),msLeft=e.start-now;
+function makeCard(ex,idx){
+    const now=Date.now(),state=getState(ex.start,ex.end,now),msLeft=ex.start-now;
     const frac=state==='upcoming'?getFrac(msLeft):0;
     const color=state==='upcoming'?fracToColor(frac):state==='inprogress'?'#a855f7':'#3b82f6';
     const card=document.createElement('div');
-    card.className=`exam-card state-${state}${e.isSpeaking?' speaking-card':''}`;
+    card.className=`exam-card state-${state}${ex.isSpeaking?' speaking-card':''}`;
     card.style.borderLeftColor=color;
     card.style.animationDelay=`${Math.min(idx*20,300)}ms`;
-    card.dataset.code=e.code;
+    card.dataset.code=ex.code;
     const timerText=state==='upcoming'?fmtCountdown(msLeft):'–';
     const statusBadge=state==='inprogress'
         ?`<span class="status-badge inprogress">● IN PROGRESS</span>`
@@ -1117,40 +1117,40 @@ function makeCard(e,idx){
     card.innerHTML=`
         <div class="exam-top">
             <div class="exam-title-block">
-                <span class="exam-subject">${e.subject}</span>
-                <span class="exam-component">${e.component}</span>
+                <span class="exam-subject">${ex.subject}</span>
+                <span class="exam-component">${ex.component}</span>
             </div>
             ${statusBadge}
         </div>
         <div class="exam-meta">
-            <span class="badge">${e.date}/26</span>
-            <span class="badge">${e.board} ${e.level}</span>
-            <span class="badge">${e.code}</span>
-            <span class="badge">${fmtTime(e.start)} – ${fmtTime(e.end)}</span>
-            <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(e.durationMin)}</span>
+            <span class="badge"><i class="fas fa-calendar"></i> ${ex.date}/26</span>
+            <span class="badge"><i class="fas fa-scroll"></i> ${ex.board} ${ex.level}</span>
+            <span class="badge"><i class="fas fa-code"></i> ${ex.code}</span>
+            <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
+            <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
         </div>
         <div class="countdown-block">
-            <span class="countdown-timer${state!=='upcoming'?' dim':''}" data-code="${e.code}">${timerText}</span>
-            <div class="progress-wrap"><div class="progress-bar" data-bar="${e.code}" style="width:${(frac*100).toFixed(3)}%;background:${color}"></div></div>
+            <span class="countdown-timer${state!=='upcoming'?' dim':''}" data-code="${ex.code}">${timerText}</span>
+            <div class="progress-wrap"><div class="progress-bar" data-bar="${ex.code}" style="width:${(frac*100).toFixed(3)}%;background:${color}"></div></div>
         </div>
         <div class="card-hover-tooltip">
             <div class="cal-tooltip-top">
                 <div class="cal-tooltip-title-block">
-                    <span class="exam-subject">${e.subject}${e.isSpeaking?' <i class="fas fa-microphone"></i>':''}</span>
-                    <span class="exam-component">${e.component}</span>
+                    <span class="exam-subject">${ex.subject}${ex.isSpeaking?' <i class="fas fa-microphone"></i>':''}</span>
+                    <span class="exam-component">${ex.component}</span>
                 </div>
                 ${statusBadge}
             </div>
             <div class="exam-meta">
-                <span class="badge">${e.date}/26</span>
-                <span class="badge">${e.board} ${e.level}</span>
-                <span class="badge">${e.code}</span>
-                <span class="badge">${fmtTime(e.start)} – ${fmtTime(e.end)}</span>
-                <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(e.durationMin)}</span>
-                </div>
+                <span class="badge"><i class="fas fa-calendar"></i> ${ex.date}/26</span>
+                <span class="badge"><i class="fas fa-scroll"></i> ${ex.board} ${ex.level}</span>
+                <span class="badge"><i class="fas fa-code"></i> ${ex.code}</span>
+                <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
+                <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
+            </div>
                 <div class="countdown-block">
-                <span class="countdown-timer${state!=='upcoming'?' dim':''}" data-code="${e.code}-hover">${timerText}</span>
-                <div class="progress-wrap"><div class="progress-bar" data-bar="${e.code}-hover" style="width:${(frac*100).toFixed(3)}%;background:${color}"></div></div>
+                <span class="countdown-timer${state!=='upcoming'?' dim':''}" data-code="${ex.code}-hover">${timerText}</span>
+                <div class="progress-wrap"><div class="progress-bar" data-bar="${ex.code}-hover" style="width:${(frac*100).toFixed(3)}%;background:${color}"></div></div>
                 </div>
                 </div>`;
     return card;
