@@ -1548,6 +1548,11 @@ body.hover-cards:not(.compact):not(.cal) .exam-card .card-hover-tooltip {
     display: flex;
     gap: 12px;
     margin-bottom: 16px;
+    transition: all 0.25s ease;
+}
+
+.quick-links-menu.hidden {
+    display: none;
 }
 
 .quick-link-box {
@@ -1620,6 +1625,11 @@ body.hover-cards:not(.compact):not(.cal) .exam-card .card-hover-tooltip {
     display: flex;
     gap: 12px;
     margin-bottom: 16px;
+    transition: all 0.25s ease;
+}
+
+.countdowns-menu.hidden {
+    display: none;
 }
 
 .countdown-box {

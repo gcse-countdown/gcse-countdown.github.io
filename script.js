@@ -75,6 +75,10 @@ const LEGACY_CAL_KEY = 'legacy_calendar_mode';
 const LIGHT_KEY = 'light_mode';
 const PLANNER_KEY = 'planner';
 const SPEAKING_KEY = 'speaking_dates_v1';
+const HIDE_MENUS_KEY = 'hide_menus';
+
+function saveHideMenus(v){ try{ localStorage.setItem(HIDE_MENUS_KEY, v ? '1' : '0'); }catch(e){} }
+function loadHideMenus(){ try{ return localStorage.getItem(HIDE_MENUS_KEY)==='1'; }catch(e){return false;} }
 
 function saveFilters() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...activeFilters])); } catch(e){} }
 function loadFilters() { try { const r=localStorage.getItem(STORAGE_KEY); return r?new Set(JSON.parse(r)):new Set(); } catch(e){ return new Set(); } }
@@ -214,6 +218,9 @@ const filterCountEl = document.getElementById('filterCount');
 const defaultbtn = document.getElementById('defaultbtn');
 const compactbtn = document.getElementById('compactbtn');
 const calbtn = document.getElementById('calbtn');
+const toggleMenusBtn = document.getElementById('toggleMenusBtn');
+const quickLinksMenu = document.querySelector('.quick-links-menu');
+const countdownsMenu = document.querySelector('.countdowns-menu');
 const legacyCalToggle = document.getElementById('legacyCalToggle');
 const filterCatsEl = document.getElementById('filterCategories');
 const plannerbtn = document.getElementById('rev-planner');
@@ -334,6 +341,8 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         const isLight = document.documentElement.classList.contains('light');
         setLightMode(!isLight);
+    } else if (e.key === 'e' || e.key === 'E') {
+        toggleMenusVisibility();
     }
 });
 
@@ -591,7 +600,40 @@ document.getElementById('clearFilters').addEventListener('click',()=>{
 });
 
 // ── Filter collapse button (mobile) ──────────────────────────────────────────
+// Toggle menus visibility
+function toggleMenusVisibility() {
+    hideMenus = !(quickLinksMenu && !quickLinksMenu.classList.contains('hidden')) || !(countdownsMenu && !countdownsMenu.classList.contains('hidden'));
+    // toggle based on current state
+    hideMenus = !hideMenus;
+    if (quickLinksMenu) quickLinksMenu.classList.toggle('hidden', hideMenus);
+    if (countdownsMenu) countdownsMenu.classList.toggle('hidden', hideMenus);
+    if (hideMenusToggle) hideMenusToggle.checked = hideMenus;
+    saveHideMenus(hideMenus);
+}
+
+if (toggleMenusBtn) {
+    toggleMenusBtn.addEventListener('click', toggleMenusVisibility);
+}
+
 const filterCollapseBtn = document.getElementById('filterCollapseBtn');
+const hideMenusToggle = document.getElementById('hideMenusToggle');
+
+// initialize hide menus state
+let hideMenus = loadHideMenus();
+if (hideMenus) {
+    if (quickLinksMenu) quickLinksMenu.classList.add('hidden');
+    if (countdownsMenu) countdownsMenu.classList.add('hidden');
+}
+
+if (hideMenusToggle) {
+    hideMenusToggle.checked = hideMenus;
+    hideMenusToggle.addEventListener('change', (e) => {
+        hideMenus = e.target.checked;
+        if (quickLinksMenu) quickLinksMenu.classList.toggle('hidden', hideMenus);
+        if (countdownsMenu) countdownsMenu.classList.toggle('hidden', hideMenus);
+        saveHideMenus(hideMenus);
+    });
+}
 const filterCatsEl_ref = document.getElementById('filterCategories');
 const speakingDatesEl_ref = document.getElementById('speakingDates');
 const FILTER_COLLAPSED_KEY = 'filter_collapsed';
@@ -1270,7 +1312,6 @@ function scrollToExam(examCode) {
 }
 
 // Add click handlers to countdown boxes - attach to parent container
-const countdownsMenu = document.querySelector('.countdowns-menu');
 if (countdownsMenu) {
     const countdownBoxes = countdownsMenu.querySelectorAll('.countdown-box');
     countdownBoxes[0]?.addEventListener('click', () => scrollToExam(document.getElementById('remtime')?.dataset.code));
