@@ -213,6 +213,7 @@ let legacyCalMode = loadLegacyCal();
 let compactMode = calMode || legacyCalMode ? 0:loadCompact();
 if(compactMode) {document.body.classList.replace('cal', 'compact') ? null:document.body.classList.add('compact')};
 
+
 let showOtherExams = loadShowOtherExams();
 
 let plannerMode = 0;
@@ -241,7 +242,7 @@ function syncAllToggles() {
     // Light mode
     const isLight = document.documentElement.classList.contains('light');
     if (lightToggleTop) lightToggleTop.checked = isLight;
-
+    
     if (legacyCalToggle) legacyCalToggle.checked = legacyCalMode;
     if (showOtherExamsToggle) showOtherExamsToggle.checked = showOtherExams;
     
@@ -251,6 +252,7 @@ function syncAllToggles() {
     }
 }
 
+if (!compactMode && !calMode) {if(defaultbtn) defaultbtn.classList.toggle('active', 1);}
 syncAllToggles();
 
 // ── Light mode handlers ────────────────────────────────────────────────────────
