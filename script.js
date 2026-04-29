@@ -298,6 +298,11 @@ function setDefaultMode(on) {
         if(calbtn) calbtn.classList.remove('active');
     }
     if(defaultbtn) defaultbtn.classList.toggle('active', !!on);
+
+    if (calModeOnly) {
+        calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
+    }
+
     saveCompact(compactMode);
     saveCal(calMode);
     renderExams();
@@ -317,6 +322,11 @@ function setCompactMode(on) {
         if(defaultbtn) defaultbtn.classList.add('active');
     }
     if(compactbtn) compactbtn.classList.toggle('active', !!on);
+
+    if (calModeOnly) {
+        calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
+    }
+
     saveCompact(compactMode);
     saveCal(calMode);
     renderExams();
