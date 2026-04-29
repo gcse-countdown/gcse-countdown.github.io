@@ -337,22 +337,41 @@ h1 span { color: var(--accent); }
 
 /* Settings box above filters */
 .controls-settings-box {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.5fr;
     gap: 16px;
-    align-items: center;
-    flex-wrap: wrap;
+    align-items: flex-start;
 }
-.controls-settings-box .setting-row {
+
+.controls-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.controls-column-left,
+.controls-column-middle {
+    justify-content: flex-start;
+}
+
+.controls-column-right {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.controls-setting {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 8px;
     font-size: 13px;
     color: var(--text-muted);
-    flex-wrap: wrap;
-    flex: 1;
 }
-.controls-settings-box .setting-row span {
+
+.controls-setting span:first-child {
     font-family: 'DM Sans', sans-serif;
     font-size: 13px;
     color: var(--text-muted);
@@ -431,8 +450,8 @@ h1 span { color: var(--accent); }
 }
 
 .shortcut-label {
-    font-size: 10px;
-    font-family: 'Space Mono', monospace;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-dim);
     background: var(--surface);
@@ -996,6 +1015,16 @@ html.light #calendar td.today {
 
 html.light .cal-exam {
     background: #ede9f6;
+}
+
+.cal-exam.other-exam {
+    border-left: none;
+    background: rgba(107,107,127,0.08);
+    opacity: 0.65;
+}
+
+html.light .cal-exam.other-exam {
+    background: rgba(107,107,127,0.1);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1755,6 +1784,16 @@ body.hover-cards:not(.compact):not(.cal) .exam-card .card-hover-tooltip {
 
     #speakingDates.collapsed {
         display: none;
+    }
+
+    /* Responsive controls box layout */
+    .controls-settings-box {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .controls-column-right {
+        justify-content: flex-start;
     }
 
 }

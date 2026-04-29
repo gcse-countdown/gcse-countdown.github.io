@@ -107,34 +107,47 @@
                     </div>
                 </div>
                 <div class="controls-settings-box">
-                    <div class="setting-row">
-                        <div class="controls-topbar-left">
-                        <span>Light Mode</span>
-                        <span class="shortcut-label" style="margin-left: 0px;">L</span>
-                        <label class="switch" style="margin-right: 10px">
-                            <input type="checkbox" id="lightToggleTop">
-                            <span class="slider round"></span>
-                        </label>
-                        <span>Legacy Calendar</span>
-                            <span class="shortcut-label" style="margin-left: 0px;">V</span>
+                    <div class="controls-column controls-column-left">
+                        <div class="controls-setting">
+                            <span>Light Mode</span>
+                            <span class="shortcut-label">L</span>
                             <label class="switch">
-                                <input type="checkbox" id="legacyCalToggle">
+                                <input type="checkbox" id="lightToggleTop">
                                 <span class="slider round"></span>
                             </label>
-                        <span>Legacy UI</span>
-                            <span class="shortcut-label" style="margin-left: 0px;">E</span>
+                        </div>
+                        <div class="controls-setting">
+                            <span>Legacy UI</span>
+                            <span class="shortcut-label">E</span>
                             <label class="switch">
                                 <input type="checkbox" id="hideMenusToggle">
                                 <span class="slider round"></span>
                             </label>
                         </div>
-                        <div class="controls-topbar-right">
+                    </div>
+                    <div class="controls-column controls-column-middle">
+                        <div class="controls-setting calModeOnly">
+                            <span>Legacy Calendar</span>
+                            <span class="shortcut-label">D</span>
+                            <label class="switch">
+                                <input type="checkbox" id="legacyCalToggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="controls-setting calModeOnly" id="showOtherExamsWrapper" style="display: none;">
+                            <span>Show Other Exams</span>
+                            <span class="shortcut-label">S</span>
+                            <label class="switch">
+                                <input type="checkbox" id="showOtherExamsToggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="controls-column controls-column-right">
                         <button id="defaultbtn" class="filter-btn" title="Default view (Z)"><i class="fas fa-th-large"></i> Default <span class="shortcut-label">Z</span></button>
                         <button id="compactbtn" class="filter-btn" title="Compact view (X)"><i class="fas fa-bars"></i> Compact <span class="shortcut-label">X</span></button>
                         <button id="calbtn" class="filter-btn" title="Calendar view (C)"><i class="fas fa-calendar"></i> Calendar <span class="shortcut-label">C</span></button>
-                        </div>
                     </div>
-
                 </div>
             </div>
 

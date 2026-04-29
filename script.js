@@ -8,9 +8,9 @@ const RAW_EXAMS = [
     {date:"08/05",board:"CIE",    level:"IGCSE", code:"0992/12",        subject:"English Literature", component:"Poetry and Prose",                                                 session:"AM",        durationMin:90},
     {date:"11/05",board:"CIE",    level:"IGCSE", code:"0992/22",        subject:"English Literature", component:"Drama",                                                                        session:"AM",        durationMin:45},
     {date:"11/05",board:"CIE",    level:"IGCSE", code:"0992/32",        subject:"English Literature", component:"Unseen",                                                                     session:"10:00", durationMin:75},
+    {date:"11/05",board:"OCR",    level:"GCSE", code:"J292/01",        subject:"Classical Greek",        component:"Language Written Paper",                                     session:"PM",        durationMin:90},
     {date:"11/05",board:"Edexcel",level:"GCSE", code:"1CN0/1H",    subject:"Chinese",                        component:"Paper 1 - Listening Higher",                             session:"PM",        durationMin:45},
     {date:"11/05",board:"Edexcel",level:"GCSE", code:"1CN0/3H",    subject:"Chinese",                        component:"Paper 3 - Reading Higher",                                 session:"14:15", durationMin:65},
-    {date:"11/05",board:"OCR",    level:"GCSE", code:"J292/01",        subject:"Classical Greek",        component:"Language Written Paper",                                     session:"PM",        durationMin:90},
     {date:"12/05",board:"AQA",    level:"GCSE", code:"8062/11-17", subject:"Religious Studies",    component:"Paper 1",                                                                    session:"AM",        durationMin:105},
     {date:"12/05",board:"Edexcel",level:"IGCSE",code:"4BI1/1B",    subject:"Biology",                        component:"Paper 1B",                                                                 session:"PM",        durationMin:120},
     {date:"13/05",board:"OCR",    level:"GCSE", code:"J384/01",        subject:"Geography",                    component:"Our Natural World",                                                session:"AM",        durationMin:90},
@@ -76,9 +76,12 @@ const LIGHT_KEY = 'light_mode';
 const PLANNER_KEY = 'planner';
 const SPEAKING_KEY = 'speaking_dates_v1';
 const HIDE_MENUS_KEY = 'hide_menus';
+const SHOW_OTHER_EXAMS_KEY = 'show_other_exams';
 
 function saveHideMenus(v){ try{ localStorage.setItem(HIDE_MENUS_KEY, v ? '1' : '0'); }catch(e){} }
 function loadHideMenus(){ try{ return localStorage.getItem(HIDE_MENUS_KEY)==='1'; }catch(e){return false;} }
+function saveShowOtherExams(v){ try{ localStorage.setItem(SHOW_OTHER_EXAMS_KEY, v ? '1' : '0'); }catch(e){} }
+function loadShowOtherExams(){ try{ return localStorage.getItem(SHOW_OTHER_EXAMS_KEY)==='1'; }catch(e){return false;} }
 
 function saveFilters() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...activeFilters])); } catch(e){} }
 function loadFilters() { try { const r=localStorage.getItem(STORAGE_KEY); return r?new Set(JSON.parse(r)):new Set(); } catch(e){ return new Set(); } }
@@ -210,6 +213,8 @@ let legacyCalMode = loadLegacyCal();
 let compactMode = calMode || legacyCalMode ? 0:loadCompact();
 if(compactMode) {document.body.classList.replace('cal', 'compact') ? null:document.body.classList.add('compact')};
 
+let showOtherExams = loadShowOtherExams();
+
 let plannerMode = 0;
 
 // ── DOM refs ─────────────────────────────────────────────────────────────────
@@ -228,8 +233,8 @@ const speakingDatesEl = document.getElementById('speakingDates');
 
 // Settings toggles (moved to controls)
 const lightToggleTop = document.getElementById('lightToggleTop');
-
-
+const showOtherExamsToggle = document.getElementById('showOtherExamsToggle');
+const calModeOnly = document.querySelectorAll('.calModeOnly');
 
 // ── Sync toggle initial states ────────────────────────────────────────────────
 function syncAllToggles() {
@@ -238,6 +243,12 @@ function syncAllToggles() {
     if (lightToggleTop) lightToggleTop.checked = isLight;
 
     if (legacyCalToggle) legacyCalToggle.checked = legacyCalMode;
+    if (showOtherExamsToggle) showOtherExamsToggle.checked = showOtherExams;
+    
+    // Show "Show Other Exams" toggle only in calendar mode
+    if (calModeOnly) {
+        calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
+    }
 }
 
 syncAllToggles();
@@ -252,6 +263,17 @@ function setLightMode(on) {
 }
 
 if (lightToggleTop) lightToggleTop.addEventListener('change', e => setLightMode(e.target.checked));
+
+function setShowOtherExams(on) {
+    showOtherExams = on ? 1 : 0;
+    if (showOtherExamsToggle) showOtherExamsToggle.checked = on;
+    saveShowOtherExams(showOtherExams);
+    renderExams();
+}
+
+if (showOtherExamsToggle) {
+    showOtherExamsToggle.addEventListener('change', e => setShowOtherExams(e.target.checked));
+}
 
 function setLegacyCalMode(on) {
     legacyCalMode = on ? 1 : 0;
@@ -314,6 +336,12 @@ function setCalMode(on) {
         if(defaultbtn) defaultbtn.classList.add('active');
     }
     if(calbtn) calbtn.classList.toggle('active', !!on);
+    
+    // Show/hide "Show Other Exams" toggle based on calendar mode
+    if (calModeOnly) {
+        calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
+    }
+    
     saveCal(calMode);
     saveCompact(compactMode);
     renderExams();
@@ -323,7 +351,7 @@ if (calbtn) calbtn.addEventListener('click', () => setCalMode(!calMode));
 if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compactMode));
 if (defaultbtn) defaultbtn.addEventListener('click', () => setDefaultMode(true));
 
-// Keyboard shortcuts: z = default, x = compact, c = calendar, v = multi-month calendar, l = light mode
+// Keyboard shortcuts: z = default, x = compact, c = calendar, d = legacy calendar, l = light mode, e = legacy ui, s = show other exams
 document.addEventListener('keydown', (e) => {
     if (e.key === 'z' || e.key === 'Z') {
         e.preventDefault();
@@ -334,7 +362,7 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
         setCalMode(!calMode);
-    } else if (e.key === 'v' || e.key === 'V') {
+    } else if (e.key === 'd' || e.key === 'D') {
         e.preventDefault();
         setLegacyCalMode(!legacyCalMode);
     } else if (e.key === 'l' || e.key === 'L') {
@@ -343,7 +371,11 @@ document.addEventListener('keydown', (e) => {
         setLightMode(!isLight);
     } else if (e.key === 'e' || e.key === 'E') {
         toggleMenusVisibility();
+    } else if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        setShowOtherExams(!showOtherExams);
     }
+    
 });
 
 // Initialize button active states on page load
@@ -724,7 +756,14 @@ function renderMultiMonthCalendar(list, active, filtered) {
     wrapper.className = 'multi-calendar-wrapper';
 
     // Use ALL exams (including over) for full calendar
-    const allExamsForCalendar = activeFilters.size === 0 ? exams : exams.filter(e => activeFilters.has(e.subject));
+    let allExamsForCalendar = activeFilters.size === 0 ? exams : exams.filter(e => activeFilters.has(e.subject));
+    
+    // If "Show Other Exams" is enabled and there are active filters, also include filtered-out exams
+    let otherExams = [];
+    if (showOtherExams && activeFilters.size > 0) {
+        otherExams = exams.filter(e => !activeFilters.has(e.subject));
+        allExamsForCalendar = [...allExamsForCalendar, ...otherExams];
+    }
 
     // Always show April, May, June 2026
     const sortedMonths = [4, 5, 6].map(m => new Date(2026, m - 1, 1));
@@ -887,6 +926,13 @@ function renderMultiMonthCalendar(list, active, filtered) {
 
         const examDiv = document.createElement('div');
         examDiv.className = 'cal-exam';
+        
+        // Add "other-exam" class if this exam is from a filtered-out subject
+        const isOtherExam = activeFilters.size > 0 && !activeFilters.has(ex.subject);
+        if (isOtherExam) {
+            examDiv.classList.add('other-exam');
+        }
+        
         examDiv.dataset.code = ex.code;
         const now = Date.now();
         const state = getState(ex.start, ex.end, now);
@@ -897,7 +943,12 @@ function renderMultiMonthCalendar(list, active, filtered) {
         const timerText = state === 'upcoming' ? fmtCountdown(msLeft) : '–';
         const frac = state === 'upcoming' ? getFrac(msLeft) : 0;
         const color = state === 'upcoming' ? fracToColor(frac) : state === 'inprogress' ? '#a855f7' : '#3b82f6';
-        examDiv.style.borderLeftColor = color;
+        
+        // Only set border color for non-"other-exam" exams
+        if (!isOtherExam) {
+            examDiv.style.borderLeftColor = color;
+        }
+        
         examDiv.innerHTML = `<span class="cal-exam-subject">${ex.subject}</span><span class="cal-exam-component">${ex.component}</span>`;
         examDiv.innerHTML += `<div class="cal-exam-tooltip" style="border-left-color: ${color}">
             <div class="cal-tooltip-top">
@@ -951,6 +1002,12 @@ function renderExams(){
     // In calendar mode include finished (over) exams as well
     if (calMode) {
         active = filtered.slice();
+        
+        // If "Show Other Exams" is enabled, also include other exams
+        if (showOtherExams && activeFilters.size > 0) {
+            const otherExams = exams.filter(e => !activeFilters.has(e.subject));
+            active = [...active, ...otherExams];
+        }
     }
 
     if (!calMode) {
@@ -1054,6 +1111,13 @@ function renderExams(){
                             const ex = examsOnDay[i];
                             const examDiv = document.createElement('div');
                             examDiv.className = 'cal-exam';
+                            
+                            // Add "other-exam" class if this exam is from a filtered-out subject
+                            const isOtherExam = activeFilters.size > 0 && !activeFilters.has(ex.subject);
+                            if (isOtherExam) {
+                                examDiv.classList.add('other-exam');
+                            }
+                            
                             examDiv.dataset.code = ex.code;
                             const now = Date.now();
                             const state = getState(ex.start, ex.end, now);
@@ -1064,7 +1128,12 @@ function renderExams(){
                             const timerText = state === 'upcoming' ? fmtCountdown(msLeft) : '–';
                             const frac=state==='upcoming'?getFrac(msLeft):0;
                             const color=state==='upcoming'?fracToColor(frac):state==='inprogress'?'#a855f7':'#3b82f6';
-                            examDiv.style.borderLeftColor = color;
+                            
+                            // Only set border color for non-"other-exam" exams
+                            if (!isOtherExam) {
+                                examDiv.style.borderLeftColor = color;
+                            }
+                            
                             examDiv.innerHTML = `<span class="cal-exam-subject">${ex.subject}</span><span class="cal-exam-component">${ex.component}</span>`;
                             examDiv.innerHTML += `<div class="cal-exam-tooltip" style="border-left-color: ${color}">
                                 <div class="cal-tooltip-top">
