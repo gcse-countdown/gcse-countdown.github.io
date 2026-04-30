@@ -65,13 +65,24 @@ const CATEGORIES = [
     { name: "MFL",             subjects: ["French", "German", "Spanish", "Italian", "Chinese"] },
     { name: "Classics",    subjects: ["Latin", "Classical Greek", "Ancient History"] },
     { name: "Humanities",subjects: ["History", "Geography", "Religious Studies"] },
-    { name: "Creatives",    subjects: ["Music", "Drama", "Electronics", "S&C / PD", "Computer Science"] },
+    { name: "Creatives",    subjects: ["Music", "Drama", "Art", "Electronics", "S&C / PD", "Computer Science"] },
 ];
+
+// ── Coursework weightings (% of total grade that is coursework) ──────────────
+const COURSEWORK = {
+    "S&C / PD": 50,
+    "Electronics": 20,
+    "History": 30,
+    "Music": 60,
+    "Art": 100,
+    "Drama": 60,
+};
 
 const STORAGE_KEY = 'filters_v3';
 const COMPACT_KEY = 'compact_mode';
 const CAL_KEY = 'calendar_mode';
 const LEGACY_CAL_KEY = 'legacy_calendar_mode';
+const PROGRESS_KEY = 'progress_mode';
 const LIGHT_KEY = 'light_mode';
 const PLANNER_KEY = 'planner';
 const SPEAKING_KEY = 'speaking_dates_v1';
@@ -82,6 +93,8 @@ function saveHideMenus(v){ try{ localStorage.setItem(HIDE_MENUS_KEY, v ? '1' : '
 function loadHideMenus(){ try{ return localStorage.getItem(HIDE_MENUS_KEY)==='1'; }catch(e){return false;} }
 function saveShowOtherExams(v){ try{ localStorage.setItem(SHOW_OTHER_EXAMS_KEY, v ? '1' : '0'); }catch(e){} }
 function loadShowOtherExams(){ try{ return localStorage.getItem(SHOW_OTHER_EXAMS_KEY)==='1'; }catch(e){return false;} }
+function saveProgressMode(v){ try{ localStorage.setItem(PROGRESS_KEY, v ? '1' : '0'); }catch(e){} }
+function loadProgressMode(){ try{ return localStorage.getItem(PROGRESS_KEY)==='1'; }catch(e){return false;} }
 
 function saveFilters() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...activeFilters])); } catch(e){} }
 function loadFilters() { try { const r=localStorage.getItem(STORAGE_KEY); return r?new Set(JSON.parse(r)):new Set(); } catch(e){ return new Set(); } }
@@ -216,6 +229,9 @@ if(compactMode) {document.body.classList.replace('cal', 'compact') ? null:docume
 
 let showOtherExams = loadShowOtherExams();
 
+let progressMode = loadProgressMode();
+if (progressMode) {document.body.classList.add('progress')};
+
 let plannerMode = 0;
 
 // ── DOM refs ─────────────────────────────────────────────────────────────────
@@ -224,6 +240,7 @@ const filterCountEl = document.getElementById('filterCount');
 const defaultbtn = document.getElementById('defaultbtn');
 const compactbtn = document.getElementById('compactbtn');
 const calbtn = document.getElementById('calbtn');
+const progressbtn = document.getElementById('progressbtn');
 const toggleMenusBtn = document.getElementById('toggleMenusBtn');
 const quickLinksMenu = document.querySelector('.quick-links-menu');
 const countdownsMenu = document.querySelector('.countdowns-menu');
@@ -254,6 +271,12 @@ function syncAllToggles() {
 
 if (!compactMode && !calMode) {if(defaultbtn) defaultbtn.classList.toggle('active', 1);}
 syncAllToggles();
+
+// Show progress tracker container on load if progress mode is active
+const progressContainer = document.getElementById('progressTrackerContainer');
+if (progressContainer && progressMode) {
+    progressContainer.style.display = 'block';
+}
 
 // ── Light mode handlers ────────────────────────────────────────────────────────
 function setLightMode(on) {
@@ -295,9 +318,12 @@ function setDefaultMode(on) {
     if (on) {
         compactMode = 0;
         calMode = 0;
-        document.body.classList.remove('compact', 'cal', 'multical');
+        progressMode = 0;
+        document.body.classList.remove('compact', 'cal', 'multical', 'progress');
         if(compactbtn) compactbtn.classList.remove('active');
         if(calbtn) calbtn.classList.remove('active');
+        if(progressbtn) progressbtn.classList.remove('active');
+        if(progressContainer) progressContainer.style.display = 'none';
     }
     if(defaultbtn) defaultbtn.classList.toggle('active', !!on);
 
@@ -307,6 +333,7 @@ function setDefaultMode(on) {
 
     saveCompact(compactMode);
     saveCal(calMode);
+    saveProgressMode(progressMode);
     renderExams();
 }
 
@@ -315,10 +342,13 @@ function setCompactMode(on) {
     compactMode = on ? 1 : 0;
     if (on) {
         calMode = 0;
-        document.body.classList.remove('cal', 'multical');
+        progressMode = 0;
+        document.body.classList.remove('cal', 'multical', 'progress');
         document.body.classList.add('compact');
         if(calbtn) calbtn.classList.remove('active');
+        if(progressbtn) progressbtn.classList.remove('active');
         if(defaultbtn) defaultbtn.classList.remove('active');
+        if(progressContainer) progressContainer.style.display = 'none';
     } else {
         document.body.classList.remove('compact');
         if(defaultbtn) defaultbtn.classList.add('active');
@@ -331,6 +361,7 @@ function setCompactMode(on) {
 
     saveCompact(compactMode);
     saveCal(calMode);
+    saveProgressMode(progressMode);
     renderExams();
 }
 
@@ -339,10 +370,13 @@ function setCalMode(on) {
     calMode = on ? 1 : 0;
     if (on) {
         compactMode = 0;
-        document.body.classList.remove('compact', 'multical');
+        progressMode = 0;
+        document.body.classList.remove('compact', 'multical', 'progress');
         document.body.classList.add('cal');
         if(compactbtn) compactbtn.classList.remove('active');
+        if(progressbtn) progressbtn.classList.remove('active');
         if(defaultbtn) defaultbtn.classList.remove('active');
+        if(progressContainer) progressContainer.style.display = 'none';
     } else {
         document.body.classList.remove('cal');
         if(defaultbtn) defaultbtn.classList.add('active');
@@ -356,14 +390,44 @@ function setCalMode(on) {
     
     saveCal(calMode);
     saveCompact(compactMode);
+    saveProgressMode(progressMode);
     renderExams();
+}
+
+// ── Progress tracker mode ──────────────────────────────────────────────────────
+function setProgressMode(on) {
+    progressMode = on ? 1 : 0;
+    if (on) {
+        compactMode = 0;
+        calMode = 0;
+        document.body.classList.remove('compact', 'cal', 'multical');
+        document.body.classList.add('progress');
+        if(compactbtn) compactbtn.classList.remove('active');
+        if(calbtn) calbtn.classList.remove('active');
+        if(defaultbtn) defaultbtn.classList.remove('active');
+    } else {
+        document.body.classList.remove('progress');
+        if(defaultbtn) defaultbtn.classList.add('active');
+    }
+    if(progressbtn) progressbtn.classList.toggle('active', !!on);
+    
+    // Show/hide progress tracker container
+    const progressContainer = document.getElementById('progressTrackerContainer');
+    if (progressContainer) progressContainer.style.display = on ? 'block' : 'none';
+    
+    saveProgressMode(progressMode);
+    saveCompact(compactMode);
+    saveCal(calMode);
+    renderExams();
+    if (on) renderProgressTracker();
 }
 
 if (calbtn) calbtn.addEventListener('click', () => setCalMode(!calMode));
 if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compactMode));
+if (progressbtn) progressbtn.addEventListener('click', () => setProgressMode(!progressMode));
 if (defaultbtn) defaultbtn.addEventListener('click', () => setDefaultMode(true));
 
-// Keyboard shortcuts: z = default, x = compact, c = calendar, d = legacy calendar, l = light mode, e = legacy ui, s = show other exams
+// Keyboard shortcuts: z = default, x = compact, c = calendar, d = legacy calendar, l = light mode, e = legacy ui, s = show other exams, p = progress
 document.addEventListener('keydown', (e) => {
     if (e.key === 'z' || e.key === 'Z') {
         e.preventDefault();
@@ -386,15 +450,19 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 's' || e.key === 'S') {
         e.preventDefault();
         setShowOtherExams(!showOtherExams);
+    } else if (e.key === 'v' || e.key === 'V') {
+        e.preventDefault();
+        setProgressMode(!progressMode);
     }
     
 });
 
 // Initialize button active states on page load
-const isDefaultMode = !compactMode && !calMode && !legacyCalMode;
+const isDefaultMode = !compactMode && !calMode && !legacyCalMode && !progressMode;
 if (isDefaultMode && defaultbtn) defaultbtn.classList.add('active');
 if (calMode && calbtn) calbtn.classList.add('active');
 if (compactMode && compactbtn) compactbtn.classList.add('active');
+if (progressMode && progressbtn) progressbtn.classList.add('active');
 if (legacyCalMode && legacyCalToggle) legacyCalToggle.classList.add('active');
 
 // ── Speaking exam date selectors ──────────────────────────────────────────────
@@ -1180,6 +1248,9 @@ function renderExams(){
 
     // Update sidebar timers immediately after render
     updateSidebarTimers();
+
+    // Re-render progress tracker whenever exams re-render (filter changes, etc.)
+    if (progressMode) renderProgressTracker();
 }
 
 function makeCard(ex,idx){
@@ -1235,6 +1306,87 @@ function makeCard(ex,idx){
                 </div>
                 </div>`;
     return card;
+}
+
+// ── Progress tracker render ────────────────────────────────────────────────────
+function renderProgressTracker() {
+    const now = Date.now();
+    const allExams = currentFiltered.length > 0 ? currentFiltered : exams;
+
+    // ── Build per-subject stats ──────────────────────────────────────────────
+    const subjectStats = {};
+    allExams.forEach(e => {
+        if (!subjectStats[e.subject]) {
+            subjectStats[e.subject] = { total: 0, completed: 0 };
+        }
+        subjectStats[e.subject].total++;
+        if (getState(e.start, e.end, now) === 'over') {
+            subjectStats[e.subject].completed++;
+        }
+    });
+
+    const subjects = Object.keys(subjectStats);
+    const numSubjects = subjects.length;
+
+    // ── Overall progress: each subject weighted equally (1/N) ────────────────
+    // Within each subject: coursework fraction is always complete; written fraction
+    // fills in as papers are sat.
+    let overallFrac = 0;
+    subjects.forEach(subject => {
+        const stats = subjectStats[subject];
+        const cwPct = COURSEWORK[subject] || 0;
+        const writtenPct = 100 - cwPct;
+        const writtenDoneFrac = stats.total > 0 ? (stats.completed / stats.total) : 0;
+        // subject's contribution = (cw always done + written proportion done) / 100, weighted 1/N
+        const subjectFrac = (cwPct + writtenDoneFrac * writtenPct) / 100;
+        overallFrac += subjectFrac / numSubjects;
+    });
+    const percent = numSubjects > 0 ? Math.round(overallFrac * 100 * 10) / 10 : 0;
+
+    // Exam paper counts for the stat box (still useful raw numbers)
+    const completedPapers = allExams.filter(e => getState(e.start, e.end, now) === 'over').length;
+    const totalPapers = allExams.length;
+
+    // Days remaining
+    const lastExam = allExams[allExams.length - 1];
+    const daysRemaining = lastExam ? Math.max(0, Math.ceil((lastExam.end - now) / (1000 * 60 * 60 * 24))) : 0;
+
+    // ── Update main stats ────────────────────────────────────────────────────
+    document.getElementById('progressCirclePercent').textContent = percent + '%';
+
+    // Update circular progress (stroke-dashoffset)
+    const circle = document.querySelector('.progress-fill');
+    if (circle) {
+        const circumference = 595.9;
+        circle.style.strokeDashoffset = circumference * (1 - percent / 100);
+    }
+
+    // ── Subjects list ────────────────────────────────────────────────────────
+    const subjectsList = document.getElementById('progressSubjectsList');
+    if (!subjectsList) return;
+
+    subjectsList.innerHTML = '';
+    Object.entries(subjectStats).sort((a, b) => a[0].localeCompare(b[0])).forEach(([subject, stats]) => {
+        const cwPct = COURSEWORK[subject] || 0;
+        const writtenPct = 100 - cwPct;
+        const writtenFillPct = stats.total > 0 ? (stats.completed / stats.total) * writtenPct : 0;
+        const countText = writtenFillPct + cwPct + '%';
+
+        let html = '<div class="subject-progress-item">' +
+            '<div class="subject-progress-label">' + subject + '</div>' +
+            '<div class="subject-progress-bar-track">';
+
+        if (cwPct > 0) {
+            html += '<div class="subject-progress-fill cw-fill" style="width:' + cwPct.toFixed(1) + '%"></div>';
+        }
+        html += '<div class="subject-progress-fill exam-fill" style="width:' + writtenFillPct.toFixed(1) + '%"></div>';
+
+        html += '</div>' +
+            '<div class="subject-progress-count">' + countText + '</div>' +
+            '</div>';
+
+        subjectsList.innerHTML += html;
+    });
 }
 
 // ── Sidebar timer updates ─────────────────────────────────────────────────────
@@ -1382,6 +1534,8 @@ function tick(){
     if(changed){renderExams();return;}
 
     updateSidebarTimers();
+    
+    // if (progressMode) renderProgressTracker();
 
     document.querySelectorAll('[data-code]').forEach(el=>{
         if(!el.classList.contains('countdown-timer'))return;
@@ -1404,6 +1558,7 @@ function tick(){
 }
 
 renderExams();
+if (progressMode) renderProgressTracker();
 updateClock();
 setInterval(updateClock,100);
 setInterval(updateTime, 100);

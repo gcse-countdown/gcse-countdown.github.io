@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GCSE Exam Countdowns 2026</title>
     <link rel="icon" type="image/x-icon" href="/gcse_favicon.svg">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=0.2">
+    <link rel="stylesheet" href="styles.css?v=0.3">
     <script src = 'https://code.jquery.com/jquery-3.6.3.min.js'></script>
     <script>
         if (localStorage.getItem('light_mode') === '1') {
@@ -147,6 +147,7 @@
                         <button id="defaultbtn" class="filter-btn" title="Default view (Z)"><i class="fas fa-th-large"></i> Default <span class="shortcut-label">Z</span></button>
                         <button id="compactbtn" class="filter-btn" title="Compact view (X)"><i class="fas fa-bars"></i> Compact <span class="shortcut-label">X</span></button>
                         <button id="calbtn" class="filter-btn" title="Calendar view (C)"><i class="fas fa-calendar"></i> Calendar <span class="shortcut-label">C</span></button>
+                        <button id="progressbtn" class="filter-btn" title="Progress tracker (V)"><i class="fas fa-chart-pie"></i> Progress <span class="shortcut-label">V</span></button>
                     </div>
                 </div>
             </div>
@@ -217,10 +218,35 @@
             <div class="rev-planner-wrapper" style="display: none;">
                 <button id="rev-planner" class="btn" style="margin-bottom: 12px;">!!NEW!! Revision Planner</button>
             </div>
+            <!-- ── Progress Tracker ── -->
+            <div class="progress-tracker-container" id="progressTrackerContainer" style="display: none;">
+                <div class="progress-tracker">
+                    <div class="progress-circle-container">
+                        <svg class="progress-circle" viewBox="0 0 200 200">
+                            <defs>
+                                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#a855f7;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#c8b8ff;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="progress-bg" cx="100" cy="100" r="95"></circle>
+                            <circle class="progress-fill" cx="100" cy="100" r="95"></circle>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="progress-text-percent" id="progressCirclePercent">0%</span>
+                            <span class="progress-text-label">Complete</span>
+                        </div>
+                    </div>
+                    <div class="progress-subjects">
+                        <div class="subjects-header">Completion by Subject</div>
+                        <div class="subjects-list" id="progressSubjectsList"></div>
+                    </div>
+                </div>
+            </div>
             <div class="exam-list" id="examList"></div>
             <div class="empty-state" id="emptyState">No exams found for this filter.</div>
         </div>
-        
+
         <!-- ── Right Sidebar ── -->
         <aside class="sidebar sidebar-right">
             <div class="sidebar-panel">
@@ -311,6 +337,6 @@
         </aside>
     </div>
 
-    <script src="script.js?v=0.2"></script>
+    <script src="script.js?v=0.3"></script>
 </body>
 </html>
