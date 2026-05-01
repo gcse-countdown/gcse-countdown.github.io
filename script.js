@@ -1387,6 +1387,10 @@ function renderProgressTracker() {
 
         subjectsList.innerHTML += html;
     });
+
+    if (calModeOnly) {
+        calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
+    }
 }
 
 // ── Sidebar timer updates ─────────────────────────────────────────────────────
