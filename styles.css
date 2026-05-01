@@ -1561,6 +1561,27 @@ html.light .continuous-calendar tbody td.today {
     }
 }
 
+/* ── Hide Weekends Calendar Filter ── */
+#calendar.hide-weekends tr:first-child th:nth-child(6),
+#calendar.hide-weekends tr:first-child th:nth-child(7) {
+    display: none;
+}
+
+#calendar.hide-weekends td:nth-child(6),
+#calendar.hide-weekends td:nth-child(7) {
+    display: none;
+}
+
+.continuous-calendar.hide-weekends thead tr th:nth-child(7),
+.continuous-calendar.hide-weekends thead tr th:nth-child(8) {
+    display: none;
+}
+
+.continuous-calendar.hide-weekends tbody td:nth-child(7),
+.continuous-calendar.hide-weekends tbody td:nth-child(8) {
+    display: none;
+}
+
 /* Multi-month calendar mode */
 body.multical .exam-list { gap: 0; }
 

@@ -88,11 +88,15 @@ const PLANNER_KEY = 'planner';
 const SPEAKING_KEY = 'speaking_dates_v1';
 const HIDE_MENUS_KEY = 'hide_menus';
 const SHOW_OTHER_EXAMS_KEY = 'show_other_exams';
+const TOPBAR_KEY = 'topbar_hidden';
+const WEEKENDS_KEY = 'hide_weekends';
 
 function saveHideMenus(v){ try{ localStorage.setItem(HIDE_MENUS_KEY, v ? '1' : '0'); }catch(e){} }
 function loadHideMenus(){ try{ return localStorage.getItem(HIDE_MENUS_KEY)==='1'; }catch(e){return false;} }
 function saveShowOtherExams(v){ try{ localStorage.setItem(SHOW_OTHER_EXAMS_KEY, v ? '1' : '0'); }catch(e){} }
+function saveWeekends(v){ try{ localStorage.setItem(WEEKENDS_KEY, v ? '1' : '0'); }catch(e){} }
 function loadShowOtherExams(){ try{ return localStorage.getItem(SHOW_OTHER_EXAMS_KEY)==='1'; }catch(e){return false;} }
+function loadWeekends(){ try{ return localStorage.getItem(WEEKENDS_KEY)==='1'; }catch(e){return true;} }
 function saveProgressMode(v){ try{ localStorage.setItem(PROGRESS_KEY, v ? '1' : '0'); }catch(e){} }
 function loadProgressMode(){ try{ return localStorage.getItem(PROGRESS_KEY)==='1'; }catch(e){return false;} }
 
@@ -226,6 +230,7 @@ let legacyCalMode = loadLegacyCal();
 let compactMode = calMode || legacyCalMode ? 0:loadCompact();
 if(compactMode) {document.body.classList.replace('cal', 'compact') ? null:document.body.classList.add('compact')};
 
+let weekends = loadWeekends();
 
 let showOtherExams = loadShowOtherExams();
 
@@ -253,6 +258,8 @@ const speakingDatesEl = document.getElementById('speakingDates');
 const lightToggleTop = document.getElementById('lightToggleTop');
 const showOtherExamsToggle = document.getElementById('showOtherExamsToggle');
 const calModeOnly = document.querySelectorAll('.calModeOnly');
+const weekendsToggle = document.getElementById('weekendsToggle');
+if (weekendsToggle) weekendsToggle.addEventListener('change', e => setWeekends(e.target.checked));
 
 // ── Sync toggle initial states ────────────────────────────────────────────────
 function syncAllToggles() {
@@ -262,6 +269,7 @@ function syncAllToggles() {
     
     if (legacyCalToggle) legacyCalToggle.checked = legacyCalMode;
     if (showOtherExamsToggle) showOtherExamsToggle.checked = showOtherExams;
+    if (weekendsToggle) weekendsToggle.checked = weekends;
     
     // Show "Show Other Exams" toggle only in calendar mode
     if (calModeOnly) {
@@ -296,9 +304,26 @@ function setShowOtherExams(on) {
     renderExams();
 }
 
+function setWeekends(on) {
+    weekends = on ? 1 : 0;
+    const weekendsToggle = document.getElementById('weekendsToggle');
+    if (weekendsToggle) weekendsToggle.checked = on;
+    saveWeekends(weekends);
+    const calendarTable = document.getElementById('calendar');
+    const multiCalendar = document.querySelector('.continuous-calendar');
+    if (on) {
+        if (calendarTable) calendarTable.classList.add('hide-weekends');
+        if (multiCalendar) multiCalendar.classList.add('hide-weekends');
+    } else {
+        if (calendarTable) calendarTable.classList.remove('hide-weekends');
+        if (multiCalendar) multiCalendar.classList.remove('hide-weekends');
+    }
+}
+
 if (showOtherExamsToggle) {
     showOtherExamsToggle.addEventListener('change', e => setShowOtherExams(e.target.checked));
 }
+    
 
 function setLegacyCalMode(on) {
     legacyCalMode = on ? 1 : 0;
@@ -427,7 +452,7 @@ if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compa
 if (progressbtn) progressbtn.addEventListener('click', () => setProgressMode(!progressMode));
 if (defaultbtn) defaultbtn.addEventListener('click', () => setDefaultMode(true));
 
-// Keyboard shortcuts: z = default, x = compact, c = calendar, d = legacy calendar, l = light mode, e = legacy ui, s = show other exams, p = progress
+// Keyboard shortcuts: z = default, x = compact, c = calendar, d = legacy calendar, l = light mode, e = legacy ui, s = show other exams, a = weekends only, p = progress
 document.addEventListener('keydown', (e) => {
     if (e.key === 'z' || e.key === 'Z') {
         e.preventDefault();
@@ -450,6 +475,9 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 's' || e.key === 'S') {
         e.preventDefault();
         setShowOtherExams(!showOtherExams);
+    } else if (e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        setWeekends(!weekends);
     } else if (e.key === 'v' || e.key === 'V') {
         e.preventDefault();
         setProgressMode(!progressMode);
@@ -811,7 +839,6 @@ rebuildExams();
 renderSpeakingDates();
 
 // Top bar close (persisted)
-const TOPBAR_KEY = 'topbar_hidden';
 const topBar = document.querySelector('.top-bar');
 const topBarClose = document.getElementById('topBarClose');
 function loadTopbarHidden(){ try{ return localStorage.getItem(TOPBAR_KEY)==='1'; }catch(e){return false;} }
@@ -860,7 +887,7 @@ function renderMultiMonthCalendar(list, active, filtered) {
     //   cell 0 = month-label column (empty most rows, shows month name on first row of each month)
     //   cells 1–7 = Mon–Sun
     const table = document.createElement('table');
-    table.className = 'multi-calendar continuous-calendar';
+    table.className = 'multi-calendar continuous-calendar' + (weekends ? ' hide-weekends' : '');
 
     // Header row — 8 cols: label col + 7 day names
     const thead = table.createTHead();
@@ -1150,7 +1177,7 @@ function renderExams(){
             const today = new Date(Date.now());
             let date = new Date(dateMS);
             const curMonth = date.getMonth();
-            let table = '<table id="calendar"><tr><th>MONDAY</th><th>TUESDAY</th><th>WEDNESDAY</th><th>THURSDAY</th><th>FRIDAY</th><th>SATURDAY</th><th>SUNDAY</th></tr><tr>';
+            let table = '<table id="calendar"' + (weekends ? ' class="hide-weekends"' : '') + '><tr><th>MONDAY</th><th>TUESDAY</th><th>WEDNESDAY</th><th>THURSDAY</th><th>FRIDAY</th><th>SATURDAY</th><th>SUNDAY</th></tr><tr>';
             for (let i = 0; i < getDay(date); i++) {table += '<td id="0 0">'+'</td>';}
             while (date.getMonth() == curMonth) {
                 if (date.getFullYear() == today.getFullYear() && date.getMonth() == today.getMonth() && date.getDate() == today.getDate()) {
