@@ -277,7 +277,6 @@ function syncAllToggles() {
     }
 }
 
-if (!compactMode && !calMode) {if(defaultbtn) defaultbtn.classList.toggle('active', 1);}
 syncAllToggles();
 
 // Show progress tracker container on load if progress mode is active
@@ -486,7 +485,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Initialize button active states on page load
-const isDefaultMode = !compactMode && !calMode && !legacyCalMode && !progressMode;
+const isDefaultMode = !compactMode && !calMode && !progressMode;
 if (isDefaultMode && defaultbtn) defaultbtn.classList.add('active');
 if (calMode && calbtn) calbtn.classList.add('active');
 if (compactMode && compactbtn) compactbtn.classList.add('active');

@@ -260,7 +260,7 @@ header { margin-bottom: 16px; }
     margin-bottom: 8px;
 }
 
-.tag {
+.tag-header {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     color: var(--accent);
@@ -271,6 +271,18 @@ header { margin-bottom: 16px; }
     border-radius: 4px;
     display: inline-block;
     margin-bottom: 12px;
+}
+
+.tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1px solid rgba(200,184,255,0.3);
+    border-radius: 4px;
+    display: inline-block;
 }
 
 h1 {
@@ -338,7 +350,7 @@ h1 span { color: var(--accent); }
 /* Settings box above filters */
 .controls-settings-box {
     display: grid;
-    grid-template-columns: 1fr 1fr 1.5fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
     align-items: flex-start;
 }
