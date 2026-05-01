@@ -276,13 +276,14 @@ header { margin-bottom: 16px; }
 .tag {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
-    color: var(--accent);
+    color: white;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     padding: 4px 10px;
     border: 1px solid rgba(200,184,255,0.3);
     border-radius: 4px;
     display: inline-block;
+    background: #24135d;
 }
 
 h1 {
@@ -389,6 +390,10 @@ h1 span { color: var(--accent); }
     color: var(--text-muted);
 }
 
+.controls-setting span:first-child:has(~ .switch input:checked + .slider) {
+    color: var(--accent);
+}
+
 .controls-topbar-left {
     display: flex;
     align-items: center;
@@ -478,6 +483,13 @@ h1 span { color: var(--accent); }
     justify-content: center;
     min-width: 18px;
     text-align: center;
+}
+
+.shortcut-label:has(+ .switch input:checked + .slider) {
+    opacity: 1;
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(200,184,255,0.06);
 }
 
 .filter-btn:hover .shortcut-label {
