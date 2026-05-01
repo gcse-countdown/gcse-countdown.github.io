@@ -1,0 +1,2143 @@
+:root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: #2a2a38;
+    --text: #e8e8f0;
+    --text-muted: #6b6b85;
+    --text-dim: #4c4c55;
+    --accent: #c8b8ff;
+    --grid-line: rgba(200,184,255,0.03);
+    --link: darkgoldenrod;
+    --link-hover: #49371b;
+    --link-active: goldenrod;
+}
+
+/* ── Theme Variables ── */
+html.dark {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: #2a2a38;
+    --text: #e8e8f0;
+    --text-muted: #6b6b85;
+    --text-dim: #3a3a50;
+    --accent: #c8b8ff;
+    --grid-line: rgba(200,184,255,0.03);
+    --link: darkgoldenrod;
+    --link-hover: #49371b;
+    --link-active: goldenrod;
+}
+
+html.light {
+    --bg: #f4f4f8;
+    --surface: #ffffff;
+    --surface2: #eeeef4;
+    --border: #d0d0e0;
+    --text: #1a1a2e;
+    --text-muted: #6b6b85;
+    --text-dim: #a0a0b8;
+    --accent: #6d4fc2;
+    --grid-line: rgba(100,80,180,0.05);
+    --link: #3874c8;
+    --link-hover: #143c75;
+    --link-active: #082040;
+}
+
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+
+.sidebar-quick-count{margin-bottom:10px}
+.sidebar-quick-count strong{display:block;color:var(--text-muted);font-size:12px}
+.sidebar-quick-count span{display:block;font-weight:600;color:var(--accent);margin-top:4px}
+
+
+/*links*/
+a:link {
+    color: var(--link);
+    background-color: transparent;
+    text-decoration: none;
+    transition: color 200ms linear;
+}
+a:visited {
+    color: var(--link);
+    background-color: transparent;
+    text-decoration: none;
+}
+a:hover {
+    color: var(--link-hover);
+    background-color: transparent;
+    text-decoration: none;
+}
+a:active {
+    color: var(--link-active);
+    background-color: transparent;
+    text-decoration: underline;
+}
+
+/* ── Top Bar ── */
+.top-bar {
+    background: rgba(220, 15, 15, 0.848);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 8px 20px;
+    font-weight: 500;
+    justify-content: space-between;
+}
+.top-bar-close{
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.top-bar a {
+    color: #a799ff;
+}
+
+.top-bar a:hover {
+    color: #48167d;
+}
+
+/* ── Page layout: sidebars + main ── */
+.page-layout {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 220px 1fr 220px;
+    grid-template-areas: "left main right";
+    gap: 0;
+    max-width: 1440px;
+    margin: 0 auto;
+    align-items: start;
+    padding: 40px 20px 80px;
+}
+
+/* ── Sidebar shared ── */
+.sidebar {
+    position: sticky;
+    top: 40px;
+    padding: 0 20px;
+}
+
+.sidebar-left  { grid-area: left; }
+.sidebar-right { grid-area: right; }
+
+.sidebar-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 16px;
+}
+
+.sidebar-panel-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-panel-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.sidebar-section {
+    margin-bottom: 14px;
+}
+.sidebar-section:last-child {
+    margin-bottom: 0;
+}
+
+.sidebar-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.sidebar-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    white-space: nowrap;
+    padding: 2px 6px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.sidebar-section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.sidebar-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.sidebar-text p {
+    margin-bottom: 6px;
+}
+.sidebar-text p:last-child {
+    margin-bottom: 0;
+}
+
+.sidebar-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    display: inline-block;
+    margin: 2px 2px 2px 0;
+}
+
+/* ── Main column ── */
+.container {
+    grid-area: main;
+    position: relative;
+    z-index: 1;
+    padding: 0 24px;
+}
+
+/* Hide sidebars and revert to simple layout on smaller screens */
+@media (max-width: 1100px) {
+    .page-layout {
+        grid-template-columns: 1fr;
+        grid-template-areas: "main";
+        padding: 40px 20px 80px;
+    }
+    .sidebar { display: none; }
+    .container { padding: 0; }
+}
+
+header { margin-bottom: 16px; }
+
+.header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.tag-header {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1px solid rgba(200,184,255,0.3);
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 12px;
+}
+
+.tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: white;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1px solid rgba(200,184,255,0.3);
+    border-radius: 4px;
+    display: inline-block;
+    background: #24135d;
+}
+
+h1 {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(26px, 5vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+h1 span { color: var(--accent); }
+
+.live-clock {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: right;
+}
+.live-clock .time {
+    font-size: 20px;
+    color: var(--accent);
+    display: block;
+    margin-top: 2px;
+}
+
+.legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    align-items: center;
+}
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+.legend-swatch { width: 32px; height: 7px; border-radius: 4px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid; flex-shrink: 0; }
+
+/* ── Controls box ── */
+.controls {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 16px;
+}
+
+/* ── Label ── */
+.controls-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+/* ── Top bar ── */
+.controls-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    margin-bottom: 10px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Settings box above filters */
+.controls-settings-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.controls-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.controls-column-left,
+.controls-column-middle {
+    justify-content: flex-start;
+}
+
+.controls-column-right {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.controls-setting {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.controls-setting span:first-child {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.controls-setting span:first-child:has(~ .switch input:checked + .slider) {
+    color: var(--accent);
+}
+
+.controls-topbar-left {
+    display: flex;
+    align-items: center;
+    justify-self: sp;
+    gap: 10px;
+    margin-right: auto;
+}
+
+.controls-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* ── Filter count ── */
+.filter-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events: none;
+}
+
+.filter-count strong {
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+}
+
+.filter-count.visible {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+/* ── Buttons (shared) ── */
+.filter-btn,
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: rgba(107,107,107,0.095);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .filter-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: translateY(-1px);
+        transition: transform 0.18s ease;
+    }
+}
+
+.filter-btn.active {
+    background: rgba(200,184,255,0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.shortcut-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2px 5px;
+    margin-left: 4px;
+    opacity: 0.7;
+    transition: opacity 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    text-align: center;
+}
+
+.shortcut-label:has(+ .switch input:checked + .slider) {
+    opacity: 1;
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(200,184,255,0.06);
+}
+
+.filter-btn:hover .shortcut-label {
+    opacity: 1;
+    color: var(--text-muted);
+    border-color: var(--accent);
+}
+
+.filter-btn.active .shortcut-label {
+    opacity: 1;
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(200,184,255,0.06);
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .shortcut-label {
+        display: none;
+    }
+}
+
+/* ── Grid + categories ── */
+.filter-grid {
+    gap: 6px;
+}
+
+.filter-category {
+    margin-bottom: 10px;
+}
+
+.category-header {
+    margin-bottom: 6px;
+}
+
+.category-label-btn {
+    font-size: 8px;
+    padding: 2px 4px;
+}
+
+/* ── Filter collapse button (mobile only) ── */
+.filter-collapse-btn {
+    display: none;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.18s ease;
+    font-size: 14px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .filter-collapse-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+}
+
+/* buttons */
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: rgba(107,107,107,0.095);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+/* #compactbtn::before {
+    content: '';
+    width: 12px;
+    height: 8px;
+    border-radius: 1px;
+    flex-shrink: 0;
+    background: linear-gradient(
+        to bottom,
+        currentColor 0, currentColor 1.5px,
+        transparent 1.5px, transparent 3.5px,
+        currentColor 3.5px, currentColor 5px,
+        transparent 5px, transparent 6.5px,
+        currentColor 6.5px, currentColor 8px
+    );
+    opacity: 0.7;
+    transition: opacity 0.18s ease;
+}
+#calbtn::before {
+    content: '';
+    width: 12px;
+    height: 8px;
+    border-radius: 1px;
+    flex-shrink: 0;
+    background: linear-gradient(
+        to bottom,
+        currentColor 0, currentColor 1.5px,
+        transparent 1.5px, transparent 3.5px,
+        currentColor 3.5px, currentColor 5px,
+        transparent 5px, transparent 6.5px,
+        currentColor 6.5px, currentColor 8px
+    );
+    opacity: 0.7;
+    transition: opacity 0.18s ease;
+} */
+
+.btn.active::before, #compactbtn.active::before, #calbtn.active::before { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+}
+.btn.active {
+    background: rgba(200,184,255,0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* ── Category group ── */
+.filter-category { margin-bottom: 14px; }
+.filter-category:last-child { margin-bottom: 0; }
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+/* category label — clickable to select whole group */
+.category-label-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 2px 6px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+}
+@media (hover: hover) and (pointer: fine) {
+    .category-label-btn:hover { color: var(--accent); border-color: rgba(200,184,255,0.3); }
+}
+.category-label-btn.cat-active {
+    color: var(--accent);
+    border-color: rgba(200,184,255,0.35);
+    background: rgba(200,184,255,0.06);
+}
+
+.category-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.filter-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ── Clear button animated ── */
+.clear-btn-wrap {
+    overflow: hidden;
+    height: 0;
+    will-change: height;
+    margin-top: 0;
+}
+.filter-btn.red-btn {
+    border-color: rgba(239,68,68,0.4);
+    color: #fca5a5;
+    background: rgba(239,68,68,0.08);
+    transform: translateY(5px);
+    opacity: 0;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease,
+    transform 0.38s cubic-bezier(0.34,1.4,0.64,1),
+    opacity 0.28s ease;
+}
+.clear-btn-wrap.open .filter-btn.red-btn { transform: translateY(0); opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+    .filter-btn.red-btn:hover { border-color: #ef4444; color: #fecaca; background: rgba(239,68,68,0.18); }
+}
+
+/* ── Exam list ── */
+.exam-list { display: flex; flex-direction: column; gap: 10px; }
+
+.exam-card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: 10px;
+    padding: 16px 20px;
+    transition: transform 0.15s;
+    animation: slideIn 0.3s ease;
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to     { opacity: 1; transform: translateY(0); }
+}
+@media (hover: hover) and (pointer: fine) {
+    .exam-card:hover { transform: translateX(5px); }
+}
+
+/* Position 'EXAM OVER' badge at the top-right corner of each over exam card */
+.exam-card .status-badge.over {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    z-index: 10;
+}
+
+/* Slightly adjust for compact layout */
+body.compact .exam-card .status-badge.over {
+    top: 8px;
+    right: 10px;
+}
+
+.exam-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+.exam-subject { font-weight: 600; font-size: 15px; }
+.exam-component { font-size: 12px; color: var(--text-muted); margin-top: 2px; display: block; }
+.exam-title-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+}
+
+.status-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.status-badge.inprogress {
+    background: rgba(168,85,247,0.18); color: #d8b4fe;
+    border: 1px solid rgba(168,85,247,0.4);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+.status-badge.over {
+    background: rgba(59,130,246,0.12); color: #93c5fd;
+    border: 1px solid rgba(59,130,246,0.3);
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.55;} }
+
+.exam-meta {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 14px;
+}
+.badge {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    padding: 3px 8px; border-radius: 4px;
+    border: 1px solid var(--border); color: var(--text-muted);
+}
+
+.countdown-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.countdown-timer {
+    font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 0.04em;
+    color: var(--text); white-space: nowrap; min-width: 200px;
+}
+.countdown-timer.dim { color: var(--text-muted); }
+.progress-wrap {
+    flex: 1; min-width: 100px; height: 6px;
+    background: var(--surface2); border-radius: 3px; overflow: hidden;
+}
+.progress-bar { height: 100%; border-radius: 3px; }
+
+.section-divider {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-dim);
+    display: flex; align-items: center; gap: 12px; margin: 24px 0 12px;
+}
+.section-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.half-term-divider {
+    color: #4ade80;
+    letter-spacing: 0.12em;
+}
+.half-term-divider::after { background: rgba(74,222,128,0.25); }
+
+.count-info { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.count-info strong { color: var(--accent); font-family: 'DM Mono', monospace; }
+
+.empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); font-size:14px; display:none; }
+
+/* ══ COMPACT MODE ══ */
+body.compact .exam-list { gap: 4px; }
+
+body.compact .exam-card {
+    padding: 8px 14px 9px;
+    border-radius: 7px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 180px; 
+    grid-template-rows: auto;
+    column-gap: 20px;
+    align-items: center;
+}
+
+body.compact .exam-top {
+    grid-column: 1; grid-row: 1;
+    margin-bottom: 0;
+    align-items: baseline;
+    flex-wrap: nowrap;
+    gap: 0;
+}
+
+body.compact .exam-subject {
+    font-size: 13px;
+    line-height: 1.2;
+}
+
+body.compact .exam-component {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden; 
+    width: 100%;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 15px), transparent 100%);
+    mask-image: linear-gradient(to right, black calc(100% - 15px), transparent 100%);
+}
+
+body.compact .exam-component::before {
+    content: none;
+}
+
+body.compact .exam-title-block {
+    white-space: nowrap;
+    width: 100%;
+}
+
+/* hide badges entirely in compact */
+body.compact .exam-meta { display: none; }
+
+/* right column: timer + full-width bar */
+body.compact .countdown-block {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 4px;
+    min-width: 170px;
+    padding-top: 2px;
+    height: 100%;
+}
+body.compact .countdown-timer {
+    font-size: 11px;
+    line-height: 1.2;
+    min-width: unset;
+    text-align: right;
+    width: 100%;
+}
+body.compact .progress-wrap { width: 100%; height: 4px; min-width: unset; flex: none; margin: 5.5px 0px;}
+
+body.compact .status-badge { font-size: 9px; padding: 2px 7px; border-radius: 4px; }
+body.compact .section-divider { margin: 10px 0 5px; }
+body.compact .half-term-divider { margin: 10px 0 5px; }
+
+/* ══ PROGRESS TRACKER MODE ══ */
+body.progress .exam-list { display: none; }
+body.progress .empty-state { display: none; }
+
+.progress-tracker-container {
+    padding: 20px 0;
+}
+
+.progress-tracker {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px;
+    /* max-width: 600px; */
+    margin: 0 auto;
+    animation: slideIn 0.3s ease;
+}
+
+.progress-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.progress-header h2 {
+    font-family: 'DM Mono', monospace;
+    font-size: 24px;
+    color: var(--text);
+    letter-spacing: 0.05em;
+}
+
+.progress-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.stat-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+/* ── Circular Progress ── */
+.progress-circle-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 40px;
+}
+
+.progress-circle {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.progress-bg {
+    fill: none;
+    stroke: rgba(200, 184, 255, 0.1);
+    stroke-width: 8;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: url(#progressGradient);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 595.9;
+    stroke-dashoffset: 595.9;
+    transition: stroke-dashoffset 0.6s ease;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.progress-text-percent {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+}
+
+.progress-text-label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+}
+
+/* ── Milestone Celebration ── */
+.progress-milestone {
+    background: rgba(168, 85, 247, 0.1);
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 30px;
+    animation: milestonePopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.milestone-icon {
+    display: inline-block;
+    font-size: 32px;
+    margin-right: 8px;
+    animation: milestoneJiggle 0.6s ease infinite;
+}
+
+.milestone-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+@keyframes milestonePopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes milestoneJiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
+
+/* ── Subjects List ── */
+.progress-subjects {
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+}
+
+.subjects-header {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+}
+
+.subjects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.subject-progress-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.subject-progress-bar-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(200, 184, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    /* All bars are the same width — flex: 1 ensures they all stretch equally */
+}
+
+.subject-progress-fill {
+    height: 100%;
+    transition: width 0.4s ease;
+    flex-shrink: 0;
+}
+
+/* Written exam segment */
+.exam-fill {
+    background: #a855f7
+}
+
+/* Coursework segment — deeper violet to distinguish from the lighter written-exam purple */
+.cw-fill {
+    background: #6d28d9
+}
+
+.subject-progress-label {
+    width: 130px;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.subject-progress-count {
+    width: 36px;
+    flex-shrink: 0;
+    text-align: right;
+    font-family: 'DM Sans', monospace;
+    font-size: 11px;
+    color: var(--accent);
+}
+
+/* Light mode overrides */
+html.light .progress-tracker {
+    background: var(--surface);
+    border-color: var(--border);
+}
+
+html.light .stat-box {
+    background: var(--surface2);
+    border-color: var(--border);
+}
+
+html.light .progress-milestone {
+    background: rgba(109, 79, 194, 0.08);
+    border-color: var(--accent);
+}
+
+/* ══ CALENDAR MODE ══ */
+body.cal .exam-list {
+    gap: 0;
+}
+
+/* Month nav buttons */
+.buttonsDiv {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
+#monthBackBtn,
+#monthFwdBtn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 7px 18px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    #monthBackBtn:hover,
+    #monthFwdBtn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(200,184,255,0.07);
+    }
+}
+
+/* Calendar table */
+#calendar {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: visible;
+    animation: slideIn 0.3s ease;
+}
+
+/* Day-of-week headers */
+#calendar thead tr th,
+#calendar tr:first-child th {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 12px 4px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    font-weight: 400;
+}
+
+/* Calendar rows with staggered animation */
+#calendar tr {
+    animation: slideIn 0.3s ease;
+}
+
+/* Weekend header columns (Sat=index 5, Sun=index 6) */
+#calendar tr:first-child th:nth-child(6),
+#calendar tr:first-child th:nth-child(7) {
+    color: var(--text-dim);
+}
+
+/* Table cells */
+#calendar td {
+    vertical-align: top;
+    padding: 10px 8px 8px;
+    border: 1px solid var(--border);
+    min-height: 90px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: background 0.15s;
+    position: relative;
+    overflow: visible;
+}
+
+/* Current-month dates */
+#calendar td.curMonth {
+    color: var(--text-muted);
+    background: var(--surface);
+}
+
+/* Next-month overflow dates */
+#calendar td.nextMonth {
+    color: var(--text-dim);
+    background: rgba(0,0,0,0.15);
+}
+
+/* Empty filler cells */
+#calendar td:not(.curMonth):not(.nextMonth) {
+    background: rgba(0,0,0,0.2);
+}
+
+/* Weekend columns */
+#calendar td:nth-child(6),
+#calendar td:nth-child(7) {
+    background: rgba(0,0,0,0.12);
+}
+
+/* Light mode calendar overrides */
+html.light #calendar td.nextMonth {
+    background: #f0f0f6;
+}
+
+html.light #calendar td:not(.curMonth):not(.nextMonth) {
+    background: #e8e8f0;
+}
+
+html.light #calendar td:nth-child(6),
+html.light #calendar td:nth-child(7) {
+    background: #ebebf2;
+}
+
+/* Today highlight */
+#calendar td.today {
+    background: rgba(200,184,255,0.06);
+    border-color: rgba(200,184,255,0.25);
+}
+
+html.light #calendar td.today {
+    background: #f3e8ff;
+    border-color: #d8b4fe;
+}
+
+#calendar td.today::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.8;
+}
+
+/* Exam pill items inside a calendar cell */
+.cal-exam {
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    border-left: 2px solid var(--accent);
+    background: rgba(200,184,255,0.07);
+    gap: 1px;
+    cursor: default;
+    transition: background 0.15s;
+}
+
+html.light .cal-exam {
+    background: #ede9f6;
+}
+
+.cal-exam.other-exam {
+    border-left: none;
+    background: rgba(107,107,127,0.08);
+    opacity: 0.7;
+}
+
+html.light .cal-exam.other-exam {
+    background: rgba(107,107,127,0.1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .cal-exam:hover {
+        background: rgba(200,184,255,0.13);
+    }
+    html.light .cal-exam:hover {
+        background: #ddd4f0;
+    }
+}
+
+.cal-exam-subject {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cal-exam-component {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9px;
+    font-weight: 400;
+    color: var(--text-muted);
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Cal-exam tooltip */
+.cal-exam {
+    position: relative;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .cal-exam:hover {
+        z-index: 200;
+    }
+}
+
+.cal-exam-tooltip {
+    display: none;
+    position: absolute;
+    z-index: 200;
+    left: 0;
+    top: calc(100% + 6px);
+    min-width: 280px;
+    max-width: 340px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    pointer-events: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+}
+
+/* Flip to above if near bottom — handled via .flip-up class added by JS */
+.cal-exam.flip-up .cal-exam-tooltip {
+    top: auto;
+    bottom: calc(100% + 6px);
+}
+
+/* Flip to left if overflowing right edge */
+.cal-exam.flip-left .cal-exam-tooltip {
+    left: auto;
+    right: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .cal-exam:hover .cal-exam-tooltip {
+        display: block;
+    }
+}
+
+.cal-exam.open .cal-exam-tooltip {
+    display: block;
+}
+
+/* Blurred background for "other exam" tooltips in calendar */
+.cal-exam.other-exam .cal-exam-tooltip {
+    background: rgba(28, 28, 38, 1);
+    backdrop-filter: blur(15px);
+}
+
+html.light .cal-exam.other-exam .cal-exam-tooltip {
+    background: rgba(255, 255, 255, 1);
+    backdrop-filter: blur(15px);
+}
+
+.cal-tooltip-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.cal-tooltip-title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+/* Responsive: collapse calendar on very small screens */
+@media (max-width: 700px) {
+    #calendar tr:first-child th {
+        font-size: 7px;
+        padding: 8px 2px;
+        letter-spacing: 0;
+    }
+    #calendar td {
+        padding: 6px 4px 4px;
+        font-size: 10px;
+    }
+    .cal-exam-subject { font-size: 9px; }
+    .cal-exam-component { display: none; }
+}
+
+/* ── Multi-Month Calendar View (continuous single table) ── */
+.multi-calendar-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+/* The single continuous table */
+.continuous-calendar {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: visible;
+    animation: slideIn 0.3s ease;
+}
+
+/* Month-label column — narrow, left side */
+.continuous-calendar th.cal-month-col,
+.continuous-calendar td.cal-month-col {
+    width: 42px;
+    min-width: 42px;
+    max-width: 42px;
+    padding: 6px 2px 0;
+    border: none;
+    border-right: 1px solid var(--border);
+    background: var(--surface2);
+    vertical-align: top;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Header row */
+.continuous-calendar thead tr th {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 12px 4px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    font-weight: 400;
+}
+
+/* Weekend header columns (SAT=7th child, SUN=8th child — after label col) */
+.continuous-calendar thead tr th:nth-child(7),
+.continuous-calendar thead tr th:nth-child(8) {
+    color: var(--text-dim);
+}
+
+/* Body cells */
+.continuous-calendar tbody td {
+    vertical-align: top;
+    padding: 8px 6px 6px;
+    border: 1px solid var(--border);
+    min-height: 70px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    transition: background 0.15s;
+    position: relative;
+    overflow: visible;
+}
+
+.continuous-calendar tbody td.curMonth {
+    color: var(--text-muted);
+    background: var(--surface);
+}
+
+.continuous-calendar tbody td.empty {
+    background: rgba(0,0,0,0.15);
+}
+
+/* Weekend columns (SAT=7th, SUN=8th after label col) */
+.continuous-calendar tbody td:nth-child(7),
+.continuous-calendar tbody td:nth-child(8) {
+    background: rgba(0,0,0,0.10);
+}
+
+/* Light mode overrides */
+html.light .continuous-calendar tbody td.empty {
+    background: #ebebf2;
+}
+html.light .continuous-calendar tbody td:nth-child(7),
+html.light .continuous-calendar tbody td:nth-child(8) {
+    background: #f0f0f6;
+}
+html.light .continuous-calendar th.cal-month-col,
+html.light .continuous-calendar td.cal-month-col {
+    background: var(--surface2);
+}
+
+/* Today */
+.continuous-calendar tbody td.today {
+    background: rgba(200,184,255,0.06);
+    border-color: rgba(200,184,255,0.25);
+}
+html.light .continuous-calendar tbody td.today {
+    background: #f3e8ff;
+    border-color: #d8b4fe;
+}
+.continuous-calendar tbody td.today::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.8;
+}
+
+/* Month boundary borders — applied via JS post-processing */
+.continuous-calendar tbody td.month-border-top {
+    border-top: 2px solid rgba(200,184,255,0.5) !important;
+}
+.continuous-calendar tbody td.cal-month-col.month-border-top {
+    border-top: 2px solid rgba(200,184,255,0.5) !important;
+}
+.continuous-calendar tbody td.month-border-left {
+    border-left: 2px solid rgba(200,184,255,0.5) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .continuous-calendar th.cal-month-col,
+    .continuous-calendar td.cal-month-col {
+        width: 26px;
+        min-width: 26px;
+        max-width: 26px;
+        font-size: 6px;
+        padding: 5px 1px 0;
+        letter-spacing: 0;
+    }
+    .continuous-calendar thead tr th {
+        font-size: 7px;
+        padding: 8px 2px;
+        letter-spacing: 0;
+    }
+    .continuous-calendar tbody td {
+        padding: 5px 3px 4px;
+        font-size: 9px;
+        min-height: 52px;
+    }
+}
+
+/* ── Hide Weekends Calendar Filter ── */
+#calendar.hide-weekends tr:first-child th:nth-child(6),
+#calendar.hide-weekends tr:first-child th:nth-child(7) {
+    display: none;
+}
+
+#calendar.hide-weekends td:nth-child(6),
+#calendar.hide-weekends td:nth-child(7) {
+    display: none;
+}
+
+.continuous-calendar.hide-weekends thead tr th:nth-child(7),
+.continuous-calendar.hide-weekends thead tr th:nth-child(8) {
+    display: none;
+}
+
+.continuous-calendar.hide-weekends tbody td:nth-child(7),
+.continuous-calendar.hide-weekends tbody td:nth-child(8) {
+    display: none;
+}
+
+/* Multi-month calendar mode */
+body.multical .exam-list { gap: 0; }
+
+/* ── Sidebar sublabel ── */
+.sidebar-sublabel {
+    display: block;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.4;
+}
+
+/* ── Theme Toggle Switch ── */
+.toggle-mode {
+    display: flex;
+    align-items: start;
+    justify-content: start;
+    margin-bottom: 12px;
+}
+
+.switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    user-select: none;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.slider {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    transition: background 0.25s ease, border-color 0.25s ease;
+    flex-shrink: 0;
+    font-size: 0; /* hide the "Light Mode" text — it's in the label below */
+}
+
+.slider::before {
+    content: '';
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    left: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease;
+}
+
+.switch input:checked + .slider {
+    background: rgba(200,184,255,0.15);
+    border-color: var(--accent);
+}
+
+.switch input:checked + .slider::before {
+    transform: translate(16px, -50%);
+    background: var(--accent);
+}
+
+.switch input:checked ~ .switch::after,
+.switch:has(input:checked)::after {
+    color: var(--accent);
+}
+/* ══ SPEAKING DATES SECTION ══ */
+#speakingDates {
+    margin-top: 0;
+}
+
+.speaking-dates-wrapper {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.speaking-dates-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.speaking-dates-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.speaking-dates-hint {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.speaking-dates-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.speaking-date-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.speaking-date-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    min-width: 60px;
+}
+
+.speaking-date-input,
+.speaking-time-input {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.18s ease;
+}
+
+.speaking-date-input {
+    flex: 1;
+    min-width: 160px;
+}
+
+.speaking-time-input {
+    width: 100px;
+    flex: none;
+}
+
+.speaking-date-input::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.2);
+    cursor: pointer;
+}
+
+html.light .speaking-date-input::-webkit-calendar-picker-indicator {
+    filter: brightness(0.8);
+}
+
+.speaking-time-input::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.2);
+    cursor: pointer;
+}
+
+html.light .speaking-time-input::-webkit-calendar-picker-indicator {
+    filter: brightness(0.8);
+}
+
+.speaking-date-input:focus,
+.speaking-time-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .speaking-date-input:hover,
+    .speaking-time-input:hover {
+        border-color: var(--accent);
+    }
+}
+
+.speaking-date-clear {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(239,68,68,0.35);
+    background: rgba(239,68,68,0.07);
+    color: #fca5a5;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    flex-shrink: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .speaking-date-clear:hover {
+        border-color: #ef4444;
+        background: rgba(239,68,68,0.18);
+        color: #fecaca;
+    }
+}
+
+/* Speaking card badge */
+.speaking-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(200,184,255,0.35);
+    background: rgba(200,184,255,0.08);
+    color: var(--accent);
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+/* ══ COMPACT MODE — HOVER TOOLTIPS ══ */
+/* The tooltip is always rendered in the DOM but hidden by default */
+.card-hover-tooltip {
+    display: none;
+}
+
+/* When hover-cards mode is active, show tooltip on hover (non-compact it stays hidden — full card already visible) */
+body.hover-cards.compact .exam-card {
+    position: relative;
+    overflow: visible;
+}
+
+body.hover-cards.compact .exam-card .card-hover-tooltip {
+    display: none;
+    position: absolute;
+    z-index: 300;
+    left: 0;
+    top: calc(100% + 6px);
+    min-width: 300px;
+    max-width: 380px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    pointer-events: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body.hover-cards.compact .exam-card:hover {
+        z-index: 300;
+        transform: translateX(5px);
+    }
+    body.hover-cards.compact .exam-card:hover .card-hover-tooltip {
+        display: block;
+    }
+}
+
+/* Flip up when near viewport bottom */
+body.hover-cards.compact .exam-card.tooltip-flip-up .card-hover-tooltip {
+    top: auto;
+    bottom: calc(100% + 6px);
+}
+body.hover-cards.compact .exam-card.tooltip-flip-left .card-hover-tooltip {
+    left: auto;
+    right: 0;
+}
+
+/* Also show tooltips in normal mode when hover-cards enabled */
+body.hover-cards:not(.compact):not(.cal) .exam-card {
+    position: relative;
+    overflow: visible;
+}
+
+body.hover-cards:not(.compact):not(.cal) .exam-card .card-hover-tooltip {
+    display: none;
+}
+/* (In normal mode, cards already show all info, so hover tooltip is redundant — intentionally not shown) */
+
+/* Blurred background for "other exam" tooltips in compact mode */
+body.hover-cards.compact .exam-card.other-exam .card-hover-tooltip {
+    background: rgba(28, 28, 38, 0.6);
+    backdrop-filter: blur(8px);
+}
+
+html.light body.hover-cards.compact .exam-card.other-exam .card-hover-tooltip {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
+}
+
+/* ══ SIDEBAR SETTINGS PANEL — hide toggle-mode from right sidebar ══ */
+.toggle-mode { display: none !important; }
+
+/* Sidebar switch rows */
+#sidebarSettingsPanel .sidebar-text {
+    display: flex;
+    align-items: center;
+}
+
+/* Hover toggle btn in controls-topbar */
+
+/* ── Quick Links Menu ── */
+.quick-links-menu {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    transition: all 0.25s ease;
+}
+
+.quick-links-menu.hidden {
+    display: none;
+}
+
+.quick-link-box {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 14px;
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.18s ease;
+    cursor: pointer;
+}
+
+.quick-link-box:link,
+.quick-link-box:visited,
+.quick-link-box:hover,
+.quick-link-box:active {
+    background-color: var(--surface);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .quick-link-box:hover {
+        background: var(--surface2);
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        transition: transform 0.18s ease;
+        box-shadow: 0 4px 12px rgba(200, 184, 255, 0.1);
+    }
+}
+
+.quick-link-box i {
+    font-size: 24px;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.quick-link-icon-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.quick-link-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.quick-link-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.quick-link-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+/* ── Countdown Boxes ── */
+.countdowns-menu {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    transition: all 0.25s ease;
+}
+
+.countdowns-menu.hidden {
+    display: none;
+}
+
+.countdown-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px 16px;
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-align: center;
+    transition: all 0.18s ease;
+}
+
+.countdown-box:hover {
+    background: var(--surface);
+    border-color: var(--accent);
+}
+
+.countdown-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.countdown-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1;
+}
+
+.countdown-sublabel {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.countdown-box {
+    cursor: pointer;
+}
+
+.countdown-box:hover {
+    background: var(--surface2);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(200, 184, 255, 0.1);
+}
+
+.highlight-flash {
+    animation: highlightFlash 0.6s ease-out;
+}
+
+@keyframes highlightFlash {
+    0% {
+        background-color: rgba(200, 184, 255, 0.2);
+        transform: scale(1);
+    }
+    50% {
+        background-color: rgba(200, 184, 255, 0.1);
+    }
+    100% {
+        background-color: transparent;
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 768px) {
+    .quick-links-menu {
+        flex-direction: column;
+    }
+
+    .countdowns-menu {
+        flex-direction: column;
+    }
+
+    .filter-collapse-btn {
+        display: flex;
+    }
+
+    .filter-collapse-btn.collapsed i {
+        transform: rotate(180deg);
+    }
+
+    #filterCategories.collapsed {
+    display: none;
+    }
+
+    #speakingDates.collapsed {
+        display: none;
+    }
+
+    /* Responsive controls box layout */
+    .controls-settings-box {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .controls-column-right {
+        justify-content: flex-start;
+    }
+
+}
+
+/* scrollbars */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--surface);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-dim);
+    border-radius: 8px;
+    border: 2px solid var(--surface2);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-dim);
+    box-shadow: 0 0 8px rgba(200,184,255,0.5);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--surface);
+}
