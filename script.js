@@ -91,6 +91,7 @@ const SHOW_OTHER_EXAMS_KEY = 'show_other_exams';
 const TOPBAR_KEY = 'topbar_hidden';
 const WEEKENDS_KEY = 'hide_weekends';
 const FILTER_COLLAPSED_KEY = 'filter_collapsed';
+const ADVANCED_KEY = 'advanced_options'
 
 // Settings configuration: type, default value, and special parsing rules
 const SETTINGS_CONFIG = {
@@ -107,6 +108,7 @@ const SETTINGS_CONFIG = {
     [STORAGE_KEY]: { type: 'set', default: new Set() },
     [PLANNER_KEY]: { type: 'json', default: null },
     [SPEAKING_KEY]: { type: 'json', default: {} },
+    [ADVANCED_KEY]: {type: 'bool', default: false},
 };
 
 // Generic load function supporting booleans, JSON, arrays (as Sets), and custom parsing
@@ -261,7 +263,7 @@ if (calMode) {document.body.classList.replace('compact', 'cal') ? null:document.
 
 let legacyCalMode = load(LEGACY_CAL_KEY);
 
-let compactMode = calMode || legacyCalMode ? 0:load(COMPACT_KEY);
+let compactMode = (calMode || legacyCalMode) ? 0:load(COMPACT_KEY);
 if(compactMode) {document.body.classList.replace('cal', 'compact') ? null:document.body.classList.add('compact')};
 
 let weekends = load(WEEKENDS_KEY);
@@ -296,7 +298,8 @@ const calModeOnly = document.querySelectorAll('.calModeOnly');
 const weekendsToggle = document.getElementById('weekendsToggle');
 if (weekendsToggle) weekendsToggle.addEventListener('change', e => setWeekends(e.target.checked));
 
-let advancedToggle = false;
+let advancedToggle = load(ADVANCED_KEY);
+// its set at the bottom because it was breaking
 
 // ── Sync toggle initial states ────────────────────────────────────────────────
 function syncAllToggles() {
@@ -310,7 +313,7 @@ function syncAllToggles() {
     
     // Show "Show Other Exams" toggle only in calendar mode
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
     }
 }
 
@@ -390,7 +393,7 @@ function setDefaultMode(on) {
     if(defaultbtn) defaultbtn.classList.toggle('active', !!on);
 
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
     }
 
     save(COMPACT_KEY, compactMode);
@@ -418,7 +421,7 @@ function setCompactMode(on) {
     if(compactbtn) compactbtn.classList.toggle('active', !!on);
 
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
     }
 
     save(COMPACT_KEY, compactMode);
@@ -447,7 +450,7 @@ function setCalMode(on) {
     
     // Show/hide "Show Other Exams" toggle based on calendar mode
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
     }
     
     save(CAL_KEY, calMode);
@@ -495,8 +498,8 @@ if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compa
 if (progressbtn) progressbtn.addEventListener('click', () => setProgressMode(!progressMode));
 if (defaultbtn) defaultbtn.addEventListener('click', () => setDefaultMode(true));
 
-advancedOptsBtn.addEventListener('click', () => {
-    if (advancedToggle) {
+function setAdvancedToggle(on) {
+    if (!on) {
         console.log("inactive");
         advancedToggle = false;
         advancedOptsBtn.classList.remove("cat-active");
@@ -510,12 +513,18 @@ advancedOptsBtn.addEventListener('click', () => {
         advancedToggle = true;
         advancedOptsBtn.classList.add("cat-active");
         document.getElementById("legacyUI").style = "";
-        document.getElementById("legacyCal").style = "";
-        document.getElementById("showOtherExamsWrapper").style = "";
-        document.getElementById("hideWeekends").style = "";
+        if (calMode) {
+            document.getElementById("legacyCal").style = "";
+            document.getElementById("showOtherExamsWrapper").style = "";
+            document.getElementById("hideWeekends").style = "";
+        }
         document.querySelector(".controls-settings-box").classList.remove("expanded");
-
     }
+    save(ADVANCED_KEY, advancedToggle);
+}
+
+advancedOptsBtn.addEventListener('click', () => {
+    setAdvancedToggle(!advancedToggle);
 });
 // Keyboard shortcuts: z = default, x = compact, c = calendar, d = legacy calendar, l = light mode, e = legacy ui, s = show other exams, a = weekends only, p = progress
 document.addEventListener('keydown', (e) => {
@@ -546,6 +555,9 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'v' || e.key === 'V') {
         e.preventDefault();
         setProgressMode(!progressMode);
+    } else if (e.key === 'o' || e.key === 'O') {
+        e.preventDefault();
+        setAdvancedToggle(!advancedToggle);
     }
     
 });
@@ -1465,7 +1477,7 @@ function renderProgressTracker() {
     });
 
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
     }
 }
 
@@ -1713,3 +1725,5 @@ if (countdownsMenu) {
         box.style.cursor = 'pointer';
     });
 }
+
+setAdvancedToggle(advancedToggle);
