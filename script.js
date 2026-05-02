@@ -487,6 +487,7 @@ document.getElementById("legacyUI").style.display = "none";
 document.getElementById("legacyCal").style.display = "none";
 document.getElementById("showOtherExamsWrapper").style.display = "none";
 document.getElementById("hideWeekends").style.display = "none";
+document.querySelector(".controls-settings-box").classList.add("expanded");
 
 if (calbtn) calbtn.addEventListener('click', () => setCalMode(!calMode));
 if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compactMode));
