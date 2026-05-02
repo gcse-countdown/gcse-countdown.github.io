@@ -2142,3 +2142,14 @@ html.light body.hover-cards.compact .exam-card.other-exam .card-hover-tooltip {
 ::-webkit-scrollbar-corner {
     background: var(--surface);
 }
+
+
+/* expanded state */
+@media (min-width: 768px) {
+    .controls-settings-box.expanded .controls-column-right {
+        width: 200%;
+        transform: translateX(-50%);
+        transform-origin: right;
+        z-index: 10;
+    }
+}

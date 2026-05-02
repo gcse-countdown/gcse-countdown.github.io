@@ -94,59 +94,59 @@ const FILTER_COLLAPSED_KEY = 'filter_collapsed';
 
 // Settings configuration: type, default value, and special parsing rules
 const SETTINGS_CONFIG = {
-  [HIDE_MENUS_KEY]: { type: 'bool', default: false },
-  [SHOW_OTHER_EXAMS_KEY]: { type: 'bool', default: false },
-  [WEEKENDS_KEY]: { type: 'bool', default: true },
-  [PROGRESS_KEY]: { type: 'bool', default: false },
-  [COMPACT_KEY]: { type: 'bool', default: false },
-  [CAL_KEY]: { type: 'bool', default: false },
-  [LEGACY_CAL_KEY]: { type: 'bool', default: false },
-  [LIGHT_KEY]: { type: 'bool', default: false },
-  [TOPBAR_KEY]: { type: 'bool', default: false },
-  [FILTER_COLLAPSED_KEY]: { type: 'bool', default: false },
-  [STORAGE_KEY]: { type: 'set', default: new Set() },
-  [PLANNER_KEY]: { type: 'json', default: null },
-  [SPEAKING_KEY]: { type: 'json', default: {} },
+    [HIDE_MENUS_KEY]: { type: 'bool', default: false },
+    [SHOW_OTHER_EXAMS_KEY]: { type: 'bool', default: false },
+    [WEEKENDS_KEY]: { type: 'bool', default: true },
+    [PROGRESS_KEY]: { type: 'bool', default: false },
+    [COMPACT_KEY]: { type: 'bool', default: false },
+    [CAL_KEY]: { type: 'bool', default: false },
+    [LEGACY_CAL_KEY]: { type: 'bool', default: false },
+    [LIGHT_KEY]: { type: 'bool', default: false },
+    [TOPBAR_KEY]: { type: 'bool', default: false },
+    [FILTER_COLLAPSED_KEY]: { type: 'bool', default: false },
+    [STORAGE_KEY]: { type: 'set', default: new Set() },
+    [PLANNER_KEY]: { type: 'json', default: null },
+    [SPEAKING_KEY]: { type: 'json', default: {} },
 };
 
 // Generic load function supporting booleans, JSON, arrays (as Sets), and custom parsing
 function load(key, defaultValue = undefined) {
-  const config = SETTINGS_CONFIG[key];
-  const def = defaultValue !== undefined ? defaultValue : (config?.default ?? false);
-  
-  try {
-    const val = localStorage.getItem(key);
-    if (val === null) return def;
+    const config = SETTINGS_CONFIG[key];
+    const def = defaultValue !== undefined ? defaultValue : (config?.default ?? false);
     
-    if (config?.type === 'bool') {
-      return val === '1';
-    } else if (config?.type === 'json') {
-      return JSON.parse(val);
-    } else if (config?.type === 'set') {
-      return new Set(JSON.parse(val));
+    try {
+        const val = localStorage.getItem(key);
+        if (val === null) return def;
+        
+        if (config?.type === 'bool') {
+        return val === '1';
+        } else if (config?.type === 'json') {
+        return JSON.parse(val);
+        } else if (config?.type === 'set') {
+        return new Set(JSON.parse(val));
+        }
+        return val;
+    } catch (e) {
+        console.log(e);
+        return def;
     }
-    return val;
-  } catch (e) {
-    console.log(e);
-    return def;
-  }
 }
 
 // Generic save function supporting booleans, JSON, arrays, and Sets
 function save(key, value) {
-  try {
-    const config = SETTINGS_CONFIG[key];
-    
-    if (config?.type === 'bool') {
-      localStorage.setItem(key, value ? '1' : '0');
-    } else if (config?.type === 'set' && value instanceof Set) {
-      localStorage.setItem(key, JSON.stringify([...value]));
-    } else if (config?.type === 'json' || typeof value === 'object') {
-      localStorage.setItem(key, JSON.stringify(value));
-    } else {
-      localStorage.setItem(key, value);
-    }
-  } catch (e) {}
+    try {
+        const config = SETTINGS_CONFIG[key];
+        
+        if (config?.type === 'bool') {
+        localStorage.setItem(key, value ? '1' : '0');
+        } else if (config?.type === 'set' && value instanceof Set) {
+        localStorage.setItem(key, JSON.stringify([...value]));
+        } else if (config?.type === 'json' || typeof value === 'object') {
+        localStorage.setItem(key, JSON.stringify(value));
+        } else {
+        localStorage.setItem(key, value);
+        }
+    } catch (e) {}
 }
 
 function makeStart(dateStr, session) {
@@ -287,6 +287,7 @@ const legacyCalToggle = document.getElementById('legacyCalToggle');
 const filterCatsEl = document.getElementById('filterCategories');
 const plannerbtn = document.getElementById('rev-planner');
 const speakingDatesEl = document.getElementById('speakingDates');
+const advancedOptsBtn = document.getElementById('advanced-btn');
 
 // Settings toggles (moved to controls)
 const lightToggleTop = document.getElementById('lightToggleTop');
@@ -481,11 +482,38 @@ function setProgressMode(on) {
     if (on) renderProgressTracker();
 }
 
+advancedToggle = false;
+document.getElementById("legacyUI").style.display = "none";
+document.getElementById("legacyCal").style.display = "none";
+document.getElementById("showOtherExamsWrapper").style.display = "none";
+document.getElementById("hideWeekends").style.display = "none";
+
 if (calbtn) calbtn.addEventListener('click', () => setCalMode(!calMode));
 if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compactMode));
 if (progressbtn) progressbtn.addEventListener('click', () => setProgressMode(!progressMode));
 if (defaultbtn) defaultbtn.addEventListener('click', () => setDefaultMode(true));
+advancedOptsBtn.addEventListener('click', () => {
+    if (advancedToggle) {
+        console.log("inactive");
+        advancedToggle = false;
+        advancedOptsBtn.classList.remove("cat-active");
+        document.getElementById("legacyUI").style.display = "none";
+        document.getElementById("legacyCal").style.display = "none";
+        document.getElementById("showOtherExamsWrapper").style.display = "none";
+        document.getElementById("hideWeekends").style.display = "none";
+        document.querySelector(".controls-settings-box").classList.add("expanded");
+    } else {
+        console.log("active");
+        advancedToggle = true;
+        advancedOptsBtn.classList.add("cat-active");
+        document.getElementById("legacyUI").style = "";
+        document.getElementById("legacyCal").style = "";
+        document.getElementById("showOtherExamsWrapper").style = "";
+        document.getElementById("hideWeekends").style = "";
+        document.querySelector(".controls-settings-box").classList.remove("expanded");
 
+    }
+});
 // Keyboard shortcuts: z = default, x = compact, c = calendar, d = legacy calendar, l = light mode, e = legacy ui, s = show other exams, a = weekends only, p = progress
 document.addEventListener('keydown', (e) => {
     if (e.key === 'z' || e.key === 'Z') {
