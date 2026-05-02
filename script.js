@@ -351,6 +351,7 @@ function setWeekends(on) {
         if (calendarTable) calendarTable.classList.remove('hide-weekends');
         if (multiCalendar) multiCalendar.classList.remove('hide-weekends');
     }
+    renderExams();
 }
 
 if (showOtherExamsToggle) {
