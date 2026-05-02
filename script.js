@@ -296,6 +296,8 @@ const calModeOnly = document.querySelectorAll('.calModeOnly');
 const weekendsToggle = document.getElementById('weekendsToggle');
 if (weekendsToggle) weekendsToggle.addEventListener('change', e => setWeekends(e.target.checked));
 
+let advancedToggle = false;
+
 // ── Sync toggle initial states ────────────────────────────────────────────────
 function syncAllToggles() {
     // Light mode
@@ -308,7 +310,7 @@ function syncAllToggles() {
     
     // Show "Show Other Exams" toggle only in calendar mode
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
     }
 }
 
@@ -388,7 +390,7 @@ function setDefaultMode(on) {
     if(defaultbtn) defaultbtn.classList.toggle('active', !!on);
 
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
     }
 
     save(COMPACT_KEY, compactMode);
@@ -416,7 +418,7 @@ function setCompactMode(on) {
     if(compactbtn) compactbtn.classList.toggle('active', !!on);
 
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
     }
 
     save(COMPACT_KEY, compactMode);
@@ -445,7 +447,7 @@ function setCalMode(on) {
     
     // Show/hide "Show Other Exams" toggle based on calendar mode
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
     }
     
     save(CAL_KEY, calMode);
@@ -482,7 +484,6 @@ function setProgressMode(on) {
     if (on) renderProgressTracker();
 }
 
-advancedToggle = false;
 document.getElementById("legacyUI").style.display = "none";
 document.getElementById("legacyCal").style.display = "none";
 document.getElementById("showOtherExamsWrapper").style.display = "none";
@@ -493,6 +494,7 @@ if (calbtn) calbtn.addEventListener('click', () => setCalMode(!calMode));
 if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compactMode));
 if (progressbtn) progressbtn.addEventListener('click', () => setProgressMode(!progressMode));
 if (defaultbtn) defaultbtn.addEventListener('click', () => setDefaultMode(true));
+
 advancedOptsBtn.addEventListener('click', () => {
     if (advancedToggle) {
         console.log("inactive");
@@ -1463,7 +1465,7 @@ function renderProgressTracker() {
     });
 
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
     }
 }
 
