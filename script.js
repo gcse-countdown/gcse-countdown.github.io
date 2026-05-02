@@ -104,7 +104,7 @@ const SETTINGS_CONFIG = {
   [LIGHT_KEY]: { type: 'bool', default: false },
   [TOPBAR_KEY]: { type: 'bool', default: false },
   [FILTER_COLLAPSED_KEY]: { type: 'bool', default: false },
-  [STORAGE_KEY]: { type: 'array', default: [], isSet: true },
+  [STORAGE_KEY]: { type: 'set', default: new Set() },
   [PLANNER_KEY]: { type: 'json', default: null },
   [SPEAKING_KEY]: { type: 'json', default: {} },
 };
@@ -122,11 +122,12 @@ function load(key, defaultValue = undefined) {
       return val === '1';
     } else if (config?.type === 'json') {
       return JSON.parse(val);
-    } else if (config?.isSet) {
+    } else if (config?.type === 'set') {
       return new Set(JSON.parse(val));
     }
     return val;
   } catch (e) {
+    console.log(e);
     return def;
   }
 }
@@ -138,7 +139,7 @@ function save(key, value) {
     
     if (config?.type === 'bool') {
       localStorage.setItem(key, value ? '1' : '0');
-    } else if (config?.isSet && value instanceof Set) {
+    } else if (config?.type === 'set' && value instanceof Set) {
       localStorage.setItem(key, JSON.stringify([...value]));
     } else if (config?.type === 'json' || typeof value === 'object') {
       localStorage.setItem(key, JSON.stringify(value));
@@ -251,7 +252,7 @@ function rebuildExams() {
 // Collect all subjects that actually appear in the data
 const ALL_SUBJECTS=[...new Set(baseExams.map(e=>e.subject))];
 
-let activeFilters=load(STORAGE_KEY);
+let activeFilters=load(STORAGE_KEY) || [];
 let lastFilterCount = activeFilters.size;
 activeFilters.forEach(s=>{if(!ALL_SUBJECTS.includes(s))activeFilters.delete(s);});
 
