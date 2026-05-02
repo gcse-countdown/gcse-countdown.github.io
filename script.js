@@ -90,30 +90,63 @@ const HIDE_MENUS_KEY = 'hide_menus';
 const SHOW_OTHER_EXAMS_KEY = 'show_other_exams';
 const TOPBAR_KEY = 'topbar_hidden';
 const WEEKENDS_KEY = 'hide_weekends';
+const FILTER_COLLAPSED_KEY = 'filter_collapsed';
 
-function saveHideMenus(v){ try{ localStorage.setItem(HIDE_MENUS_KEY, v ? '1' : '0'); }catch(e){} }
-function loadHideMenus(){ try{ return localStorage.getItem(HIDE_MENUS_KEY)==='1'; }catch(e){return false;} }
-function saveShowOtherExams(v){ try{ localStorage.setItem(SHOW_OTHER_EXAMS_KEY, v ? '1' : '0'); }catch(e){} }
-function saveWeekends(v){ try{ localStorage.setItem(WEEKENDS_KEY, v ? '1' : '0'); }catch(e){} }
-function loadShowOtherExams(){ try{ return localStorage.getItem(SHOW_OTHER_EXAMS_KEY)==='1'; }catch(e){return false;} }
-function loadWeekends(){ try{ return localStorage.getItem(WEEKENDS_KEY)==='1'; }catch(e){return true;} }
-function saveProgressMode(v){ try{ localStorage.setItem(PROGRESS_KEY, v ? '1' : '0'); }catch(e){} }
-function loadProgressMode(){ try{ return localStorage.getItem(PROGRESS_KEY)==='1'; }catch(e){return false;} }
+// Settings configuration: type, default value, and special parsing rules
+const SETTINGS_CONFIG = {
+  [HIDE_MENUS_KEY]: { type: 'bool', default: false },
+  [SHOW_OTHER_EXAMS_KEY]: { type: 'bool', default: false },
+  [WEEKENDS_KEY]: { type: 'bool', default: true },
+  [PROGRESS_KEY]: { type: 'bool', default: false },
+  [COMPACT_KEY]: { type: 'bool', default: false },
+  [CAL_KEY]: { type: 'bool', default: false },
+  [LEGACY_CAL_KEY]: { type: 'bool', default: false },
+  [LIGHT_KEY]: { type: 'bool', default: false },
+  [TOPBAR_KEY]: { type: 'bool', default: false },
+  [FILTER_COLLAPSED_KEY]: { type: 'bool', default: false },
+  [STORAGE_KEY]: { type: 'array', default: [], isSet: true },
+  [PLANNER_KEY]: { type: 'json', default: null },
+  [SPEAKING_KEY]: { type: 'json', default: {} },
+};
 
-function saveFilters() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...activeFilters])); } catch(e){} }
-function loadFilters() { try { const r=localStorage.getItem(STORAGE_KEY); return r?new Set(JSON.parse(r)):new Set(); } catch(e){ return new Set(); } }
-function saveCompact(v) { try { localStorage.setItem(COMPACT_KEY, v?'1':'0'); } catch(e){} }
-function loadCompact() { try { return localStorage.getItem(COMPACT_KEY)==='1'; } catch(e){ return false; } }
-function saveCal(active) {try {return localStorage.setItem(CAL_KEY, active ? 1 : 0);} catch(e) {return false;}}
-function loadCal() {try {return localStorage.getItem(CAL_KEY) == 1;} catch(e) {return false;}}
-function saveLegacyCal(active) {try {return localStorage.setItem(LEGACY_CAL_KEY, active ? 1 : 0);} catch(e) {return false;}}
-function loadLegacyCal() {try {return localStorage.getItem(LEGACY_CAL_KEY) == 1;} catch(e) {return false;}}
-function saveLight(active) {try {return localStorage.setItem(LIGHT_KEY, active ? 1 : 0);} catch(e) {return false;}}
-function loadLight() {try {return localStorage.getItem(LIGHT_KEY) == 1;} catch(e) {return false;}}
-function savePlanner(keys) {try {return localStorage.setItem(PLANNER_KEY, JSON.stringify(keys));} catch(e) {return false;}}
-function loadPlanner() {try {return localStorage.getItem(PLANNER_KEY)} catch(e) {return false;}}
-function saveSpeaking(obj) { try { localStorage.setItem(SPEAKING_KEY, JSON.stringify(obj)); } catch(e){} }
-function loadSpeaking() { try { const r=localStorage.getItem(SPEAKING_KEY); return r?JSON.parse(r):{}; } catch(e){ return {}; } }
+// Generic load function supporting booleans, JSON, arrays (as Sets), and custom parsing
+function load(key, defaultValue = undefined) {
+  const config = SETTINGS_CONFIG[key];
+  const def = defaultValue !== undefined ? defaultValue : (config?.default ?? false);
+  
+  try {
+    const val = localStorage.getItem(key);
+    if (val === null) return def;
+    
+    if (config?.type === 'bool') {
+      return val === '1';
+    } else if (config?.type === 'json') {
+      return JSON.parse(val);
+    } else if (config?.isSet) {
+      return new Set(JSON.parse(val));
+    }
+    return val;
+  } catch (e) {
+    return def;
+  }
+}
+
+// Generic save function supporting booleans, JSON, arrays, and Sets
+function save(key, value) {
+  try {
+    const config = SETTINGS_CONFIG[key];
+    
+    if (config?.type === 'bool') {
+      localStorage.setItem(key, value ? '1' : '0');
+    } else if (config?.isSet && value instanceof Set) {
+      localStorage.setItem(key, JSON.stringify([...value]));
+    } else if (config?.type === 'json' || typeof value === 'object') {
+      localStorage.setItem(key, JSON.stringify(value));
+    } else {
+      localStorage.setItem(key, value);
+    }
+  } catch (e) {}
+}
 
 function makeStart(dateStr, session) {
     const [d,m]=dateStr.split('/').map(Number);
@@ -143,7 +176,7 @@ function fmtCountdown(ms){
 // Build speaking exam entries from saved dates
 function buildSpeakingExams() {
     const result = [];
-    const saved = loadSpeaking();
+    const saved = load(SPEAKING_KEY);
     MFL_SUBJECTS.forEach(subj => {
         const entry = saved[subj];
         if (!entry) return;
@@ -218,23 +251,23 @@ function rebuildExams() {
 // Collect all subjects that actually appear in the data
 const ALL_SUBJECTS=[...new Set(baseExams.map(e=>e.subject))];
 
-let activeFilters=loadFilters();
+let activeFilters=load(STORAGE_KEY);
 let lastFilterCount = activeFilters.size;
 activeFilters.forEach(s=>{if(!ALL_SUBJECTS.includes(s))activeFilters.delete(s);});
 
-let calMode = loadCal();
+let calMode = load(CAL_KEY);
 if (calMode) {document.body.classList.replace('compact', 'cal') ? null:document.body.classList.add('cal')};
 
-let legacyCalMode = loadLegacyCal();
+let legacyCalMode = load(LEGACY_CAL_KEY);
 
-let compactMode = calMode || legacyCalMode ? 0:loadCompact();
+let compactMode = calMode || legacyCalMode ? 0:load(COMPACT_KEY);
 if(compactMode) {document.body.classList.replace('cal', 'compact') ? null:document.body.classList.add('compact')};
 
-let weekends = loadWeekends();
+let weekends = load(WEEKENDS_KEY);
 
-let showOtherExams = loadShowOtherExams();
+let showOtherExams = load(SHOW_OTHER_EXAMS_KEY);
 
-let progressMode = loadProgressMode();
+let progressMode = load(PROGRESS_KEY);
 if (progressMode) {document.body.classList.add('progress')};
 
 let plannerMode = 0;
@@ -291,7 +324,7 @@ function setLightMode(on) {
     document.documentElement.classList.toggle('dark', !on);
     if (lightToggleTop) lightToggleTop.checked = on;
     lightMode = on ? 1 : 0;
-    saveLight(lightMode);
+    save(LIGHT_KEY, lightMode);
 }
 
 if (lightToggleTop) lightToggleTop.addEventListener('change', e => setLightMode(e.target.checked));
@@ -299,7 +332,7 @@ if (lightToggleTop) lightToggleTop.addEventListener('change', e => setLightMode(
 function setShowOtherExams(on) {
     showOtherExams = on ? 1 : 0;
     if (showOtherExamsToggle) showOtherExamsToggle.checked = on;
-    saveShowOtherExams(showOtherExams);
+    save(SHOW_OTHER_EXAMS_KEY, showOtherExams);
     renderExams();
 }
 
@@ -307,7 +340,7 @@ function setWeekends(on) {
     weekends = on ? 1 : 0;
     const weekendsToggle = document.getElementById('weekendsToggle');
     if (weekendsToggle) weekendsToggle.checked = on;
-    saveWeekends(weekends);
+    save(WEEKENDS_KEY, weekends);
     const calendarTable = document.getElementById('calendar');
     const multiCalendar = document.querySelector('.continuous-calendar');
     if (on) {
@@ -328,7 +361,7 @@ function setLegacyCalMode(on) {
     legacyCalMode = on ? 1 : 0;
     if (legacyCalToggle) legacyCalToggle.checked = on;
     if (!calMode) setCalMode(true);
-    saveLegacyCal(legacyCalMode);
+    save(LEGACY_CAL_KEY, legacyCalMode);
     renderExams();
 }
 if (legacyCalToggle) {
@@ -355,9 +388,9 @@ function setDefaultMode(on) {
         calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
     }
 
-    saveCompact(compactMode);
-    saveCal(calMode);
-    saveProgressMode(progressMode);
+    save(COMPACT_KEY, compactMode);
+    save(CAL_KEY, calMode);
+    save(PROGRESS_KEY, progressMode);
     renderExams();
 }
 
@@ -383,9 +416,9 @@ function setCompactMode(on) {
         calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
     }
 
-    saveCompact(compactMode);
-    saveCal(calMode);
-    saveProgressMode(progressMode);
+    save(COMPACT_KEY, compactMode);
+    save(CAL_KEY, calMode);
+    save(PROGRESS_KEY, progressMode);
     renderExams();
 }
 
@@ -412,9 +445,9 @@ function setCalMode(on) {
         calModeOnly.forEach((el) => {el.style.display = calMode ? 'flex' : 'none'});
     }
     
-    saveCal(calMode);
-    saveCompact(compactMode);
-    saveProgressMode(progressMode);
+    save(CAL_KEY, calMode);
+    save(COMPACT_KEY, compactMode);
+    save(PROGRESS_KEY, progressMode);
     renderExams();
 }
 
@@ -439,9 +472,9 @@ function setProgressMode(on) {
     const progressContainer = document.getElementById('progressTrackerContainer');
     if (progressContainer) progressContainer.style.display = on ? 'block' : 'none';
     
-    saveProgressMode(progressMode);
-    saveCompact(compactMode);
-    saveCal(calMode);
+    save(PROGRESS_KEY, progressMode);
+    save(COMPACT_KEY, compactMode);
+    save(CAL_KEY, calMode);
     renderExams();
     if (on) renderProgressTracker();
 }
@@ -503,7 +536,7 @@ function renderSpeakingDates() {
     const mflActive = getActiveMFLSubjects();
     if (!mflActive.length) return;
 
-    const saved = loadSpeaking();
+    const saved = load(SPEAKING_KEY);
 
     const wrapper = document.createElement('div');
     wrapper.className = 'speaking-dates-wrapper';
@@ -567,9 +600,9 @@ function renderSpeakingDates() {
             if (!val || !/^\d{4}-\d{2}-\d{2}$/.test(val)) return;
             const [yyyy, mm, dd] = val.split('-').map(Number);
             if (!dd || !mm || mm < 1 || mm > 12 || dd < 1 || dd > 31 || yyyy !== 2026) return;
-            const newSaved = loadSpeaking();
+            const newSaved = load(SPEAKING_KEY);
             newSaved[subj] = { date: val, time: timeInput.value || '09:00' };
-            saveSpeaking(newSaved);
+            save(SPEAKING_KEY, newSaved);
             rebuildExams();
             renderExams();
         }
@@ -589,9 +622,9 @@ function renderSpeakingDates() {
             dateInput.value = '';
             timeInput.value = '09:00';
             clearBtn.style.display = 'none';
-            const newSaved = loadSpeaking();
+            const newSaved = load(SPEAKING_KEY);
             delete newSaved[subj];
-            saveSpeaking(newSaved);
+            save(SPEAKING_KEY, newSaved);
             rebuildExams();
             renderExams();
         });
@@ -698,7 +731,7 @@ CATEGORIES.forEach(cat=>{
             else                 { activeFilters.add(s);        subjectBtnMap[s]&&subjectBtnMap[s].classList.add('active'); }
         });
         refreshCategoryLabels();
-        updateClearBtn(); updateFilterCount(); saveFilters(); renderExams(); renderSpeakingDates();
+        updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); renderExams(); renderSpeakingDates();
     });
 
     const line=document.createElement('div');
@@ -720,7 +753,7 @@ CATEGORIES.forEach(cat=>{
             if(btn.classList.contains('active')){ btn.classList.remove('active'); activeFilters.delete(subj); }
             else { btn.classList.add('active'); activeFilters.add(subj); }
             refreshCategoryLabels();
-            updateClearBtn(); updateFilterCount(); saveFilters(); renderExams(); renderSpeakingDates();
+            updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); renderExams(); renderSpeakingDates();
         });
         grid.appendChild(btn);
     });
@@ -735,7 +768,7 @@ document.getElementById('clearFilters').addEventListener('click',()=>{
     activeFilters.clear();
     Object.values(subjectBtnMap).forEach(b=>b.classList.remove('active'));
     refreshCategoryLabels();
-    updateClearBtn(); updateFilterCount(); saveFilters(); renderExams(); renderSpeakingDates();
+    updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); renderExams(); renderSpeakingDates();
 });
 
 // ── Filter collapse button (mobile) ──────────────────────────────────────────
@@ -747,7 +780,7 @@ function toggleMenusVisibility() {
     if (countdownsMenu) countdownsMenu.classList.toggle('hidden', hideMenus);
     if (hideMenusToggle) hideMenusToggle.checked = hideMenus;
     updateSidebarVisibility();
-    saveHideMenus(hideMenus);
+    save(HIDE_MENUS_KEY, hideMenus);
 }
 
 if (toggleMenusBtn) {
@@ -758,7 +791,7 @@ const filterCollapseBtn = document.getElementById('filterCollapseBtn');
 const hideMenusToggle = document.getElementById('hideMenusToggle');
 
 // initialize hide menus state
-let hideMenus = loadHideMenus();
+let hideMenus = load(HIDE_MENUS_KEY);
 function updateSidebarVisibility() {
     const sidebarCountdowns = document.getElementById('sidebarCountdownsWrapper');
     const sidebarLinks = document.getElementById('sidebarLinksWrapper');
@@ -782,26 +815,11 @@ if (hideMenusToggle) {
     hideMenusToggle.addEventListener('change', (e) => {
         hideMenus = e.target.checked;
         updateSidebarVisibility();
-        saveHideMenus(hideMenus);
+        save(HIDE_MENUS_KEY, hideMenus);
     });
 }
 const filterCatsEl_ref = document.getElementById('filterCategories');
 const speakingDatesEl_ref = document.getElementById('speakingDates');
-const FILTER_COLLAPSED_KEY = 'filter_collapsed';
-
-function loadFilterCollapsed() {
-    try {
-        return localStorage.getItem(FILTER_COLLAPSED_KEY) === '1';
-    } catch(e) {
-        return false;
-    }
-}
-
-function saveFilterCollapsed(collapsed) {
-    try {
-        localStorage.setItem(FILTER_COLLAPSED_KEY, collapsed ? '1' : '0');
-    } catch(e) {}
-}
 
 function setFilterCollapsed(collapsed) {
     if (collapsed) {
@@ -813,7 +831,7 @@ function setFilterCollapsed(collapsed) {
         speakingDatesEl_ref.classList.remove('collapsed');
         filterCollapseBtn.classList.remove('collapsed');
     }
-    saveFilterCollapsed(collapsed);
+    save(FILTER_COLLAPSED_KEY, collapsed);
 }
 
 filterCollapseBtn.addEventListener('click', () => {
@@ -822,7 +840,7 @@ filterCollapseBtn.addEventListener('click', () => {
 });
 
 // Load initial state
-if (loadFilterCollapsed()) {
+if (load(FILTER_COLLAPSED_KEY)) {
     setFilterCollapsed(true);
 }
 
@@ -840,14 +858,13 @@ renderSpeakingDates();
 // Top bar close (persisted)
 const topBar = document.querySelector('.top-bar');
 const topBarClose = document.getElementById('topBarClose');
-function loadTopbarHidden(){ try{ return localStorage.getItem(TOPBAR_KEY)==='1'; }catch(e){return false;} }
-if (loadTopbarHidden()) {
+if (load(TOPBAR_KEY)) {
     if (topBar) topBar.style.display = 'none';
 }
 if (topBarClose) {
     topBarClose.addEventListener('click', () => {
         if (topBar) topBar.style.display = 'none';
-        try{ localStorage.setItem(TOPBAR_KEY, '1'); }catch(e){}
+        save(TOPBAR_KEY, true);
     });
 }
 

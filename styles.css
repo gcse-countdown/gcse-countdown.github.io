@@ -388,6 +388,7 @@ h1 span { color: var(--accent); }
     font-family: 'DM Sans', sans-serif;
     font-size: 13px;
     color: var(--text-muted);
+    transition: color 0.18s ease;
 }
 
 .controls-setting span:first-child:has(~ .switch input:checked + .slider) {
