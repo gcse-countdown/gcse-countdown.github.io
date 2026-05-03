@@ -1,56 +1,3 @@
-const RAW_EXAMS = [
-    {date:"06/05",board:"CIE",    level:"IGCSE", code:"0990/11",        subject:"English Language",    component:"Paper 1 - Reading",                                                session:"PM",        durationMin:120},
-    {date:"07/05",board:"CIE",    level:"GCSE", code:"0977/12",        subject:"History",                        component:"Paper 1 - Structured Questions",                        session:"AM",        durationMin:120},
-    {date:"07/05",board:"WJEC", level:"GCSE", code:"C490/UA0-1", subject:"Electronics",                component:"Component 1 - Discovering Electronics",        session:"PM",        durationMin:90},
-    {date:"07/05",board:"AQA",    level:"GCSE", code:"8662/LH",        subject:"German",                         component:"Paper 1 - Listening",                                            session:"PM",        durationMin:45},
-    {date:"07/05",board:"AQA",    level:"GCSE", code:"8662/RH",        subject:"German",                         component:"Paper 3 - Reading",                                                session:"14:15", durationMin:60},
-    {date:"08/05",board:"OCR",    level:"GCSE", code:"J282/01",        subject:"Latin",                            component:"Language Written Paper",                                     session:"11:00", durationMin:90},
-    {date:"08/05",board:"CIE",    level:"IGCSE", code:"0992/12",        subject:"English Literature", component:"Poetry and Prose",                                                 session:"AM",        durationMin:90},
-    {date:"11/05",board:"CIE",    level:"IGCSE", code:"0992/22",        subject:"English Literature", component:"Drama",                                                                        session:"AM",        durationMin:45},
-    {date:"11/05",board:"CIE",    level:"IGCSE", code:"0992/32",        subject:"English Literature", component:"Unseen",                                                                     session:"10:00", durationMin:75},
-    {date:"11/05",board:"OCR",    level:"GCSE", code:"J292/01",        subject:"Classical Greek",        component:"Language Written Paper",                                     session:"PM",        durationMin:90},
-    {date:"11/05",board:"Edexcel",level:"GCSE", code:"1CN0/1H",    subject:"Chinese",                        component:"Paper 1 - Listening Higher",                             session:"PM",        durationMin:45},
-    {date:"11/05",board:"Edexcel",level:"GCSE", code:"1CN0/3H",    subject:"Chinese",                        component:"Paper 3 - Reading Higher",                                 session:"14:15", durationMin:65},
-    {date:"12/05",board:"AQA",    level:"GCSE", code:"8062/11-17", subject:"Religious Studies",    component:"Paper 1",                                                                    session:"AM",        durationMin:105},
-    {date:"12/05",board:"Edexcel",level:"IGCSE",code:"4BI1/1B",    subject:"Biology",                        component:"Paper 1B",                                                                 session:"PM",        durationMin:120},
-    {date:"13/05",board:"OCR",    level:"GCSE", code:"J384/01",        subject:"Geography",                    component:"Our Natural World",                                                session:"AM",        durationMin:90},
-    {date:"13/05",board:"Edexcel",level:"GCSE", code:"1CP2/01",    subject:"Computer Science",     component:"Paper 1 - Principles",                                         session:"PM",        durationMin:90},
-    {date:"14/05",board:"Edexcel",level:"IGCSE",code:"4MA1/1H",    subject:"Mathematics",                component:"Paper 1H Higher",                                                    session:"AM",        durationMin:120},
-    {date:"14/05",board:"OCR",    level:"GCSE", code:"J198/01",        subject:"Ancient History",        component:"Greece and Persia",                                                session:"PM",        durationMin:120},
-    {date:"14/05",board:"AQA",    level:"GCSE", code:"8662/WH",        subject:"German",                         component:"Paper 4 - Writing",                                                session:"PM",        durationMin:75},
-    {date:"15/05",board:"CIE",    level:"GCSE", code:"0977/22",        subject:"History",                        component:"Paper 2 - Document Questions",                         session:"AM",        durationMin:105},
-    {date:"15/05",board:"OCR",    level:"GCSE", code:"J282/03",        subject:"Latin",                            component:"Prose Literature B",                                             session:"PM",        durationMin:60},
-    {date:"15/05",board:"WJEC", level:"GCSE", code:"C490/U20-1", subject:"Electronics",                component:"Component 2 - Application of Electronics", session:"PM",        durationMin:90},
-    {date:"21/05",board:"CIE",    level:"IGCSE", code:"0990/21",        subject:"English Language",     component:"Paper 2 - Directed Writing and Composition",session:"PM",     durationMin:120},
-    {date:"18/05",board:"Edexcel",level:"IGCSE",code:"4CH1/1C",    subject:"Chemistry",                    component:"Paper 1C",                                                                 session:"AM",        durationMin:120},
-    {date:"18/05",board:"Edexcel",level:"GCSE", code:"1CN0/4H",    subject:"Chinese",                        component:"Paper 4 - Writing Higher",                                 session:"PM",        durationMin:85},
-    {date:"19/05",board:"Edexcel",level:"GCSE", code:"1CP2/02",    subject:"Computer Science",     component:"Paper 2 - Computational Thinking",                 session:"PM",        durationMin:120},
-    {date:"20/05",board:"AQA",    level:"GCSE", code:"8652/LH",        subject:"French",                         component:"Paper 1 - Listening",                                            session:"AM",        durationMin:45},
-    {date:"20/05",board:"AQA",    level:"GCSE", code:"8652/RH",        subject:"French",                         component:"Paper 3 - Reading",                                                session:"10:15", durationMin:60},
-    {date:"20/05",board:"AQA",    level:"GCSE", code:"8062/2A-2B", subject:"Religious Studies",    component:"Paper 2",                                                                    session:"PM",        durationMin:105},
-    {date:"21/05",board:"CIE",    level:"IGCSE", code:"0978/12",        subject:"Music",                            component:"Listening Paper 12",                                             session:"AM",        durationMin:75},
-    {date:"22/05",board:"OCR",    level:"GCSE", code:"J198/02",        subject:"Ancient History",        component:"Rome and its Neighbours",                                    session:"AM",        durationMin:120},
-    {date:"22/05",board:"AQA",    level:"GCSE", code:"8633/LH",        subject:"Italian",                        component:"Paper 1 - Listening",                                            session:"AM",        durationMin:45},
-    {date:"22/05",board:"AQA",    level:"GCSE", code:"8633/RH",        subject:"Italian",                        component:"Paper 3 - Reading",                                                session:"10:15", durationMin:60},
-    {date:"22/05",board:"OCR",    level:"GCSE", code:"J292/02",        subject:"Classical Greek",        component:"Prose Literature A",                                             session:"PM",        durationMin:60},
-    {date:"01/06",board:"AQA",    level:"GCSE", code:"8633/WH",        subject:"Italian",                        component:"Paper 4 - Writing",                                                session:"AM",        durationMin:75},
-    {date:"01/06",board:"OCR",    level:"GCSE", code:"J292/04",        subject:"Classical Greek",        component:"Verse Literature A",                                             session:"PM",        durationMin:60},
-    {date:"02/06",board:"Edexcel",level:"IGCSE",code:"4PH1/1P",    subject:"Physics",                        component:"Paper 1P",                                                                 session:"AM",        durationMin:120},
-    {date:"02/06",board:"OCR",    level:"GCSE", code:"J282/05",        subject:"Latin",                            component:"Verse Literature B",                                             session:"PM",        durationMin:60},
-    {date:"03/06",board:"Edexcel",level:"IGCSE",code:"4MA1/2H",    subject:"Mathematics",                component:"Paper 2H Higher",                                                    session:"AM",        durationMin:120},
-    {date:"03/06",board:"OCR",    level:"GCSE", code:"J384/02",        subject:"Geography",                    component:"People and Society",                                             session:"PM",        durationMin:90},
-    {date:"04/06",board:"AQA",    level:"GCSE", code:"8652/WH",        subject:"French",                         component:"Paper 4 - Writing",                                                session:"PM",        durationMin:75},
-    {date:"08/06",board:"Edexcel",level:"IGCSE",code:"4BI1/2B",    subject:"Biology",                        component:"Paper 2B",                                                                 session:"AM",        durationMin:75},
-    {date:"09/06",board:"AQA",    level:"GCSE", code:"8692/LH",        subject:"Spanish",                        component:"Paper 1 - Listening",                                            session:"AM",        durationMin:45},
-    {date:"09/06",board:"AQA",    level:"GCSE", code:"8692/RH",        subject:"Spanish",                        component:"Paper 3 - Reading",                                                session:"10:00", durationMin:60},
-    {date:"10/06",board:"WJEC", level:"GCSE", code:"603/1121/6", subject:"S&C / PD",                     component:"D&T in the 21st Century",                                    session:"PM",        durationMin:120},
-    {date:"11/06",board:"OCR",    level:"GCSE", code:"J384/03",        subject:"Geography",                    component:"Geographical Exploration",                                 session:"AM",        durationMin:90},
-    {date:"12/06",board:"Edexcel",level:"IGCSE",code:"4CH1/2C",    subject:"Chemistry",                    component:"Paper 2C",                                                                 session:"AM",        durationMin:75},
-    {date:"15/06",board:"Edexcel",level:"IGCSE",code:"4PH1/2P",    subject:"Physics",                        component:"Paper 2P",                                                                 session:"AM",        durationMin:75},
-    {date:"16/06",board:"AQA",    level:"GCSE", code:"8692/WH",        subject:"Spanish",                        component:"Paper 4 - Writing",                                                session:"AM",        durationMin:75},
-    {date:"08/05",board:"WJEC", level:"GCSE", code:"601/8420/6", subject:"Drama",                            component:"Interpreting Theatre",                                         session:"PM",        durationMin:90},
-];
-const MAX_DAYS = 50;
 let prevStates={};
 
 // ── MFL subjects that get speaking exams ──────────────────────────────────────
@@ -183,6 +130,8 @@ function fmtCountdown(ms){
 // Build speaking exam entries from saved dates
 function buildSpeakingExams() {
     const result = [];
+    // If no speaking exam date is saved for an MFL subject, do not build a speaking exam entry.
+    // In progress mode this means unset speaking exams are treated as already completed.
     const saved = load(SPEAKING_KEY);
     MFL_SUBJECTS.forEach(subj => {
         const entry = saved[subj];
@@ -232,6 +181,7 @@ function buildSpeakingExams() {
             component: 'Speaking Exam',
             session: fmtTime(start),
             durationMin: 30,
+            weight: 1,
             start, end,
             isSpeaking: true,
         });
