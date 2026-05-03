@@ -129,14 +129,6 @@
                                 <span class="slider round"></span>
                             </label>
                         </div>
-                        <div class="controls-setting" id="hideAssistantWrapper">
-                            <span>Hide Assistant</span>
-                            <span class="shortcut-label">Q</span>
-                            <label class="switch">
-                                <input type="checkbox" id="hideAssistantToggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
                     </div>
                     <div class="controls-column controls-column-middle">
                         <div class="controls-setting calModeOnly" id="legacyCal">
@@ -179,6 +171,7 @@
                         <button id="compactbtn" class="filter-btn" title="Compact view (X)"><i class="fas fa-bars"></i> Compact <span class="shortcut-label">X</span></button>
                         <button id="calbtn" class="filter-btn" title="Calendar view (C)"><i class="fas fa-calendar"></i> Calendar <span class="shortcut-label">C</span></button>
                         <button id="progressbtn" class="filter-btn" title="Progress tracker (V)"><i class="fas fa-chart-pie"></i> Progress <span class="shortcut-label">V</span></button>
+                        <button id="assistantmodebtn" class="filter-btn" title="Assistant view (B)"><i class="fas fa-wand-magic-sparkles"></i> Assistant <span class="shortcut-label">B</span></button>
                     </div>
                 </div>
             </div>
@@ -224,6 +217,31 @@
                     <div class="countdown-sublabel" id="endremtimeLabel"></div>
                 </div>
             </div>
+            <div class="controls">
+                <div class="controls-topbar">
+                    <div class="controls-topbar-left">
+                        <span class="controls-label" style="margin-bottom:0">Filter by Subject</span>
+                        <span class="filter-count" id="filterCount"></span>
+                    </div>
+                    <div class="controls-topbar-right">
+                        <button id="filterCollapseBtn" class="filter-collapse-btn" title="Toggle filters"><i class="fas fa-chevron-up"></i></button>
+                    </div>
+                </div>
+
+                <div id="filterCategories"></div>
+
+                <!-- Speaking exam date selectors — shown per MFL subject when filtered -->
+                <div id="speakingDates"></div>
+
+                <div class="clear-btn-wrap" id="clearBtnWrap">
+                    <button id="clearFilters" class="filter-btn red-btn"><i class="fas fa-times"></i> Clear Filters</button>
+                </div>
+            </div>
+            <div class="count-info" id="countInfo"></div>
+            <div class="rev-planner-wrapper" style="display: none;">
+                <button id="rev-planner" class="btn" style="margin-bottom: 12px;">!!NEW!! Revision Planner</button>
+            </div>
+
             <div class="assistant" id="assistantPanel">
                 <div class="assistant-controls">
                     <span class="assistant-label">Assistant <span class="tag">NEW</span> </span>
@@ -309,30 +327,7 @@
                     </div>
                 </div>
             </div>
-            <div class="controls">
-                <div class="controls-topbar">
-                    <div class="controls-topbar-left">
-                        <span class="controls-label" style="margin-bottom:0">Filter by Subject</span>
-                        <span class="filter-count" id="filterCount"></span>
-                    </div>
-                    <div class="controls-topbar-right">
-                        <button id="filterCollapseBtn" class="filter-collapse-btn" title="Toggle filters"><i class="fas fa-chevron-up"></i></button>
-                    </div>
-                </div>
 
-                <div id="filterCategories"></div>
-
-                <!-- Speaking exam date selectors — shown per MFL subject when filtered -->
-                <div id="speakingDates"></div>
-
-                <div class="clear-btn-wrap" id="clearBtnWrap">
-                    <button id="clearFilters" class="filter-btn red-btn"><i class="fas fa-times"></i> Clear Filters</button>
-                </div>
-            </div>
-            <div class="count-info" id="countInfo"></div>
-            <div class="rev-planner-wrapper" style="display: none;">
-                <button id="rev-planner" class="btn" style="margin-bottom: 12px;">!!NEW!! Revision Planner</button>
-            </div>
             <!-- ── Progress Tracker ── -->
             <div class="progress-tracker-container" id="progressTrackerContainer" style="display: none;">
                 <div class="progress-tracker">

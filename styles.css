@@ -351,7 +351,7 @@ h1 span { color: var(--accent); }
 /* Settings box above filters */
 .controls-settings-box {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: auto auto 1fr;
     gap: 16px;
     align-items: flex-start;
 }

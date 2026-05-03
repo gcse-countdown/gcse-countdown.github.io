@@ -45,6 +45,7 @@ const DISPLAY_MODE_DEFAULT = 0;
 const DISPLAY_MODE_COMPACT = 1;
 const DISPLAY_MODE_CALENDAR = 2;
 const DISPLAY_MODE_PROGRESS = 3;
+const DISPLAY_MODE_ASSISTANT = 4;
 
 // Settings configuration: type, default value, and special parsing rules
 const SETTINGS_CONFIG = {
@@ -56,7 +57,6 @@ const SETTINGS_CONFIG = {
     [LIGHT_KEY]: { type: 'bool', default: false },
     [TOPBAR_KEY]: { type: 'bool', default: false },
     [FILTER_COLLAPSED_KEY]: { type: 'bool', default: false },
-    [HIDE_ASSISTANT_KEY]: { type: 'bool', default: false },
     [STORAGE_KEY]: { type: 'set', default: new Set() },
     [PLANNER_KEY]: { type: 'json', default: null },
     [SPEAKING_KEY]: { type: 'json', default: {} },
@@ -247,6 +247,8 @@ const compactbtn = document.getElementById('compactbtn');
 const calbtn = document.getElementById('calbtn');
 const progressbtn = document.getElementById('progressbtn');
 const toggleMenusBtn = document.getElementById('toggleMenusBtn');
+const assistantmodebtn = document.getElementById('assistantmodebtn');
+const assistantPanel = document.getElementById('assistantPanel');
 const quickLinksMenu = document.querySelector('.quick-links-menu');
 const countdownsMenu = document.querySelector('.countdowns-menu');
 const legacyCalToggle = document.getElementById('legacyCalToggle');
@@ -287,6 +289,7 @@ function syncAllToggles() {
     if(compactbtn) compactbtn.classList.toggle('active', displayMode === DISPLAY_MODE_COMPACT);
     if(calbtn) calbtn.classList.toggle('active', displayMode === DISPLAY_MODE_CALENDAR);
     if(progressbtn) progressbtn.classList.toggle('active', displayMode === DISPLAY_MODE_PROGRESS);
+    if(assistantmodebtn) assistantmodebtn.classList.toggle('active', displayMode === DISPLAY_MODE_ASSISTANT);
 }
 
 syncAllToggles();
@@ -382,6 +385,12 @@ function setDisplayMode(newMode) {
     if(compactbtn) compactbtn.classList.remove('active');
     if(calbtn) calbtn.classList.remove('active');
     if(progressbtn) progressbtn.classList.remove('active');
+    if(assistantmodebtn) assistantmodebtn.classList.remove('active');
+
+    document.getElementById('examList').style.display = '';
+    
+    // Hide assistant panel unless entering assistant mode
+    if (assistantPanel) assistantPanel.style.display = (newMode === DISPLAY_MODE_ASSISTANT) ? '' : 'none';
     
     // Apply new mode styling and active states
     switch (displayMode) {
@@ -400,6 +409,11 @@ function setDisplayMode(newMode) {
             if(progressbtn) progressbtn.classList.add('active');
             if(progressContainer) progressContainer.style.display = 'block';
             renderProgressTracker();
+            break;
+        case DISPLAY_MODE_ASSISTANT:
+            if(assistantmodebtn) assistantmodebtn.classList.add('active');
+            if(progressContainer) progressContainer.style.display = 'none';
+            document.getElementById('examList').style.display = 'none'; 
             break;
         case DISPLAY_MODE_DEFAULT:
         default:
@@ -442,21 +456,15 @@ function setProgressMode(on) {
 
 // its set at the end
 
-// ── Hide Assistant ────────────────────────────────────────────────────────────
-let hideAssistant = load(HIDE_ASSISTANT_KEY);
-const hideAssistantToggle = document.getElementById('hideAssistantToggle');
-const assistantPanel = document.getElementById('assistantPanel');
-
-function setHideAssistant(on) {
-    hideAssistant = on;
-    if (hideAssistantToggle) hideAssistantToggle.checked = on;
-    if (assistantPanel) assistantPanel.style.display = on ? 'none' : '';
-    save(HIDE_ASSISTANT_KEY, on);
+// ── Assistant Mode ────────────────────────────────────────────────────────────
+function setAssistantMode(on) {
+    setDisplayMode(on ? DISPLAY_MODE_ASSISTANT : DISPLAY_MODE_DEFAULT);
 }
-if (hideAssistantToggle) hideAssistantToggle.addEventListener('change', e => setHideAssistant(e.target.checked));
-// Apply on load
-if (hideAssistant && assistantPanel) assistantPanel.style.display = 'none';
-if (hideAssistantToggle) hideAssistantToggle.checked = !!hideAssistant;
+
+if (assistantmodebtn) assistantmodebtn.addEventListener('click', () => setAssistantMode(displayMode !== DISPLAY_MODE_ASSISTANT));
+
+// Apply on load: show/hide assistant panel based on saved display mode
+if (assistantPanel) assistantPanel.style.display = (displayMode === DISPLAY_MODE_ASSISTANT) ? '' : 'none';
 
 if (calbtn) calbtn.addEventListener('click', () => setCalMode(displayMode !== DISPLAY_MODE_CALENDAR));
 if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(displayMode !== DISPLAY_MODE_COMPACT));
@@ -534,12 +542,12 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'v' || e.key === 'V') {
         e.preventDefault();
         setProgressMode(displayMode !== DISPLAY_MODE_PROGRESS);
+    } else if (e.key === 'b' || e.key === 'B') {
+        e.preventDefault();
+        setAssistantMode(displayMode !== DISPLAY_MODE_ASSISTANT);
     } else if (e.key === 'o' || e.key === 'O') {
         e.preventDefault();
         setAdvancedToggle(!advancedToggle);
-    } else if (e.key === 'q' || e.key === 'Q') {
-        e.preventDefault();
-        setHideAssistant(!hideAssistant);
     }
     
 });
