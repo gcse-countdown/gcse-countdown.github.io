@@ -522,13 +522,7 @@ function setProgressMode(on) {
     if (on) renderProgressTracker();
 }
 
-document.getElementById("legacyUI").style.display = "none";
-document.getElementById("legacyCal").style.display = "none";
-document.getElementById("showOtherExamsWrapper").style.display = "none";
-document.getElementById("hideWeekends").style.display = "none";
-document.getElementById("hideAprilWrapper").style.display = "none";
-document.getElementById("hideAssistantWrapper").style.display = "none";
-document.querySelector(".controls-settings-box").classList.add("expanded");
+// its set at the end
 
 // ── Hide Assistant ────────────────────────────────────────────────────────────
 let hideAssistant = load(HIDE_ASSISTANT_KEY);
@@ -561,7 +555,7 @@ function setAdvancedToggle(on) {
         document.getElementById("showOtherExamsWrapper").style.display = "none";
         document.getElementById("hideWeekends").style.display = "none";
         document.getElementById("hideAprilWrapper").style.display = "none";
-        document.getElementById("hideAssistantWrapper").style.display = "none";
+        // document.getElementById("hideAssistantWrapper").style.display = "none";
         document.querySelector(".controls-settings-box").classList.add("expanded");
     } else {
         console.log("active");
@@ -574,7 +568,7 @@ function setAdvancedToggle(on) {
             document.getElementById("hideWeekends").style = "";
             document.getElementById("hideAprilWrapper").style = "";
         }
-        document.getElementById("hideAssistantWrapper").style = "";
+        // document.getElementById("hideAssistantWrapper").style = "";
         document.querySelector(".controls-settings-box").classList.remove("expanded");
     }
     save(ADVANCED_KEY, advancedToggle);
@@ -587,6 +581,11 @@ advancedOptsBtn.addEventListener('click', () => {
 document.addEventListener('keydown', (e) => {
     const tag = e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+    
+    if (e.ctrlKey || e.altKey) {
+        return;
+    }
+    
     if (e.key === 'z' || e.key === 'Z') {
         e.preventDefault();
         setDefaultMode(true);
@@ -620,6 +619,9 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'o' || e.key === 'O') {
         e.preventDefault();
         setAdvancedToggle(!advancedToggle);
+    } else if (e.key === 'q' || e.key === 'Q') {
+        e.preventDefault();
+        setHideAssistant(!hideAssistant);
     }
     
 });
