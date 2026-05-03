@@ -464,7 +464,10 @@ function setAssistantMode(on) {
 if (assistantmodebtn) assistantmodebtn.addEventListener('click', () => setAssistantMode(displayMode !== DISPLAY_MODE_ASSISTANT));
 
 // Apply on load: show/hide assistant panel based on saved display mode
-if (assistantPanel) assistantPanel.style.display = (displayMode === DISPLAY_MODE_ASSISTANT) ? '' : 'none';
+if (assistantPanel) {
+    assistantPanel.style.display = (displayMode === DISPLAY_MODE_ASSISTANT) ? '' : 'none'
+    if (displayMode == DISPLAY_MODE_ASSISTANT) { document.getElementById('examList').style.display = 'none'; }
+};
 
 if (calbtn) calbtn.addEventListener('click', () => setCalMode(displayMode !== DISPLAY_MODE_CALENDAR));
 if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(displayMode !== DISPLAY_MODE_COMPACT));
