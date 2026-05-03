@@ -26,10 +26,8 @@ const COURSEWORK = {
 };
 
 const STORAGE_KEY = 'filters_v3';
-const COMPACT_KEY = 'compact_mode';
-const CAL_KEY = 'calendar_mode';
+const DISPLAY_MODE_KEY = 'display_mode_v1';
 const LEGACY_CAL_KEY = 'legacy_calendar_mode';
-const PROGRESS_KEY = 'progress_mode';
 const LIGHT_KEY = 'light_mode';
 const PLANNER_KEY = 'planner';
 const SPEAKING_KEY = 'speaking_dates_v1';
@@ -42,14 +40,18 @@ const ADVANCED_KEY = 'advanced_options';
 const HIDE_APRIL_KEY = 'hide_april';
 const HIDE_ASSISTANT_KEY = 'hide_assistant';
 
+// ── Display mode constants ──────────────────────────────────────────────────
+const DISPLAY_MODE_DEFAULT = 0;
+const DISPLAY_MODE_COMPACT = 1;
+const DISPLAY_MODE_CALENDAR = 2;
+const DISPLAY_MODE_PROGRESS = 3;
+
 // Settings configuration: type, default value, and special parsing rules
 const SETTINGS_CONFIG = {
     [HIDE_MENUS_KEY]: { type: 'bool', default: false },
     [SHOW_OTHER_EXAMS_KEY]: { type: 'bool', default: false },
     [WEEKENDS_KEY]: { type: 'bool', default: true },
-    [PROGRESS_KEY]: { type: 'bool', default: false },
-    [COMPACT_KEY]: { type: 'bool', default: false },
-    [CAL_KEY]: { type: 'bool', default: false },
+    [DISPLAY_MODE_KEY]: { type: 'int', default: DISPLAY_MODE_DEFAULT },
     [LEGACY_CAL_KEY]: { type: 'bool', default: false },
     [LIGHT_KEY]: { type: 'bool', default: false },
     [TOPBAR_KEY]: { type: 'bool', default: false },
@@ -62,7 +64,7 @@ const SETTINGS_CONFIG = {
     [HIDE_APRIL_KEY]: { type: 'bool', default: false },
 };
 
-// Generic load function supporting booleans, JSON, arrays (as Sets), and custom parsing
+// Generic load function supporting booleans, JSON, arrays (as Sets), integers, and custom parsing
 function load(key, defaultValue = undefined) {
     const config = SETTINGS_CONFIG[key];
     const def = defaultValue !== undefined ? defaultValue : (config?.default ?? false);
@@ -72,11 +74,13 @@ function load(key, defaultValue = undefined) {
         if (val === null) return def;
         
         if (config?.type === 'bool') {
-        return val === '1';
+            return val === '1';
+        } else if (config?.type === 'int') {
+            return parseInt(val, 10);
         } else if (config?.type === 'json') {
-        return JSON.parse(val);
+            return JSON.parse(val);
         } else if (config?.type === 'set') {
-        return new Set(JSON.parse(val));
+            return new Set(JSON.parse(val));
         }
         return val;
     } catch (e) {
@@ -85,19 +89,21 @@ function load(key, defaultValue = undefined) {
     }
 }
 
-// Generic save function supporting booleans, JSON, arrays, and Sets
+// Generic save function supporting booleans, JSON, arrays, Sets, and integers
 function save(key, value) {
     try {
         const config = SETTINGS_CONFIG[key];
         
         if (config?.type === 'bool') {
-        localStorage.setItem(key, value ? '1' : '0');
+            localStorage.setItem(key, value ? '1' : '0');
+        } else if (config?.type === 'int') {
+            localStorage.setItem(key, String(value));
         } else if (config?.type === 'set' && value instanceof Set) {
-        localStorage.setItem(key, JSON.stringify([...value]));
+            localStorage.setItem(key, JSON.stringify([...value]));
         } else if (config?.type === 'json' || typeof value === 'object') {
-        localStorage.setItem(key, JSON.stringify(value));
+            localStorage.setItem(key, JSON.stringify(value));
         } else {
-        localStorage.setItem(key, value);
+            localStorage.setItem(key, value);
         }
     } catch (e) {}
 }
@@ -212,22 +218,24 @@ let activeFilters=load(STORAGE_KEY) || [];
 let lastFilterCount = activeFilters.size;
 activeFilters.forEach(s=>{if(!ALL_SUBJECTS.includes(s))activeFilters.delete(s);});
 
-let calMode = load(CAL_KEY);
-if (calMode) {document.body.classList.replace('compact', 'cal') ? null:document.body.classList.add('cal')};
-
+// Initialize display mode from saved settings
 let legacyCalMode = load(LEGACY_CAL_KEY);
+let displayMode = load(DISPLAY_MODE_KEY, DISPLAY_MODE_DEFAULT);
 
-let compactMode = (calMode || legacyCalMode) ? 0:load(COMPACT_KEY);
-if(compactMode) {document.body.classList.replace('cal', 'compact') ? null:document.body.classList.add('compact')};
+// Apply initial mode styling
+if (displayMode === DISPLAY_MODE_CALENDAR) {
+    document.body.classList.add('cal');
+} else if (displayMode === DISPLAY_MODE_COMPACT) {
+    document.body.classList.add('compact');
+} else if (displayMode === DISPLAY_MODE_PROGRESS) {
+    document.body.classList.add('progress');
+}
 
 let weekends = load(WEEKENDS_KEY);
 
 let showOtherExams = load(SHOW_OTHER_EXAMS_KEY);
 
 let hideApril = load(HIDE_APRIL_KEY);
-
-let progressMode = load(PROGRESS_KEY);
-if (progressMode) {document.body.classList.add('progress')};
 
 let plannerMode = 0;
 
@@ -271,15 +279,21 @@ function syncAllToggles() {
     
     // Show "Show Other Exams" toggle only in calendar mode
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle) ? 'flex' : 'none'});
     }
+    
+    // Initialize display mode button states
+    if(defaultbtn) defaultbtn.classList.toggle('active', displayMode === DISPLAY_MODE_DEFAULT);
+    if(compactbtn) compactbtn.classList.toggle('active', displayMode === DISPLAY_MODE_COMPACT);
+    if(calbtn) calbtn.classList.toggle('active', displayMode === DISPLAY_MODE_CALENDAR);
+    if(progressbtn) progressbtn.classList.toggle('active', displayMode === DISPLAY_MODE_PROGRESS);
 }
 
 syncAllToggles();
 
 // Show progress tracker container on load if progress mode is active
 const progressContainer = document.getElementById('progressTrackerContainer');
-if (progressContainer && progressMode) {
+if (progressContainer && displayMode === DISPLAY_MODE_PROGRESS) {
     progressContainer.style.display = 'block';
 }
 
@@ -337,13 +351,13 @@ if (hideAprilToggle) {
 function setLegacyCalMode(on) {
     legacyCalMode = on ? 1 : 0;
     if (legacyCalToggle) legacyCalToggle.checked = on;
-    if (!calMode) setCalMode(true);
+    if (displayMode !== DISPLAY_MODE_CALENDAR) setDisplayMode(DISPLAY_MODE_CALENDAR);
     
     // Update hideAprilWrapper visibility when legacy calendar mode changes
     if (hideAprilToggle) {
         const hideAprilWrapper = document.getElementById('hideAprilWrapper');
         if (hideAprilWrapper) {
-            hideAprilWrapper.style.display = (calMode && advancedToggle && !legacyCalMode) ? 'flex' : 'none';
+            hideAprilWrapper.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle && !legacyCalMode) ? 'flex' : 'none';
         }
     }
     
@@ -356,120 +370,74 @@ if (legacyCalToggle) {
     });
 }
 
-// ── Default mode ──────────────────────────────────────────────────────────────
-function setDefaultMode(on) {
-    if (on) {
-        compactMode = 0;
-        calMode = 0;
-        progressMode = 0;
-        document.body.classList.remove('compact', 'cal', 'multical', 'progress');
-        if(compactbtn) compactbtn.classList.remove('active');
-        if(calbtn) calbtn.classList.remove('active');
-        if(progressbtn) progressbtn.classList.remove('active');
-        if(progressContainer) progressContainer.style.display = 'none';
-    }
-    if(defaultbtn) defaultbtn.classList.toggle('active', !!on);
-
-    if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
-    }
-
-    save(COMPACT_KEY, compactMode);
-    save(CAL_KEY, calMode);
-    save(PROGRESS_KEY, progressMode);
-    renderExams();
-}
-
-// ── Compact mode ──────────────────────────────────────────────────────────────
-function setCompactMode(on) {
-    compactMode = on ? 1 : 0;
-    if (on) {
-        calMode = 0;
-        progressMode = 0;
-        document.body.classList.remove('cal', 'multical', 'progress');
-        document.body.classList.add('compact');
-        if(calbtn) calbtn.classList.remove('active');
-        if(progressbtn) progressbtn.classList.remove('active');
-        if(defaultbtn) defaultbtn.classList.remove('active');
-        if(progressContainer) progressContainer.style.display = 'none';
-    } else {
-        document.body.classList.remove('compact');
-        if(defaultbtn) defaultbtn.classList.add('active');
-    }
-    if(compactbtn) compactbtn.classList.toggle('active', !!on);
-
-    if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
-    }
-
-    save(COMPACT_KEY, compactMode);
-    save(CAL_KEY, calMode);
-    save(PROGRESS_KEY, progressMode);
-    renderExams();
-}
-
-// ── Calendar mode ─────────────────────────────────────────────────────────────
-function setCalMode(on) {
-    calMode = on ? 1 : 0;
-    if (on) {
-        compactMode = 0;
-        progressMode = 0;
-        document.body.classList.remove('compact', 'multical', 'progress');
-        document.body.classList.add('cal');
-        if(compactbtn) compactbtn.classList.remove('active');
-        if(progressbtn) progressbtn.classList.remove('active');
-        if(defaultbtn) defaultbtn.classList.remove('active');
-        if(progressContainer) progressContainer.style.display = 'none';
-    } else {
-        document.body.classList.remove('cal');
-        if(defaultbtn) defaultbtn.classList.add('active');
-    }
-    if(calbtn) calbtn.classList.toggle('active', !!on);
+// ── Display mode setter ────────────────────────────────────────────────────────
+function setDisplayMode(newMode) {
+    displayMode = newMode;
     
-    // Show/hide calendar-mode-only toggles based on calendar mode and advanced options
+    // Remove all mode classes
+    document.body.classList.remove('compact', 'cal', 'multical', 'progress');
+    
+    // Remove all button active states
+    if(defaultbtn) defaultbtn.classList.remove('active');
+    if(compactbtn) compactbtn.classList.remove('active');
+    if(calbtn) calbtn.classList.remove('active');
+    if(progressbtn) progressbtn.classList.remove('active');
+    
+    // Apply new mode styling and active states
+    switch (displayMode) {
+        case DISPLAY_MODE_COMPACT:
+            document.body.classList.add('compact');
+            if(compactbtn) compactbtn.classList.add('active');
+            if(progressContainer) progressContainer.style.display = 'none';
+            break;
+        case DISPLAY_MODE_CALENDAR:
+            document.body.classList.add('cal');
+            if(calbtn) calbtn.classList.add('active');
+            if(progressContainer) progressContainer.style.display = 'none';
+            break;
+        case DISPLAY_MODE_PROGRESS:
+            document.body.classList.add('progress');
+            if(progressbtn) progressbtn.classList.add('active');
+            if(progressContainer) progressContainer.style.display = 'block';
+            renderProgressTracker();
+            break;
+        case DISPLAY_MODE_DEFAULT:
+        default:
+            if(defaultbtn) defaultbtn.classList.add('active');
+            if(progressContainer) progressContainer.style.display = 'none';
+    }
+    
+    // Update calendar-mode-only toggles visibility
     if (calModeOnly) {
         calModeOnly.forEach((el) => {
             if (el.id === 'hideAprilWrapper') {
-                // Hide April only shows if calendar mode ON, advanced ON, and legacy calendar OFF
-                el.style.display = (calMode && advancedToggle && !legacyCalMode) ? 'flex' : 'none';
+                el.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle && !legacyCalMode) ? 'flex' : 'none';
             } else {
-                el.style.display = (calMode && advancedToggle) ? 'flex' : 'none';
+                el.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle) ? 'flex' : 'none';
             }
         });
     }
     
-    save(CAL_KEY, calMode);
-    save(COMPACT_KEY, compactMode);
-    save(PROGRESS_KEY, progressMode);
+    // Save to storage for persistence
+    save(DISPLAY_MODE_KEY, displayMode);
     renderExams();
 }
 
-// ── Progress tracker mode ──────────────────────────────────────────────────────
+// ── Mode toggle functions for backward compatibility with keyboard shortcuts and button clicks ────
+function setDefaultMode(on) {
+    if (on) setDisplayMode(DISPLAY_MODE_DEFAULT);
+}
+
+function setCompactMode(on) {
+    setDisplayMode(on ? DISPLAY_MODE_COMPACT : DISPLAY_MODE_DEFAULT);
+}
+
+function setCalMode(on) {
+    setDisplayMode(on ? DISPLAY_MODE_CALENDAR : DISPLAY_MODE_DEFAULT);
+}
+
 function setProgressMode(on) {
-    progressMode = on ? 1 : 0;
-    if (on) {
-        compactMode = 0;
-        calMode = 0;
-        document.body.classList.remove('compact', 'cal', 'multical');
-        document.body.classList.add('progress');
-        if(compactbtn) compactbtn.classList.remove('active');
-        if(calbtn) calbtn.classList.remove('active');
-        if(defaultbtn) defaultbtn.classList.remove('active');
-    } else {
-        document.body.classList.remove('progress');
-        if(defaultbtn) defaultbtn.classList.add('active');
-    }
-    if(progressbtn) progressbtn.classList.toggle('active', !!on);
-    
-    // Show/hide progress tracker container
-    const progressContainer = document.getElementById('progressTrackerContainer');
-    if (progressContainer) progressContainer.style.display = on ? 'block' : 'none';
-    
-    save(PROGRESS_KEY, progressMode);
-    save(COMPACT_KEY, compactMode);
-    save(CAL_KEY, calMode);
-    renderExams();
-    if (on) renderProgressTracker();
+    setDisplayMode(on ? DISPLAY_MODE_PROGRESS : DISPLAY_MODE_DEFAULT);
 }
 
 // its set at the end
@@ -490,9 +458,9 @@ if (hideAssistantToggle) hideAssistantToggle.addEventListener('change', e => set
 if (hideAssistant && assistantPanel) assistantPanel.style.display = 'none';
 if (hideAssistantToggle) hideAssistantToggle.checked = !!hideAssistant;
 
-if (calbtn) calbtn.addEventListener('click', () => setCalMode(!calMode));
-if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compactMode));
-if (progressbtn) progressbtn.addEventListener('click', () => setProgressMode(!progressMode));
+if (calbtn) calbtn.addEventListener('click', () => setCalMode(displayMode !== DISPLAY_MODE_CALENDAR));
+if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(displayMode !== DISPLAY_MODE_COMPACT));
+if (progressbtn) progressbtn.addEventListener('click', () => setProgressMode(displayMode !== DISPLAY_MODE_PROGRESS));
 if (defaultbtn) defaultbtn.addEventListener('click', () => setDefaultMode(true));
 
 function setAdvancedToggle(on) {
@@ -512,7 +480,7 @@ function setAdvancedToggle(on) {
         advancedToggle = true;
         advancedOptsBtn.classList.add("cat-active");
         document.getElementById("legacyUI").style = "";
-        if (calMode && !legacyCalMode) {
+        if (displayMode === DISPLAY_MODE_CALENDAR && !legacyCalMode) {
             document.getElementById("legacyCal").style = "";
             document.getElementById("showOtherExamsWrapper").style = "";
             document.getElementById("hideWeekends").style = "";
@@ -541,10 +509,10 @@ document.addEventListener('keydown', (e) => {
         setDefaultMode(true);
     } else if (e.key === 'x' || e.key === 'X') {
         e.preventDefault();
-        setCompactMode(!compactMode);
+        setCompactMode(displayMode !== DISPLAY_MODE_COMPACT);
     } else if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
-        setCalMode(!calMode);
+        setCalMode(displayMode !== DISPLAY_MODE_CALENDAR);
     } else if (e.key === 'a' || e.key === 'a') {
         e.preventDefault();
         setLegacyCalMode(!legacyCalMode);
@@ -565,7 +533,7 @@ document.addEventListener('keydown', (e) => {
         setHideApril(!hideApril);
     } else if (e.key === 'v' || e.key === 'V') {
         e.preventDefault();
-        setProgressMode(!progressMode);
+        setProgressMode(displayMode !== DISPLAY_MODE_PROGRESS);
     } else if (e.key === 'o' || e.key === 'O') {
         e.preventDefault();
         setAdvancedToggle(!advancedToggle);
@@ -576,12 +544,7 @@ document.addEventListener('keydown', (e) => {
     
 });
 
-// Initialize button active states on page load
-const isDefaultMode = !compactMode && !calMode && !progressMode;
-if (isDefaultMode && defaultbtn) defaultbtn.classList.add('active');
-if (calMode && calbtn) calbtn.classList.add('active');
-if (compactMode && compactbtn) compactbtn.classList.add('active');
-if (progressMode && progressbtn) progressbtn.classList.add('active');
+// Initialize button active states on page load (handled by setDisplayMode during init)
 if (legacyCalMode && legacyCalToggle) legacyCalToggle.classList.add('active');
 
 // ── Speaking exam date selectors ──────────────────────────────────────────────
@@ -1183,7 +1146,7 @@ function renderExams(){
     let halfTermInserted = false;
 
     // In calendar mode include finished (over) exams as well
-    if (calMode) {
+    if (displayMode === DISPLAY_MODE_CALENDAR) {
         active = filtered.slice();
         
         // If "Show Other Exams" is enabled, also include other exams
@@ -1193,7 +1156,7 @@ function renderExams(){
         }
     }
 
-    if (!calMode) {
+    if (displayMode !== DISPLAY_MODE_CALENDAR) {
         active.forEach((e,i)=>{
             if(!halfTermInserted && e.start.getTime() >= halfTermStartMs){
                 const div=document.createElement('div');
@@ -1353,7 +1316,7 @@ function renderExams(){
     updateSidebarTimers();
 
     // Re-render progress tracker whenever exams re-render (filter changes, etc.)
-    if (progressMode) renderProgressTracker();
+    if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
 }
 
 function makeCard(ex,idx){
@@ -1492,7 +1455,7 @@ function renderProgressTracker() {
     });
 
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = (displayMode == DISPLAY_MODE_CALENDAR && advancedToggle) ? 'flex' : 'none'});
     }
 }
 
@@ -1642,7 +1605,7 @@ function tick(){
 
     updateSidebarTimers();
     
-    // if (progressMode) renderProgressTracker();
+    // if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
 
     document.querySelectorAll('[data-code]').forEach(el=>{
         if(!el.classList.contains('countdown-timer'))return;
@@ -1665,7 +1628,7 @@ function tick(){
 }
 
 renderExams();
-if (progressMode) renderProgressTracker();
+if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
 updateClock();
 setInterval(updateClock,100);
 setInterval(updateTime, 100);
