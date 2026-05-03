@@ -2368,7 +2368,7 @@ function buildAISystemPrompt() {
         cw.sc?.pct ? `  S&C NEA: ${cw.sc.pct}% (grade ${cw.sc.grade||'?'})` : null,
     ].filter(Boolean).join('\n');
 
-    return `You are a helpful GCSE revision assistant, whose name is Dale. Introduce yourself as Dale at the start of your conversation. Here is the student's data:
+    return `You are a helpful GCSE revision assistant. Here is the student's data:
 
 UPCOMING EXAMS:
 ${examLines || '  (none selected)'}
@@ -2379,8 +2379,7 @@ ${ppLines || '  (none entered)'}
 ${cwLines ? 'COMPLETED COURSEWORK:\n' + cwLines + '\n' : ''}PREDICTED GRADES:
 ${predLines || '  (insufficient data)'}
 
-Give very concise, practical, exam-focused advice. Be encouraging but honest. Keep responses short due to token limitations. Ask if students want more in depth advice, and give it little by little.
-Answer the questions the student asks. If they just say 'hello' or similar, just say a greeting concisely and ask what help they would like.`;
+Give concise, practical, exam-focused advice. Be encouraging but honest.`;
 }
 
 function aiAppendMessage(role, text) {
@@ -2533,7 +2532,7 @@ function setupAIInput() {
         if (stored) {
             window._orKey = stored;
         } else {
-            const key = prompt('Enter your OpenRouter API key (stored locally in your browser, only sent to openrouter.ai). You can make one with your school account at openrouter.ai:');
+            const key = prompt('Enter your OpenRouter API key (stored locally in your browser, only sent to openrouter.ai):');
             if (key) { window._orKey = key; localStorage.setItem('asst_or_key', key); }
         }
     }
