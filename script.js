@@ -91,6 +91,8 @@ const SHOW_OTHER_EXAMS_KEY = 'show_other_exams';
 const TOPBAR_KEY = 'topbar_hidden';
 const WEEKENDS_KEY = 'hide_weekends';
 const FILTER_COLLAPSED_KEY = 'filter_collapsed';
+const ADVANCED_KEY = 'advanced_options';
+const HIDE_APRIL_KEY = 'hide_april';
 const HIDE_ASSISTANT_KEY = 'hide_assistant';
 
 // Settings configuration: type, default value, and special parsing rules
@@ -109,6 +111,8 @@ const SETTINGS_CONFIG = {
     [STORAGE_KEY]: { type: 'set', default: new Set() },
     [PLANNER_KEY]: { type: 'json', default: null },
     [SPEAKING_KEY]: { type: 'json', default: {} },
+    [ADVANCED_KEY]: {type: 'bool', default: false},
+    [HIDE_APRIL_KEY]: { type: 'bool', default: false },
 };
 
 // Generic load function supporting booleans, JSON, arrays (as Sets), and custom parsing
@@ -263,12 +267,14 @@ if (calMode) {document.body.classList.replace('compact', 'cal') ? null:document.
 
 let legacyCalMode = load(LEGACY_CAL_KEY);
 
-let compactMode = calMode || legacyCalMode ? 0:load(COMPACT_KEY);
+let compactMode = (calMode || legacyCalMode) ? 0:load(COMPACT_KEY);
 if(compactMode) {document.body.classList.replace('cal', 'compact') ? null:document.body.classList.add('compact')};
 
 let weekends = load(WEEKENDS_KEY);
 
 let showOtherExams = load(SHOW_OTHER_EXAMS_KEY);
+
+let hideApril = load(HIDE_APRIL_KEY);
 
 let progressMode = load(PROGRESS_KEY);
 if (progressMode) {document.body.classList.add('progress')};
@@ -296,9 +302,11 @@ const lightToggleTop = document.getElementById('lightToggleTop');
 const showOtherExamsToggle = document.getElementById('showOtherExamsToggle');
 const calModeOnly = document.querySelectorAll('.calModeOnly');
 const weekendsToggle = document.getElementById('weekendsToggle');
+const hideAprilToggle = document.getElementById('hideAprilToggle');
 if (weekendsToggle) weekendsToggle.addEventListener('change', e => setWeekends(e.target.checked));
 
-let advancedToggle = false;
+let advancedToggle = load(ADVANCED_KEY);
+// its set at the bottom because it was breaking
 
 // ── Sync toggle initial states ────────────────────────────────────────────────
 function syncAllToggles() {
@@ -309,10 +317,11 @@ function syncAllToggles() {
     if (legacyCalToggle) legacyCalToggle.checked = legacyCalMode;
     if (showOtherExamsToggle) showOtherExamsToggle.checked = showOtherExams;
     if (weekendsToggle) weekendsToggle.checked = weekends;
+    if (hideAprilToggle) hideAprilToggle.checked = hideApril;
     
     // Show "Show Other Exams" toggle only in calendar mode
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
     }
 }
 
@@ -362,12 +371,32 @@ function setWeekends(on) {
 if (showOtherExamsToggle) {
     showOtherExamsToggle.addEventListener('change', e => setShowOtherExams(e.target.checked));
 }
+
+function setHideApril(on) {
+    hideApril = on ? 1 : 0;
+    if (hideAprilToggle) hideAprilToggle.checked = on;
+    save(HIDE_APRIL_KEY, hideApril);
+    renderExams();
+}
+
+if (hideAprilToggle) {
+    hideAprilToggle.addEventListener('change', e => setHideApril(e.target.checked));
+}
     
 
 function setLegacyCalMode(on) {
     legacyCalMode = on ? 1 : 0;
     if (legacyCalToggle) legacyCalToggle.checked = on;
     if (!calMode) setCalMode(true);
+    
+    // Update hideAprilWrapper visibility when legacy calendar mode changes
+    if (hideAprilToggle) {
+        const hideAprilWrapper = document.getElementById('hideAprilWrapper');
+        if (hideAprilWrapper) {
+            hideAprilWrapper.style.display = (calMode && advancedToggle && !legacyCalMode) ? 'flex' : 'none';
+        }
+    }
+    
     save(LEGACY_CAL_KEY, legacyCalMode);
     renderExams();
 }
@@ -392,7 +421,7 @@ function setDefaultMode(on) {
     if(defaultbtn) defaultbtn.classList.toggle('active', !!on);
 
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
     }
 
     save(COMPACT_KEY, compactMode);
@@ -420,7 +449,7 @@ function setCompactMode(on) {
     if(compactbtn) compactbtn.classList.toggle('active', !!on);
 
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
     }
 
     save(COMPACT_KEY, compactMode);
@@ -447,9 +476,16 @@ function setCalMode(on) {
     }
     if(calbtn) calbtn.classList.toggle('active', !!on);
     
-    // Show/hide "Show Other Exams" toggle based on calendar mode
+    // Show/hide calendar-mode-only toggles based on calendar mode and advanced options
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {
+            if (el.id === 'hideAprilWrapper') {
+                // Hide April only shows if calendar mode ON, advanced ON, and legacy calendar OFF
+                el.style.display = (calMode && advancedToggle && !legacyCalMode) ? 'flex' : 'none';
+            } else {
+                el.style.display = (calMode && advancedToggle) ? 'flex' : 'none';
+            }
+        });
     }
     
     save(CAL_KEY, calMode);
@@ -490,6 +526,7 @@ document.getElementById("legacyUI").style.display = "none";
 document.getElementById("legacyCal").style.display = "none";
 document.getElementById("showOtherExamsWrapper").style.display = "none";
 document.getElementById("hideWeekends").style.display = "none";
+document.getElementById("hideAprilWrapper").style.display = "none";
 document.getElementById("hideAssistantWrapper").style.display = "none";
 document.querySelector(".controls-settings-box").classList.add("expanded");
 
@@ -514,8 +551,8 @@ if (compactbtn) compactbtn.addEventListener('click', () => setCompactMode(!compa
 if (progressbtn) progressbtn.addEventListener('click', () => setProgressMode(!progressMode));
 if (defaultbtn) defaultbtn.addEventListener('click', () => setDefaultMode(true));
 
-advancedOptsBtn.addEventListener('click', () => {
-    if (advancedToggle) {
+function setAdvancedToggle(on) {
+    if (!on) {
         console.log("inactive");
         advancedToggle = false;
         advancedOptsBtn.classList.remove("cat-active");
@@ -523,6 +560,7 @@ advancedOptsBtn.addEventListener('click', () => {
         document.getElementById("legacyCal").style.display = "none";
         document.getElementById("showOtherExamsWrapper").style.display = "none";
         document.getElementById("hideWeekends").style.display = "none";
+        document.getElementById("hideAprilWrapper").style.display = "none";
         document.getElementById("hideAssistantWrapper").style.display = "none";
         document.querySelector(".controls-settings-box").classList.add("expanded");
     } else {
@@ -530,14 +568,22 @@ advancedOptsBtn.addEventListener('click', () => {
         advancedToggle = true;
         advancedOptsBtn.classList.add("cat-active");
         document.getElementById("legacyUI").style = "";
-        document.getElementById("legacyCal").style = "";
-        document.getElementById("showOtherExamsWrapper").style = "";
-        document.getElementById("hideWeekends").style = "";
+        if (calMode && !legacyCalMode) {
+            document.getElementById("legacyCal").style = "";
+            document.getElementById("showOtherExamsWrapper").style = "";
+            document.getElementById("hideWeekends").style = "";
+            document.getElementById("hideAprilWrapper").style = "";
+        }
         document.getElementById("hideAssistantWrapper").style = "";
         document.querySelector(".controls-settings-box").classList.remove("expanded");
     }
+    save(ADVANCED_KEY, advancedToggle);
+}
+
+advancedOptsBtn.addEventListener('click', () => {
+    setAdvancedToggle(!advancedToggle);
 });
-// Keyboard shortcuts: z = default, x = compact, c = calendar, d = legacy calendar, l = light mode, e = legacy ui, s = show other exams, a = weekends only, p = progress
+// Keyboard shortcuts: z = default, x = compact, c = calendar, d = legacy calendar, l = light mode, e = legacy ui, s = show other exams, a = weekends, h = hide april, v = progress, o = advanced
 document.addEventListener('keydown', (e) => {
     const tag = e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
@@ -550,7 +596,7 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
         setCalMode(!calMode);
-    } else if (e.key === 'd' || e.key === 'D') {
+    } else if (e.key === 'a' || e.key === 'a') {
         e.preventDefault();
         setLegacyCalMode(!legacyCalMode);
     } else if (e.key === 'l' || e.key === 'L') {
@@ -562,12 +608,18 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 's' || e.key === 'S') {
         e.preventDefault();
         setShowOtherExams(!showOtherExams);
-    } else if (e.key === 'a' || e.key === 'A') {
+    } else if (e.key === 'd' || e.key === 'D') {
         e.preventDefault();
         setWeekends(!weekends);
+    } else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        setHideApril(!hideApril);
     } else if (e.key === 'v' || e.key === 'V') {
         e.preventDefault();
         setProgressMode(!progressMode);
+    } else if (e.key === 'o' || e.key === 'O') {
+        e.preventDefault();
+        setAdvancedToggle(!advancedToggle);
     }
     
 });
@@ -943,8 +995,9 @@ function renderMultiMonthCalendar(list, active, filtered) {
         allExamsForCalendar = [...allExamsForCalendar, ...otherExams];
     }
 
-    // Always show April, May, June 2026
-    const sortedMonths = [4, 5, 6].map(m => new Date(2026, m - 1, 1));
+    // Show April, May, June 2026 (or May, June if April is hidden)
+    const monthsToShow = hideApril ? [5, 6] : [4, 5, 6];
+    const sortedMonths = monthsToShow.map(m => new Date(2026, m - 1, 1));
 
     // Mon=0 … Sun=6
     function dayCol(date) {
@@ -1487,7 +1540,7 @@ function renderProgressTracker() {
     });
 
     if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = calMode && advancedToggle ? 'flex' : 'none'});
+        calModeOnly.forEach((el) => {el.style.display = (calMode && advancedToggle) ? 'flex' : 'none'});
     }
 }
 
@@ -2593,3 +2646,5 @@ if (document.readyState === 'loading') {
 }
 
 })();
+
+setAdvancedToggle(advancedToggle);

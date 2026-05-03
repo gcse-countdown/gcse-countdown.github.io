@@ -493,6 +493,13 @@ h1 span { color: var(--accent); }
     background: rgba(200,184,255,0.06);
 }
 
+.category-label-btn.cat-active .shortcut-label {
+    opacity: 1;
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(200,184,255,0.06);
+}
+
 .filter-btn:hover .shortcut-label {
     opacity: 1;
     color: var(--text-muted);

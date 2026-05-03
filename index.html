@@ -7,7 +7,7 @@
     <link rel="icon" type="image/x-icon" href="/gcse_favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=0.91">
+    <link rel="stylesheet" href="styles.css?v=0.94">
     <script src = 'https://code.jquery.com/jquery-3.6.3.min.js'></script>
     <script>
         if (localStorage.getItem('light_mode') === '1') {
@@ -101,7 +101,10 @@
                 <div class="controls-topbar">
                     <div class="controls-topbar-left">
                         <span class="controls-label" style="margin-bottom:0">Layout</span>
-                        <button id="advanced-btn" class="category-label-btn" style="margin-bottom:0">Advanced Options</button>
+                        <button id="advanced-btn" class="category-label-btn" style="margin-bottom:0; display: flex; flex-direction: row; align-items: center; padding: 2px 2px 2px 6px;">
+                            <span>Advanced Options</span>
+                            <span class="shortcut-label" style="font-size: 11px;">O</span>
+                        </button>
 
                     </div>
                     <div class="controls-topbar-right">
@@ -137,7 +140,7 @@
                     <div class="controls-column controls-column-middle">
                         <div class="controls-setting calModeOnly" id="legacyCal">
                             <span>Legacy Calendar</span>
-                            <span class="shortcut-label">D</span>
+                            <span class="shortcut-label">A</span>
                             <label class="switch">
                                 <input type="checkbox" id="legacyCalToggle">
                                 <span class="slider round"></span>
@@ -154,9 +157,18 @@
                         <div class="controls-setting calModeOnly" id="hideWeekends">
                             <span>Hide Weekends</span>
                             <span class="tag">NEW</span>
-                            <span class="shortcut-label">A</span>
+                            <span class="shortcut-label">D</span>
                             <label class="switch">
                                 <input type="checkbox" id="weekendsToggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="controls-setting calModeOnly" id="hideAprilWrapper" style="display: none;">
+                            <span>Hide April</span>
+                            <span class="tag">NEW</span>
+                            <span class="shortcut-label">F</span>
+                            <label class="switch">
+                                <input type="checkbox" id="hideAprilToggle">
                                 <span class="slider round"></span>
                             </label>
                         </div>
@@ -439,6 +451,6 @@
         </aside>
     </div>
 
-    <script src="script.js?v=0.92"></script>
+    <script src="script.js?v=0.94"></script>
 </body>
 </html>
