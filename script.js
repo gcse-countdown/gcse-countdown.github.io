@@ -533,6 +533,12 @@ document.addEventListener('keydown', (e) => {
     const tag = e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
     
+    if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        doPrint();
+        return
+    }
+
     if (e.ctrlKey || e.altKey) {
         return;
     }
@@ -573,7 +579,7 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'o' || e.key === 'O') {
         e.preventDefault();
         setAdvancedToggle(!advancedToggle);
-    }
+    } 
     
 });
 

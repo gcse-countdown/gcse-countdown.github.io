@@ -7,7 +7,7 @@
     <link rel="icon" type="image/x-icon" href="/gcse_favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=0.100">
+    <link rel="stylesheet" href="styles.css?v=0.101">
     <script src = 'https://code.jquery.com/jquery-3.6.3.min.js'></script>
     <script>
         if (localStorage.getItem('light_mode') === '1') {
@@ -237,7 +237,11 @@
             </div>
             <div class="count-info-row" style="margin-bottom: 12px;">
                 <div class="count-info" id="countInfo"></div>
-                <button id="printBtn" class="filter-btn" title="Print exam list"><i class="fas fa-print"></i> <span>Print Page</span></button>
+                <button id="printBtn" class="filter-btn" title="Print exam list">
+                    <i class="fas fa-print"></i>
+                    <span>Print Page</span>
+                    <span class="shortcut-label">P</span>
+                </button>
             </div>
             <div class="rev-planner-wrapper" style="display: none;">
                 <button id="rev-planner" class="btn" style="margin-bottom: 12px;">!!NEW!! Revision Planner</button>
@@ -449,6 +453,6 @@
     </div>
 
     <script src="exams.js?v=0.01"></script>
-    <script src="script.js?v=0.100"></script>
+    <script src="script.js?v=0.101"></script>
 </body>
 </html>
