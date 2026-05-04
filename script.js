@@ -256,6 +256,7 @@ const filterCatsEl = document.getElementById('filterCategories');
 const plannerbtn = document.getElementById('rev-planner');
 const speakingDatesEl = document.getElementById('speakingDates');
 const advancedOptsBtn = document.getElementById('advanced-btn');
+const printBtn = document.getElementById('printBtn');
 
 // Settings toggles (moved to controls)
 const lightToggleTop = document.getElementById('lightToggleTop');
@@ -349,6 +350,25 @@ function setHideApril(on) {
 if (hideAprilToggle) {
     hideAprilToggle.addEventListener('change', e => setHideApril(e.target.checked));
 }
+
+// ── Print button ──────────────────────────────────────────────────────────────
+function updatePrintBtnVisibility() {
+    if (!printBtn) return;
+    const hidden = displayMode === DISPLAY_MODE_PROGRESS || displayMode === DISPLAY_MODE_ASSISTANT;
+    printBtn.style.display = hidden ? 'none' : '';
+}
+
+function doPrint() {
+    // Force light mode for print (pure white background)
+    document.documentElement.classList.add('print-force-light');
+    printBtn.style.display = "none";
+    window.print();
+    printBtn.style.display = "";
+}
+
+if (printBtn) {
+    printBtn.addEventListener('click', doPrint);
+}
     
 
 function setLegacyCalMode(on) {
@@ -434,6 +454,7 @@ function setDisplayMode(newMode) {
     
     // Save to storage for persistence
     save(DISPLAY_MODE_KEY, displayMode);
+    updatePrintBtnVisibility();
     renderExams();
 }
 
@@ -1639,6 +1660,7 @@ function tick(){
 }
 
 renderExams();
+updatePrintBtnVisibility();
 if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
 updateClock();
 setInterval(updateClock,100);

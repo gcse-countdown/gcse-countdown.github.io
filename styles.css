@@ -2836,3 +2836,156 @@ html.light body.hover-cards.compact .exam-card.other-exam .card-hover-tooltip {
         z-index: 10;
     }
 }
+
+/* ── Print Button & Count Info Row ──────────────────────────────────────────── */
+.count-info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.count-info-row .count-info {
+    flex: 1;
+    margin: 0;
+}
+
+.print-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    flex-shrink: 0;
+}
+
+.print-btn:hover {
+    background: var(--border);
+    border-color: var(--accent);
+}
+
+/* ── Print Styles ────────────────────────────────────────────────────────────── */
+@media print {
+    /* Force light-mode colours when print-force-light is active */
+    html.print-force-light,
+    html:not(.light):not(.dark) {
+        --bg: #ffffff;
+        --surface: #ffffff;
+        --surface2: #f4f4f8;
+        --border: #d0d0e0;
+        --text: #1a1a2e;
+        --text-muted: #6b6b85;
+        --text-dim: #a0a0b8;
+        --accent: #6d4fc2;
+        --grid-line: transparent;
+        --link: #3874c8;
+        --link-hover: #143c75;
+        --link-active: #082040;
+    }
+
+    /* Pure white background regardless of theme */
+    html.print-force-light body,
+    html.print-force-light .exam-card,
+    html.print-force-light .exam-list,
+    html.print-force-light .container {
+        background: #ffffff !important;
+        color: #1a1a2e !important;
+    }
+
+    /* Hide everything except the exam list and count info */
+    .top-bar,
+    .sidebar,
+    .sidebar-left,
+    .sidebar-right,
+    header,
+    .controls,
+    .quick-links-menu,
+    .countdowns-menu,
+    .progress-tracker-container,
+    .assistant,
+    .count-info-row .print-btn,
+    .rev-planner-wrapper,
+    .empty-state:not(:only-child),
+    body::before {
+        display: none !important;
+    }
+
+    .page-layout {
+        display: block !important;
+    }
+
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .count-info-row {
+        margin-bottom: 12px;
+    }
+
+    /* Cards */
+    .exam-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #d0d0e0 !important;
+        border-left-width: 4px !important;
+        margin-bottom: 8px !important;
+        animation: none !important;
+    }
+
+    html.print-force-light .exam-card {
+        background: #ffffff !important;
+        color: #1a1a2e !important;
+    }
+
+    /* Hide hover tooltips and countdown timers in print */
+    .card-hover-tooltip,
+    .countdown-block,
+    .progress-wrap {
+        display: none !important;
+    }
+
+    /* Compact layout: ensure badges wrap nicely */
+    .exam-meta {
+        flex-wrap: wrap;
+    }
+
+    /* Calendar — keep the table legible */
+    .cal-exam-tooltip,
+    .card-hover-tooltip {
+        display: none !important;
+    }
+
+    /* Section dividers */
+    .section-divider {
+        break-before: auto;
+    }
+
+    /* Status badges — keep them */
+    .status-badge {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    /* Force colours to print */
+    * {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    /* Grid background off */
+    body::before {
+        display: none !important;
+    }
+}
