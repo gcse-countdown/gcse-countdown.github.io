@@ -355,7 +355,8 @@ if (hideAprilToggle) {
 function updatePrintBtnVisibility() {
     if (!printBtn) return;
     const hidden = displayMode === DISPLAY_MODE_PROGRESS || displayMode === DISPLAY_MODE_ASSISTANT;
-    printBtn.style.display = hidden ? 'none' : '';
+    // printBtn.style.display = hidden ? 'none' : '';
+    printBtn.disabled = hidden;
 }
 
 function doPrint() {

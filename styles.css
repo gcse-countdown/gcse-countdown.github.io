@@ -4,7 +4,7 @@
     --surface2: #1c1c26;
     --border: #2a2a38;
     --text: #e8e8f0;
-    --text-muted: #6b6b85;
+    --text-muted: #88889e;
     --text-dim: #4c4c55;
     --accent: #c8b8ff;
     --grid-line: rgba(200,184,255,0.03);
@@ -453,7 +453,7 @@ h1 span { color: var(--accent); }
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .filter-btn:hover {
+    .filter-btn:hover:not(:disabled) {
         border-color: var(--accent);
         color: var(--accent);
         transform: translateY(-1px);
@@ -500,7 +500,7 @@ h1 span { color: var(--accent); }
     background: rgba(200,184,255,0.06);
 }
 
-.filter-btn:hover .shortcut-label {
+.filter-btn:hover:not(:disabled) .shortcut-label {
     opacity: 1;
     color: var(--text-muted);
     border-color: var(--accent);
@@ -885,10 +885,6 @@ body.compact .half-term-divider { margin: 10px 0 5px; }
 /* ══ PROGRESS TRACKER MODE ══ */
 body.progress .exam-list { display: none; }
 body.progress .empty-state { display: none; }
-
-.progress-tracker-container {
-    padding: 20px 0;
-}
 
 .progress-tracker {
     background: var(--surface);
@@ -2988,4 +2984,12 @@ html.light body.hover-cards.compact .exam-card.other-exam .card-hover-tooltip {
     body::before {
         display: none !important;
     }
+}
+
+#printBtn {
+    color: var(--accent);
+}
+
+#printBtn:disabled {
+    color: var(--text-dim);
 }
