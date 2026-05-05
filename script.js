@@ -513,11 +513,13 @@ function setAdvancedToggle(on) {
         advancedToggle = true;
         advancedOptsBtn.classList.add("cat-active");
         document.getElementById("legacyUI").style = "";
-        if (displayMode === DISPLAY_MODE_CALENDAR && !legacyCalMode) {
+        if (displayMode === DISPLAY_MODE_CALENDAR) {
             document.getElementById("legacyCal").style = "";
             document.getElementById("showOtherExamsWrapper").style = "";
             document.getElementById("hideWeekends").style = "";
-            document.getElementById("hideAprilWrapper").style = "";
+            if (!legacyCalMode) {
+                document.getElementById("hideAprilWrapper").style = "";
+            }
         }
         // document.getElementById("hideAssistantWrapper").style = "";
         document.querySelector(".controls-settings-box").classList.remove("expanded");
