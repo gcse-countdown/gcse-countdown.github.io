@@ -2830,8 +2830,8 @@ html.light body.hover-cards.compact .exam-card.other-exam .card-hover-tooltip {
 /* expanded state */
 @media (min-width: 768px) {
     .controls-settings-box.expanded .controls-column-right {
-        width: 200%;
-        transform: translateX(-50%);
+        width: 100%;
+        transform: translateX(0%);
         transform-origin: right;
         z-index: 10;
     }
