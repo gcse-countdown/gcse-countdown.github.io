@@ -355,7 +355,8 @@ if (hideAprilToggle) {
 function updatePrintBtnVisibility() {
     if (!printBtn) return;
     const hidden = displayMode === DISPLAY_MODE_PROGRESS || displayMode === DISPLAY_MODE_ASSISTANT;
-    printBtn.style.display = hidden ? 'none' : '';
+    // printBtn.style.display = hidden ? 'none' : '';
+    printBtn.disabled = hidden;
 }
 
 function doPrint() {
@@ -512,11 +513,13 @@ function setAdvancedToggle(on) {
         advancedToggle = true;
         advancedOptsBtn.classList.add("cat-active");
         document.getElementById("legacyUI").style = "";
-        if (displayMode === DISPLAY_MODE_CALENDAR && !legacyCalMode) {
+        if (displayMode === DISPLAY_MODE_CALENDAR) {
             document.getElementById("legacyCal").style = "";
             document.getElementById("showOtherExamsWrapper").style = "";
             document.getElementById("hideWeekends").style = "";
-            document.getElementById("hideAprilWrapper").style = "";
+            if (!legacyCalMode) {
+                document.getElementById("hideAprilWrapper").style = "";
+            }
         }
         // document.getElementById("hideAssistantWrapper").style = "";
         document.querySelector(".controls-settings-box").classList.remove("expanded");
@@ -532,6 +535,12 @@ document.addEventListener('keydown', (e) => {
     const tag = e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
     
+    if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        doPrint();
+        return
+    }
+
     if (e.ctrlKey || e.altKey) {
         return;
     }
@@ -572,7 +581,7 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'o' || e.key === 'O') {
         e.preventDefault();
         setAdvancedToggle(!advancedToggle);
-    }
+    } 
     
 });
 
