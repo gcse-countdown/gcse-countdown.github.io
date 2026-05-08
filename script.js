@@ -34,6 +34,7 @@ const FILTER_COLLAPSED_KEY = 'filter_collapsed';
 const ADVANCED_KEY = 'advanced_options';
 const HIDE_APRIL_KEY = 'hide_april';
 const HIDE_ASSISTANT_KEY = 'hide_assistant';
+const FINISHED_EXAMS_KEY = 'finished_exams';
 
 const DISPLAY_MODE_DEFAULT = 0;
 const DISPLAY_MODE_COMPACT = 1;
@@ -55,6 +56,7 @@ const SETTINGS_CONFIG = {
     [SPEAKING_KEY]: { type: 'json', default: {} },
     [ADVANCED_KEY]: {type: 'bool', default: false},
     [HIDE_APRIL_KEY]: { type: 'bool', default: false },
+    [FINISHED_EXAMS_KEY]: { type: 'set', default: new Set() },
 };
 
 function load(key, defaultValue = undefined) {
@@ -1538,14 +1540,6 @@ function tick(){
     });
 }
 
-renderExams();
-updatePrintBtnVisibility();
-if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
-updateClock();
-setInterval(updateClock,100);
-setInterval(updateTime, 100);
-setInterval(tick,100);
-
 document.getElementById('examList').addEventListener('mouseenter', e => {
     const pill = e.target.closest('.cal-exam');
     if (!pill) return;
@@ -1607,9 +1601,8 @@ if (countdownsMenu) {
     });
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-    ASSISTANT MODULE
-   ══════════════════════════════════════════════════════════════════════════ */
+//ASSISTANT MODULE
+
 (function() {
 
 const ASST_KEY = 'asst_data_v1';
@@ -2400,4 +2393,116 @@ if (document.readyState === 'loading') {
 
 })();
 
+function randomInRange(min, max) {
+    return Math.random() * (max - min) + min;
+}
+function makeConfetti(coord_x) {
+    const count = 200,
+    defaults = {
+        origin: { y: 1, x: coord_x},
+    };
+
+    function fire(particleRatio, opts) {
+    confetti(
+        Object.assign({}, defaults, opts, {
+        particleCount: Math.floor(count * particleRatio),
+        })
+    );
+    }
+
+    fire(0.25, {
+    spread: 26,
+    startVelocity: 55,
+    });
+
+    fire(0.2, {
+    spread: 60,
+    });
+
+    fire(0.35, {
+    spread: 100,
+    decay: 0.91,
+    scalar: 0.8,
+    });
+
+    fire(0.1, {
+    spread: 120,
+    startVelocity: 25,
+    decay: 0.92,
+    scalar: 1.2,
+    });
+
+    fire(0.1, {
+    spread: 120,
+    startVelocity: 45,
+    });
+}
+
+addEventListener("load", (e) => {
+    const lastsavedfinished = load(FINISHED_EXAMS_KEY);
+    let finishedExams = new Set();
+    for (const exam in currentFiltered) {
+        ex = (currentFiltered[exam]);
+        if (getState(ex.start, ex.end, Date.now()) == "over") {
+            finishedExams.add(`${ex.subject}: ${ex.component}`);
+        }
+    }
+    if (finishedExams.difference(lastsavedfinished).size > 0) {
+        makeConfetti(0);
+        makeConfetti(0.125);
+        makeConfetti(0.25);
+        makeConfetti(0.5);
+        makeConfetti(0.625);
+        makeConfetti(0.75);
+        makeConfetti(0.875);
+        makeConfetti(1);
+        const popup = document.createElement("div");
+
+        popup.innerHTML = `
+            <button id="popupCloseBtn">✕</button>
+
+            <h2>🎉 Well done!</h2>
+
+            <p>
+                You completed:
+            </p>
+
+            <div class="popup-exams">
+                ${Array.from(finishedExams.difference(lastsavedfinished))
+                    .map(exam => `<div class="popup-exam">${exam}</div>`)
+                    .join("")}
+            </div>
+        `;
+
+        popup.querySelector("#popupCloseBtn").addEventListener("click", () => {
+            popup.remove();
+        });
+
+        popup.setAttribute("id", "popup");
+        document.body.appendChild(popup);
+        setTimeout(() => {
+            popup.remove();
+        }, 6000);
+    }
+    save(FINISHED_EXAMS_KEY, finishedExams);
+});
+
+addEventListener("beforeunload", (e) => {
+    let finishedExams = new Set();
+    for (const exam in currentFiltered) {
+        ex = (currentFiltered[exam]);
+        if (getState(ex.start, ex.end, Date.now()) == "over") {
+            finishedExams.add(ex.component);
+        }
+    }
+    save(FINISHED_EXAMS_KEY, finishedExams); //comment out for testing so you can just add other exams to test
+});
+
 setAdvancedToggle(advancedToggle);
+renderExams();
+updatePrintBtnVisibility();
+if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
+updateClock();
+setInterval(updateClock,100);
+setInterval(updateTime, 100);
+setInterval(tick,100);

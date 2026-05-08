@@ -2993,3 +2993,163 @@ html.light body.hover-cards.compact .exam-card.other-exam .card-hover-tooltip {
 #printBtn:disabled {
     color: var(--text-dim);
 }
+
+/* ── Completion Popup ── */
+#popup {
+    position: fixed;
+    top: 50%;
+    /*damn 3000 lines*/
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.92);
+
+    width: min(90vw, 520px);
+
+    background: rgba(19, 19, 26, 0.92);
+    backdrop-filter: blur(14px);
+
+    border: 1px solid var(--border);
+    border-radius: 14px;
+
+    padding: 28px;
+
+    color: var(--text);
+
+    z-index: 99999;
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,0.45),
+        0 0 0 1px rgba(200,184,255,0.05);
+
+    animation: popupIn 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+
+#popup::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+
+    border-radius: inherit;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(200,184,255,0.08),
+            transparent 40%
+        );
+
+    pointer-events: none;
+}
+
+#popup h2 {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    color: var(--accent);
+
+    margin-bottom: 16px;
+}
+
+#popup p {
+    font-size: 14px;
+    line-height: 1.7;
+
+    color: var(--text-muted);
+}
+
+#popup strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+#popup .popup-exams {
+    margin-top: 16px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#popup .popup-exam {
+    padding: 10px 12px;
+
+    border-radius: 8px;
+
+    background: rgba(200,184,255,0.06);
+
+    border: 1px solid rgba(200,184,255,0.12);
+
+    font-size: 13px;
+
+    color: var(--text);
+}
+
+@keyframes popupIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.85);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@media (max-width: 768px) {
+    #popup {
+        padding: 22px;
+        width: calc(100vw - 32px);
+    }
+
+    #popup h2 {
+        font-size: 16px;
+    }
+
+    #popup p,
+    #popup .popup-exam {
+        font-size: 13px;
+    }
+}
+
+/* ── Close Button ── */
+#popupCloseBtn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+
+    width: 32px;
+    height: 32px;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    background: rgba(255,255,255,0.03);
+
+    color: var(--text-muted);
+
+    font-size: 16px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.18s ease,
+        color 0.18s ease,
+        background 0.18s ease,
+        transform 0.18s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    #popupCloseBtn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(200,184,255,0.08);
+        transform: scale(1.08);
+    }
+}
+
+#popupCloseBtn:active {
+    transform: scale(0.95);
+}
