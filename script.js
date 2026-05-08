@@ -326,8 +326,9 @@ if (hideAprilToggle) {
 
 function updatePrintBtnVisibility() {
     if (!printBtn) return;
-    const hidden = displayMode === DISPLAY_MODE_PROGRESS || displayMode === DISPLAY_MODE_ASSISTANT;
-        printBtn.disabled = hidden;
+    // just let them print everything
+    // const hidden = displayMode === DISPLAY_MODE_PROGRESS || displayMode === DISPLAY_MODE_ASSISTANT;
+    //     printBtn.disabled = hidden;
 }
 
 function doPrint() {
