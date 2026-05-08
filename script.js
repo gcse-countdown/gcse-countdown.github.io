@@ -1,12 +1,8 @@
 let prevStates={};
 
-// ── MFL subjects that get speaking exams ──────────────────────────────────────
 const MFL_SUBJECTS = ["French", "German", "Spanish", "Italian", "Chinese"];
 
-// Half term: exams on or after 23 May 2026 are after half term
-const HALF_TERM_START = new Date(2026, 4, 23, 0, 0, 0, 0); // 23 May 2026
-
-// ── Subject categories ──────────────────────────────────────────────────────
+const HALF_TERM_START = new Date(2026, 4, 23, 0, 0, 0, 0); 
 const CATEGORIES = [
     { name: "Essentials",    subjects: ["Biology", "Chemistry", "Physics", "Mathematics", "English Language", "English Literature"] },
     { name: "MFL",             subjects: ["French", "German", "Spanish", "Italian", "Chinese"] },
@@ -15,7 +11,6 @@ const CATEGORIES = [
     { name: "Creatives",    subjects: ["Music", "Drama", "Art", "Electronics", "S&C / PD", "Computer Science"] },
 ];
 
-// ── Coursework weightings (% of total grade that is coursework) ──────────────
 const COURSEWORK = {
     "S&C / PD": 50,
     "Electronics": 20,
@@ -40,14 +35,12 @@ const ADVANCED_KEY = 'advanced_options';
 const HIDE_APRIL_KEY = 'hide_april';
 const HIDE_ASSISTANT_KEY = 'hide_assistant';
 
-// ── Display mode constants ──────────────────────────────────────────────────
 const DISPLAY_MODE_DEFAULT = 0;
 const DISPLAY_MODE_COMPACT = 1;
 const DISPLAY_MODE_CALENDAR = 2;
 const DISPLAY_MODE_PROGRESS = 3;
 const DISPLAY_MODE_ASSISTANT = 4;
 
-// Settings configuration: type, default value, and special parsing rules
 const SETTINGS_CONFIG = {
     [HIDE_MENUS_KEY]: { type: 'bool', default: false },
     [SHOW_OTHER_EXAMS_KEY]: { type: 'bool', default: false },
@@ -64,7 +57,6 @@ const SETTINGS_CONFIG = {
     [HIDE_APRIL_KEY]: { type: 'bool', default: false },
 };
 
-// Generic load function supporting booleans, JSON, arrays (as Sets), integers, and custom parsing
 function load(key, defaultValue = undefined) {
     const config = SETTINGS_CONFIG[key];
     const def = defaultValue !== undefined ? defaultValue : (config?.default ?? false);
@@ -89,7 +81,6 @@ function load(key, defaultValue = undefined) {
     }
 }
 
-// Generic save function supporting booleans, JSON, arrays, Sets, and integers
 function save(key, value) {
     try {
         const config = SETTINGS_CONFIG[key];
@@ -133,17 +124,13 @@ function fmtCountdown(ms){
     return`${String(d).padStart(2,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
 }
 
-// Build speaking exam entries from saved dates
 function buildSpeakingExams() {
     const result = [];
-    // If no speaking exam date is saved for an MFL subject, do not build a speaking exam entry.
-    // In progress mode this means unset speaking exams are treated as already completed.
-    const saved = load(SPEAKING_KEY);
+            const saved = load(SPEAKING_KEY);
     MFL_SUBJECTS.forEach(subj => {
         const entry = saved[subj];
         if (!entry) return;
-        // entry may be a legacy string 'YYYY-MM-DD' or 'DD/MM', or an object {date: 'YYYY-MM-DD'|'DD/MM', time: 'HH:MM'}
-        let dateStr, timeStr;
+                let dateStr, timeStr;
         if (typeof entry === 'string') {
             dateStr = entry;
             timeStr = '09:00';
@@ -154,8 +141,7 @@ function buildSpeakingExams() {
             return;
         }
 
-        // Parse date formats: either YYYY-MM-DD or DD/MM
-        let dd, mm, yyyy = 2026;
+                let dd, mm, yyyy = 2026;
         if (dateStr.includes('-')) {
             const parts = dateStr.split('-').map(Number);
             if (parts.length === 3) { yyyy = parts[0]; mm = parts[1]; dd = parts[2]; }
@@ -169,9 +155,7 @@ function buildSpeakingExams() {
         if (!dd || !mm) return;
         const [hours, minutes] = (timeStr || '09:00').split(':').map(Number);
         const start = new Date(2026, mm-1, dd, Number.isFinite(hours) ? hours : 9, Number.isFinite(minutes) ? minutes : 0, 0, 0);
-        const end = new Date(start.getTime() + 30*60000); // 30 min
-        // Find a base code for this subject from RAW_EXAMS (first matching) to preserve code prefix
-        let codePrefix = 'SPEAK';
+        const end = new Date(start.getTime() + 30*60000);                 let codePrefix = 'SPEAK';
         for (let i = 0; i < RAW_EXAMS.length; i++) {
             if (RAW_EXAMS[i].subject === subj) { codePrefix = RAW_EXAMS[i].code.split('/')[0]; break; }
         }
@@ -201,28 +185,23 @@ const baseExams = RAW_EXAMS.map(e=>{
     return{...e,start,end};
 }).sort((a,b)=>a.start-b.start);
 
-// exams = base + speaking; rebuilt when speaking dates change
 let exams = baseExams.slice();
 
 function rebuildExams() {
     const speaking = buildSpeakingExams();
     exams = [...baseExams, ...speaking].sort((a,b)=>a.start-b.start);
-    // Rebuild prevStates for new exams
-    exams.forEach(e=>{ if(!(e.code in prevStates)) prevStates[e.code]=getState(e.start,e.end,Date.now()); });
+        exams.forEach(e=>{ if(!(e.code in prevStates)) prevStates[e.code]=getState(e.start,e.end,Date.now()); });
 }
 
-// Collect all subjects that actually appear in the data
 const ALL_SUBJECTS=[...new Set(baseExams.map(e=>e.subject))];
 
 let activeFilters=load(STORAGE_KEY) || [];
 let lastFilterCount = activeFilters.size;
 activeFilters.forEach(s=>{if(!ALL_SUBJECTS.includes(s))activeFilters.delete(s);});
 
-// Initialize display mode from saved settings
 let legacyCalMode = load(LEGACY_CAL_KEY);
 let displayMode = load(DISPLAY_MODE_KEY, DISPLAY_MODE_DEFAULT);
 
-// Apply initial mode styling
 if (displayMode === DISPLAY_MODE_CALENDAR) {
     document.body.classList.add('cal');
 } else if (displayMode === DISPLAY_MODE_COMPACT) {
@@ -239,7 +218,6 @@ let hideApril = load(HIDE_APRIL_KEY);
 
 let plannerMode = 0;
 
-// ── DOM refs ─────────────────────────────────────────────────────────────────
 const clearBtnWrap = document.getElementById('clearBtnWrap');
 const filterCountEl = document.getElementById('filterCount');
 const defaultbtn = document.getElementById('defaultbtn');
@@ -258,7 +236,6 @@ const speakingDatesEl = document.getElementById('speakingDates');
 const advancedOptsBtn = document.getElementById('advanced-btn');
 const printBtn = document.getElementById('printBtn');
 
-// Settings toggles (moved to controls)
 const lightToggleTop = document.getElementById('lightToggleTop');
 const showOtherExamsToggle = document.getElementById('showOtherExamsToggle');
 const calModeOnly = document.querySelectorAll('.calModeOnly');
@@ -267,12 +244,9 @@ const hideAprilToggle = document.getElementById('hideAprilToggle');
 if (weekendsToggle) weekendsToggle.addEventListener('change', e => setWeekends(e.target.checked));
 
 let advancedToggle = load(ADVANCED_KEY);
-// its set at the bottom because it was breaking
 
-// ── Sync toggle initial states ────────────────────────────────────────────────
 function syncAllToggles() {
-    // Light mode
-    const isLight = document.documentElement.classList.contains('light');
+        const isLight = document.documentElement.classList.contains('light');
     if (lightToggleTop) lightToggleTop.checked = isLight;
     
     if (legacyCalToggle) legacyCalToggle.checked = legacyCalMode;
@@ -280,13 +254,11 @@ function syncAllToggles() {
     if (weekendsToggle) weekendsToggle.checked = weekends;
     if (hideAprilToggle) hideAprilToggle.checked = hideApril;
     
-    // Show "Show Other Exams" toggle only in calendar mode
-    if (calModeOnly) {
+        if (calModeOnly) {
         calModeOnly.forEach((el) => {el.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle) ? 'flex' : 'none'});
     }
     
-    // Initialize display mode button states
-    if(defaultbtn) defaultbtn.classList.toggle('active', displayMode === DISPLAY_MODE_DEFAULT);
+        if(defaultbtn) defaultbtn.classList.toggle('active', displayMode === DISPLAY_MODE_DEFAULT);
     if(compactbtn) compactbtn.classList.toggle('active', displayMode === DISPLAY_MODE_COMPACT);
     if(calbtn) calbtn.classList.toggle('active', displayMode === DISPLAY_MODE_CALENDAR);
     if(progressbtn) progressbtn.classList.toggle('active', displayMode === DISPLAY_MODE_PROGRESS);
@@ -295,13 +267,11 @@ function syncAllToggles() {
 
 syncAllToggles();
 
-// Show progress tracker container on load if progress mode is active
 const progressContainer = document.getElementById('progressTrackerContainer');
 if (progressContainer && displayMode === DISPLAY_MODE_PROGRESS) {
     progressContainer.style.display = 'block';
 }
 
-// ── Light mode handlers ────────────────────────────────────────────────────────
 function setLightMode(on) {
     document.documentElement.classList.toggle('light', on);
     document.documentElement.classList.toggle('dark', !on);
@@ -351,17 +321,14 @@ if (hideAprilToggle) {
     hideAprilToggle.addEventListener('change', e => setHideApril(e.target.checked));
 }
 
-// ── Print button ──────────────────────────────────────────────────────────────
 function updatePrintBtnVisibility() {
     if (!printBtn) return;
     const hidden = displayMode === DISPLAY_MODE_PROGRESS || displayMode === DISPLAY_MODE_ASSISTANT;
-    // printBtn.style.display = hidden ? 'none' : '';
-    printBtn.disabled = hidden;
+        printBtn.disabled = hidden;
 }
 
 function doPrint() {
-    // Force light mode for print (pure white background)
-    document.documentElement.classList.add('print-force-light');
+        document.documentElement.classList.add('print-force-light');
     printBtn.style.display = "none";
     window.print();
     printBtn.style.display = "";
@@ -377,8 +344,7 @@ function setLegacyCalMode(on) {
     if (legacyCalToggle) legacyCalToggle.checked = on;
     if (displayMode !== DISPLAY_MODE_CALENDAR) setDisplayMode(DISPLAY_MODE_CALENDAR);
     
-    // Update hideAprilWrapper visibility when legacy calendar mode changes
-    if (hideAprilToggle) {
+        if (hideAprilToggle) {
         const hideAprilWrapper = document.getElementById('hideAprilWrapper');
         if (hideAprilWrapper) {
             hideAprilWrapper.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle && !legacyCalMode) ? 'flex' : 'none';
@@ -394,15 +360,12 @@ if (legacyCalToggle) {
     });
 }
 
-// ── Display mode setter ────────────────────────────────────────────────────────
 function setDisplayMode(newMode) {
     displayMode = newMode;
     
-    // Remove all mode classes
-    document.body.classList.remove('compact', 'cal', 'multical', 'progress');
+        document.body.classList.remove('compact', 'cal', 'multical', 'progress');
     
-    // Remove all button active states
-    if(defaultbtn) defaultbtn.classList.remove('active');
+        if(defaultbtn) defaultbtn.classList.remove('active');
     if(compactbtn) compactbtn.classList.remove('active');
     if(calbtn) calbtn.classList.remove('active');
     if(progressbtn) progressbtn.classList.remove('active');
@@ -410,11 +373,9 @@ function setDisplayMode(newMode) {
 
     document.getElementById('examList').style.display = '';
     
-    // Hide assistant panel unless entering assistant mode
-    if (assistantPanel) assistantPanel.style.display = (newMode === DISPLAY_MODE_ASSISTANT) ? '' : 'none';
+        if (assistantPanel) assistantPanel.style.display = (newMode === DISPLAY_MODE_ASSISTANT) ? '' : 'none';
     
-    // Apply new mode styling and active states
-    switch (displayMode) {
+        switch (displayMode) {
         case DISPLAY_MODE_COMPACT:
             document.body.classList.add('compact');
             if(compactbtn) compactbtn.classList.add('active');
@@ -442,8 +403,7 @@ function setDisplayMode(newMode) {
             if(progressContainer) progressContainer.style.display = 'none';
     }
     
-    // Update calendar-mode-only toggles visibility
-    if (calModeOnly) {
+        if (calModeOnly) {
         calModeOnly.forEach((el) => {
             if (el.id === 'hideAprilWrapper') {
                 el.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle && !legacyCalMode) ? 'flex' : 'none';
@@ -453,13 +413,11 @@ function setDisplayMode(newMode) {
         });
     }
     
-    // Save to storage for persistence
-    save(DISPLAY_MODE_KEY, displayMode);
+        save(DISPLAY_MODE_KEY, displayMode);
     updatePrintBtnVisibility();
     renderExams();
 }
 
-// ── Mode toggle functions for backward compatibility with keyboard shortcuts and button clicks ────
 function setDefaultMode(on) {
     if (on) setDisplayMode(DISPLAY_MODE_DEFAULT);
 }
@@ -476,16 +434,13 @@ function setProgressMode(on) {
     setDisplayMode(on ? DISPLAY_MODE_PROGRESS : DISPLAY_MODE_DEFAULT);
 }
 
-// its set at the end
 
-// ── Assistant Mode ────────────────────────────────────────────────────────────
 function setAssistantMode(on) {
     setDisplayMode(on ? DISPLAY_MODE_ASSISTANT : DISPLAY_MODE_DEFAULT);
 }
 
 if (assistantmodebtn) assistantmodebtn.addEventListener('click', () => setAssistantMode(displayMode !== DISPLAY_MODE_ASSISTANT));
 
-// Apply on load: show/hide assistant panel based on saved display mode
 if (assistantPanel) {
     assistantPanel.style.display = (displayMode === DISPLAY_MODE_ASSISTANT) ? '' : 'none'
     if (displayMode == DISPLAY_MODE_ASSISTANT) { document.getElementById('examList').style.display = 'none'; }
@@ -506,8 +461,7 @@ function setAdvancedToggle(on) {
         document.getElementById("showOtherExamsWrapper").style.display = "none";
         document.getElementById("hideWeekends").style.display = "none";
         document.getElementById("hideAprilWrapper").style.display = "none";
-        // document.getElementById("hideAssistantWrapper").style.display = "none";
-        document.querySelector(".controls-settings-box").classList.add("expanded");
+                document.querySelector(".controls-settings-box").classList.add("expanded");
     } else {
         console.log("active");
         advancedToggle = true;
@@ -521,8 +475,7 @@ function setAdvancedToggle(on) {
                 document.getElementById("hideAprilWrapper").style = "";
             }
         }
-        // document.getElementById("hideAssistantWrapper").style = "";
-        document.querySelector(".controls-settings-box").classList.remove("expanded");
+                document.querySelector(".controls-settings-box").classList.remove("expanded");
     }
     save(ADVANCED_KEY, advancedToggle);
 }
@@ -530,7 +483,6 @@ function setAdvancedToggle(on) {
 advancedOptsBtn.addEventListener('click', () => {
     setAdvancedToggle(!advancedToggle);
 });
-// Keyboard shortcuts: z = default, x = compact, c = calendar, d = legacy calendar, l = light mode, e = legacy ui, s = show other exams, a = weekends, h = hide april, v = progress, o = advanced
 document.addEventListener('keydown', (e) => {
     const tag = e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
@@ -585,10 +537,8 @@ document.addEventListener('keydown', (e) => {
     
 });
 
-// Initialize button active states on page load (handled by setDisplayMode during init)
 if (legacyCalMode && legacyCalToggle) legacyCalToggle.classList.add('active');
 
-// ── Speaking exam date selectors ──────────────────────────────────────────────
 function getActiveMFLSubjects() {
     if (activeFilters.size === 0) return [];
     return MFL_SUBJECTS.filter(s => activeFilters.has(s));
@@ -633,20 +583,16 @@ function renderSpeakingDates() {
         timeInput.className = 'speaking-time-input';
         timeInput.dataset.subject = subj;
 
-        // Populate values from saved which may be legacy string or object
-        if (saved[subj]) {
+                if (saved[subj]) {
             if (typeof saved[subj] === 'string') {
-                // legacy DD/MM or YYYY-MM-DD format
-                if (saved[subj].includes('-')) {
-                    dateInput.value = saved[subj]; // already YYYY-MM-DD
-                } else if (saved[subj].includes('/')) {
+                                if (saved[subj].includes('-')) {
+                    dateInput.value = saved[subj];                 } else if (saved[subj].includes('/')) {
                     const parts = saved[subj].split('/');
                     if (parts.length === 2) dateInput.value = `2026-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
                 }
                 timeInput.value = '09:00';
             } else if (typeof saved[subj] === 'object') {
-                // saved.date might be YYYY-MM-DD or DD/MM
-                if (saved[subj].date) {
+                                if (saved[subj].date) {
                     if (saved[subj].date.includes('-')) {
                         dateInput.value = saved[subj].date;
                     } else if (saved[subj].date.includes('/')) {
@@ -675,8 +621,7 @@ function renderSpeakingDates() {
             if (dateInput.value) commit();
         });
 
-        // Clear button
-        const clearBtn = document.createElement('button');
+                const clearBtn = document.createElement('button');
         clearBtn.className = 'speaking-date-clear';
         clearBtn.title = 'Clear date';
         clearBtn.innerHTML = '<i class="fas fa-times"></i>';
@@ -706,7 +651,6 @@ function renderSpeakingDates() {
     speakingDatesEl.appendChild(wrapper);
 }
 
-// ── Smooth clear button animation ────────────────────────────────────────────
 let clearRaf=null;
 function setClearVisible(show){
     if(clearRaf){cancelAnimationFrame(clearRaf);clearRaf=null;}
@@ -753,7 +697,6 @@ function updateFilterCount(){
     filterCountEl.classList.toggle('visible',n>0);
 }
 
-// ── Build filter UI by category ───────────────────────────────────────────────
 const subjectBtnMap={};
 
 function isCatFullyActive(subjects){
@@ -834,11 +777,8 @@ document.getElementById('clearFilters').addEventListener('click',()=>{
     updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); renderExams(); renderSpeakingDates();
 });
 
-// ── Filter collapse button (mobile) ──────────────────────────────────────────
-// Toggle menus visibility
 function toggleMenusVisibility() {
-    // flip state
-    hideMenus = !hideMenus;
+        hideMenus = !hideMenus;
     if (quickLinksMenu) quickLinksMenu.classList.toggle('hidden', hideMenus);
     if (countdownsMenu) countdownsMenu.classList.toggle('hidden', hideMenus);
     if (hideMenusToggle) hideMenusToggle.checked = hideMenus;
@@ -853,7 +793,6 @@ if (toggleMenusBtn) {
 const filterCollapseBtn = document.getElementById('filterCollapseBtn');
 const hideMenusToggle = document.getElementById('hideMenusToggle');
 
-// initialize hide menus state
 let hideMenus = load(HIDE_MENUS_KEY);
 function updateSidebarVisibility() {
     const sidebarCountdowns = document.getElementById('sidebarCountdownsWrapper');
@@ -902,23 +841,19 @@ filterCollapseBtn.addEventListener('click', () => {
     setFilterCollapsed(!isCollapsed);
 });
 
-// Load initial state
 if (load(FILTER_COLLAPSED_KEY)) {
     setFilterCollapsed(true);
 }
 
-// Init clear btn without animation
 clearBtnWrap.style.transition='none';
 clearBtnWrap.style.height=activeFilters.size>0?'auto':'0';
 clearBtnWrap.style.marginTop=activeFilters.size>0?'12px':'0';
 if(activeFilters.size>0)clearBtnWrap.classList.add('open');
 updateFilterCount();
 
-// Init speaking dates and exams
 rebuildExams();
 renderSpeakingDates();
 
-// Top bar close (persisted)
 const topBar = document.querySelector('.top-bar');
 const topBarClose = document.getElementById('topBarClose');
 if (load(TOPBAR_KEY)) {
@@ -934,43 +869,34 @@ if (topBarClose) {
 
 let monthOffset = 0;
 
-// ── Render ────────────────────────────────────────────────────────────────────
 let currentFiltered = exams.slice();
 
 function renderMultiMonthCalendar(list, active, filtered) {
     const wrapper = document.createElement('div');
     wrapper.className = 'multi-calendar-wrapper';
 
-    // Use ALL exams (including over) for full calendar
-    let allExamsForCalendar = activeFilters.size === 0 ? exams : exams.filter(e => activeFilters.has(e.subject));
+        let allExamsForCalendar = activeFilters.size === 0 ? exams : exams.filter(e => activeFilters.has(e.subject));
     
-    // If "Show Other Exams" is enabled and there are active filters, also include filtered-out exams
-    let otherExams = [];
+        let otherExams = [];
     if (showOtherExams && activeFilters.size > 0) {
         otherExams = exams.filter(e => !activeFilters.has(e.subject));
         allExamsForCalendar = [...allExamsForCalendar, ...otherExams];
     }
 
-    // Show April, May, June 2026 (or May, June if April is hidden)
-    const monthsToShow = hideApril ? [5, 6] : [4, 5, 6];
+        const monthsToShow = hideApril ? [5, 6] : [4, 5, 6];
     const sortedMonths = monthsToShow.map(m => new Date(2026, m - 1, 1));
 
-    // Mon=0 … Sun=6
-    function dayCol(date) {
+        function dayCol(date) {
         let d = date.getDay();
         return d === 0 ? 6 : d - 1;
     }
 
     const today = new Date();
 
-    // Build one single table. Each week is one <tr> with 8 cells:
-    //   cell 0 = month-label column (empty most rows, shows month name on first row of each month)
-    //   cells 1–7 = Mon–Sun
-    const table = document.createElement('table');
+                const table = document.createElement('table');
     table.className = 'multi-calendar continuous-calendar' + (weekends ? ' hide-weekends' : '');
 
-    // Header row — 8 cols: label col + 7 day names
-    const thead = table.createTHead();
+        const thead = table.createTHead();
     const headerRow = thead.insertRow();
     const labelTh = document.createElement('th');
     labelTh.className = 'cal-month-col';
@@ -983,8 +909,7 @@ function renderMultiMonthCalendar(list, active, filtered) {
 
     const tbody = table.createTBody();
 
-    // Track cells for exam injection: { "day/month": td }
-    const cellMap = {};
+        const cellMap = {};
 
     sortedMonths.forEach((monthStart, mIdx) => {
         const month = monthStart.getMonth();
@@ -992,8 +917,7 @@ function renderMultiMonthCalendar(list, active, filtered) {
 
         let cursor = new Date(year, month, 1);
         let firstWeekOfMonth = true;
-        // For mid-week starts, we defer writing the label to the next row
-        let deferredLabel = null;
+                let deferredLabel = null;
 
         while (cursor.getMonth() === month) {
             const col = dayCol(cursor);
@@ -1003,27 +927,22 @@ function renderMultiMonthCalendar(list, active, filtered) {
             if (needNewRow) {
                 const tr = tbody.insertRow();
 
-                // Month-label cell
-                const labelTd = document.createElement('td');
+                                const labelTd = document.createElement('td');
                 labelTd.className = 'cal-month-col';
 
-                // Write any deferred label from the previous month's mid-week start
-                if (deferredLabel) {
+                                if (deferredLabel) {
                     labelTd.textContent = deferredLabel;
                     deferredLabel = null;
                 } else if (firstWeekOfMonth && mIdx > 0 && col === 0) {
-                    // Month starts exactly on Monday — label goes here (same row as day 1)
-                    labelTd.textContent = monthStart.toLocaleString('default', { month: 'short' }).toUpperCase();
+                                        labelTd.textContent = monthStart.toLocaleString('default', { month: 'short' }).toUpperCase();
                 } else if (firstWeekOfMonth && mIdx === 0) {
-                    // Very first month ever — label goes on first row
-                    labelTd.textContent = monthStart.toLocaleString('default', { month: 'short' }).toUpperCase();
+                                        labelTd.textContent = monthStart.toLocaleString('default', { month: 'short' }).toUpperCase();
                 }
 
                 if (firstWeekOfMonth) firstWeekOfMonth = false;
                 tr.appendChild(labelTd);
 
-                // For the very first row only: pad Mon→(col-1) with empty cells
-                if (tbody.rows.length === 1 && col > 0) {
+                                if (tbody.rows.length === 1 && col > 0) {
                     for (let i = 0; i < col; i++) {
                         const td = document.createElement('td');
                         td.className = 'empty';
@@ -1031,15 +950,11 @@ function renderMultiMonthCalendar(list, active, filtered) {
                     }
                 }
             } else if (firstWeekOfMonth) {
-                // First day of a non-first month continuing mid-row.
-                // Defer the label to the next row (below the boundary line).
-                firstWeekOfMonth = false;
+                                                firstWeekOfMonth = false;
                 deferredLabel = monthStart.toLocaleString('default', { month: 'short' }).toUpperCase();
-                // Leave the current row's label cell empty — it belongs to the previous month's week
-            }
+                            }
 
-            // Append the day cell to the current row
-            const currentRow = tbody.rows[tbody.rows.length - 1];
+                        const currentRow = tbody.rows[tbody.rows.length - 1];
             const td = document.createElement('td');
             const isToday = cursor.getFullYear() === today.getFullYear() &&
                             cursor.getMonth() === today.getMonth() &&
@@ -1060,53 +975,36 @@ function renderMultiMonthCalendar(list, active, filtered) {
         }
     });
 
-    // ── Post-process: draw the ⌐-shaped month boundary borders ──────────────────
-    // For a month starting on col C:
-    //   - border-top on day 1 and everything to its right in that row
-    //   - border-top on the label cell of that same row
-    //   - if C > 0: border-top on label + cols 0..(C-1) in the NEXT row
-    //   - NO left border on day 1
-    //   - the label cell of the start row gets NO border-top (it's above the line for mid-week;
-    //     for Monday starts the label IS on the border row so it does get it)
-
+                                
     const allRows = Array.from(tbody.rows);
     allRows.forEach((row, rowIdx) => {
         const startCell = Array.from(row.cells).find(c => c.classList.contains('month-start'));
         if (!startCell) return;
 
-        const startCol = parseInt(startCell.dataset.monthStartCol); // 0=Mon…6=Sun
-        const startCellIdx = startCol + 1; // +1 for label column at index 0
-
+        const startCol = parseInt(startCell.dataset.monthStartCol);         const startCellIdx = startCol + 1; 
         if (startCol === 0) {
-            // Month starts on Monday — border runs along top of entire row including label
-            for (let i = 0; i < row.cells.length; i++) {
+                        for (let i = 0; i < row.cells.length; i++) {
                 row.cells[i].classList.add('month-border-top');
             }
         } else {
-            // Month starts mid-week:
-            // border-top + border-left on day 1 (the corner of the ⌐ shape)
-            startCell.classList.add('month-border-left');
-            // border-top on day 1 and everything to its right in this row
-            for (let i = startCellIdx; i < row.cells.length; i++) {
+                                    startCell.classList.add('month-border-left');
+                        for (let i = startCellIdx; i < row.cells.length; i++) {
                 row.cells[i].classList.add('month-border-top');
             }
-            // border-top on label + cols 0..(startCol-1) in the NEXT row
-            if (rowIdx + 1 < allRows.length) {
+                        if (rowIdx + 1 < allRows.length) {
                 const nextRow = allRows[rowIdx + 1];
                 nextRow.cells[0].classList.add('month-border-top');
                 for (let i = 1; i <= startCol; i++) {
                     if (nextRow.cells[i]) nextRow.cells[i].classList.add('month-border-top');
                 }
             }
-            // The label cell on THIS row gets no border (it's above the line, in the previous month's territory)
-        }
+                    }
     });
 
     wrapper.appendChild(table);
     list.appendChild(wrapper);
 
-    // Inject exam pills into the correct cells
-    allExamsForCalendar.forEach(ex => {
+        allExamsForCalendar.forEach(ex => {
         const [eDay, eMonth] = ex.date.split('/').map(Number);
         const td = cellMap[`${eDay}/${eMonth}`];
         if (!td) return;
@@ -1114,8 +1012,7 @@ function renderMultiMonthCalendar(list, active, filtered) {
         const examDiv = document.createElement('div');
         examDiv.className = 'cal-exam';
         
-        // Add "other-exam" class if this exam is from a filtered-out subject
-        const isOtherExam = activeFilters.size > 0 && !activeFilters.has(ex.subject);
+                const isOtherExam = activeFilters.size > 0 && !activeFilters.has(ex.subject);
         if (isOtherExam) {
             examDiv.classList.add('other-exam');
         }
@@ -1131,8 +1028,7 @@ function renderMultiMonthCalendar(list, active, filtered) {
         const frac = state === 'upcoming' ? getFrac(msLeft) : 0;
         const color = state === 'upcoming' ? fracToColor(frac) : state === 'inprogress' ? '#a855f7' : '#3b82f6';
         
-        // Only set border color for non-"other-exam" exams
-        if (!isOtherExam) {
+                if (!isOtherExam) {
             examDiv.style.borderLeftColor = color;
         }
         
@@ -1186,12 +1082,10 @@ function renderExams(){
     let active = [...inprogress,...upcoming];
     let halfTermInserted = false;
 
-    // In calendar mode include finished (over) exams as well
-    if (displayMode === DISPLAY_MODE_CALENDAR) {
+        if (displayMode === DISPLAY_MODE_CALENDAR) {
         active = filtered.slice();
         
-        // If "Show Other Exams" is enabled, also include other exams
-        if (showOtherExams && activeFilters.size > 0) {
+                if (showOtherExams && activeFilters.size > 0) {
             const otherExams = exams.filter(e => !activeFilters.has(e.subject));
             active = [...active, ...otherExams];
         }
@@ -1277,8 +1171,7 @@ function renderExams(){
             table += '</tr></table>';
             div.innerHTML = table;
             list.appendChild(div);
-            // Add staggered animation delays to calendar rows
-            const calTable = document.getElementById("calendar");
+                        const calTable = document.getElementById("calendar");
             if (calTable && calTable.rows) {
                 for (let i = 0; i < calTable.rows.length; i++) {
                     calTable.rows[i].style.animationDelay = `${Math.min(i * 20, 300)}ms`;
@@ -1299,8 +1192,7 @@ function renderExams(){
                             const examDiv = document.createElement('div');
                             examDiv.className = 'cal-exam';
                             
-                            // Add "other-exam" class if this exam is from a filtered-out subject
-                            const isOtherExam = activeFilters.size > 0 && !activeFilters.has(ex.subject);
+                                                        const isOtherExam = activeFilters.size > 0 && !activeFilters.has(ex.subject);
                             if (isOtherExam) {
                                 examDiv.classList.add('other-exam');
                             }
@@ -1316,8 +1208,7 @@ function renderExams(){
                             const frac=state==='upcoming'?getFrac(msLeft):0;
                             const color=state==='upcoming'?fracToColor(frac):state==='inprogress'?'#a855f7':'#3b82f6';
                             
-                            // Only set border color for non-"other-exam" exams
-                            if (!isOtherExam) {
+                                                        if (!isOtherExam) {
                                 examDiv.style.borderLeftColor = color;
                             }
                             
@@ -1353,11 +1244,9 @@ function renderExams(){
     }
     }
 
-    // Update sidebar timers immediately after render
-    updateSidebarTimers();
+        updateSidebarTimers();
 
-    // Re-render progress tracker whenever exams re-render (filter changes, etc.)
-    if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
+        if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
 }
 
 function makeCard(ex,idx){
@@ -1415,13 +1304,11 @@ function makeCard(ex,idx){
     return card;
 }
 
-// ── Progress tracker render ────────────────────────────────────────────────────
 function renderProgressTracker() {
     const now = Date.now();
     const allExams = currentFiltered.length > 0 ? currentFiltered : exams;
 
-    // ── Build per-subject stats ──────────────────────────────────────────────
-    const subjectStats = {};
+        const subjectStats = {};
     allExams.forEach(e => {
         if (!subjectStats[e.subject]) {
             subjectStats[e.subject] = { total: 0, completed: 0 };
@@ -1435,41 +1322,32 @@ function renderProgressTracker() {
     const subjects = Object.keys(subjectStats);
     const numSubjects = subjects.length;
 
-    // ── Overall progress: each subject weighted equally (1/N) ────────────────
-    // Within each subject: coursework fraction is always complete; written fraction
-    // fills in as papers are sat.
-    let overallFrac = 0;
+                let overallFrac = 0;
     subjects.forEach(subject => {
         const stats = subjectStats[subject];
         const cwPct = COURSEWORK[subject] || 0;
         const writtenPct = 100 - cwPct;
         const writtenDoneFrac = stats.total > 0 ? (stats.completed / stats.total) : 0;
-        // subject's contribution = (cw always done + written proportion done) / 100, weighted 1/N
-        const subjectFrac = (cwPct + writtenDoneFrac * writtenPct) / 100;
+                const subjectFrac = (cwPct + writtenDoneFrac * writtenPct) / 100;
         overallFrac += subjectFrac / numSubjects;
     });
     const percent = numSubjects > 0 ? Math.round(overallFrac * 100 * 10) / 10 : 0;
 
-    // Exam paper counts for the stat box (still useful raw numbers)
-    const completedPapers = allExams.filter(e => getState(e.start, e.end, now) === 'over').length;
+        const completedPapers = allExams.filter(e => getState(e.start, e.end, now) === 'over').length;
     const totalPapers = allExams.length;
 
-    // Days remaining
-    const lastExam = allExams[allExams.length - 1];
+        const lastExam = allExams[allExams.length - 1];
     const daysRemaining = lastExam ? Math.max(0, Math.ceil((lastExam.end - now) / (1000 * 60 * 60 * 24))) : 0;
 
-    // ── Update main stats ────────────────────────────────────────────────────
-    document.getElementById('progressCirclePercent').textContent = percent + '%';
+        document.getElementById('progressCirclePercent').textContent = percent + '%';
 
-    // Update circular progress (stroke-dashoffset)
-    const circle = document.querySelector('.progress-fill');
+        const circle = document.querySelector('.progress-fill');
     if (circle) {
         const circumference = 595.9;
         circle.style.strokeDashoffset = circumference * (1 - percent / 100);
     }
 
-    // ── Subjects list ────────────────────────────────────────────────────────
-    const subjectsList = document.getElementById('progressSubjectsList');
+        const subjectsList = document.getElementById('progressSubjectsList');
     if (!subjectsList) return;
 
     subjectsList.innerHTML = '';
@@ -1500,17 +1378,14 @@ function renderProgressTracker() {
     }
 }
 
-// ── Sidebar timer updates ─────────────────────────────────────────────────────
 function updateSidebarTimers() {
-    // Also update sidebar placeholders when present
-    const sidebarQuickContent = document.getElementById('sidebarQuickLinksContent');
+        const sidebarQuickContent = document.getElementById('sidebarQuickLinksContent');
     const sidebarCountdownsContent = document.getElementById('sidebarCountdownsContent');
     if (sidebarQuickContent) {
         sidebarQuickContent.innerHTML = document.querySelector('.quick-links-menu')?.innerHTML || '';
     }
     if (sidebarCountdownsContent) {
-        // Build simple countdown blocks similar to main view
-        const rem = document.getElementById('remtime');
+                const rem = document.getElementById('remtime');
         const half = document.getElementById('halfTermTime');
         const end = document.getElementById('endremtime');
         sidebarCountdownsContent.innerHTML = `
@@ -1522,8 +1397,7 @@ function updateSidebarTimers() {
 
     const now = Date.now();
 
-    // "Time until next exam" — the next upcoming exam
-    const nextUpcoming = currentFiltered.find(e => getState(e.start, e.end, now) === 'upcoming');
+        const nextUpcoming = currentFiltered.find(e => getState(e.start, e.end, now) === 'upcoming');
     const remtimeEl = document.getElementById('remtime');
     const sidebarRemtimeEl = document.getElementById('sidebar-remtime');
     const remtimeLabelEl = document.getElementById('remtimeLabel');
@@ -1544,8 +1418,7 @@ function updateSidebarTimers() {
         if (sidebarRemtimeLabelEl) { sidebarRemtimeLabelEl.textContent = ''; }
     }
 
-    // "End of exams" — last exam in filtered list
-    const last = currentFiltered.length ? currentFiltered[currentFiltered.length - 1] : null;
+        const last = currentFiltered.length ? currentFiltered[currentFiltered.length - 1] : null;
     const endremtimeEl = document.getElementById('endremtime');
     const sidebarEndremtimeEl = document.getElementById('sidebar-endremtime');
     if (last) {
@@ -1568,8 +1441,7 @@ function updateSidebarTimers() {
         if (sidebarEndremtimeLabelEl) { sidebarEndremtimeLabelEl.textContent = ''; }
     }
 
-    // "Until half term" — countdown to the end of the last exam BEFORE half term
-    const halfTermTimeEl = document.getElementById('halfTermTime');
+        const halfTermTimeEl = document.getElementById('halfTermTime');
     const sidebarHalfTermTimeEl = document.getElementById('sidebar-halfTermTime');
     const halfTermLabelEl = document.getElementById('halfTermLabel');
     const sidebarHalfTermLabelEl = document.getElementById('sidebar-halfTermLabel');
@@ -1646,8 +1518,7 @@ function tick(){
 
     updateSidebarTimers();
     
-    // if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
-
+    
     document.querySelectorAll('[data-code]').forEach(el=>{
         if(!el.classList.contains('countdown-timer'))return;
         const code = el.dataset.code.replace('-hover','');
@@ -1656,8 +1527,7 @@ function tick(){
         const msLeft=exam.start-now;
         el.textContent=fmtCountdown(msLeft);
         const frac=getFrac(msLeft),color=fracToColor(frac);
-        // Only update bar for non-hover timers (avoid double-select)
-        if (!el.dataset.code.endsWith('-hover')) {
+                if (!el.dataset.code.endsWith('-hover')) {
             const bar=document.querySelector(`[data-bar="${exam.code}"]`);
             if(bar){bar.style.width=(frac*100).toFixed(3)+'%';bar.style.background=color;}
             const barHover=document.querySelector(`[data-bar="${exam.code}-hover"]`);
@@ -1676,7 +1546,6 @@ setInterval(updateClock,100);
 setInterval(updateTime, 100);
 setInterval(tick,100);
 
-// Calendar tooltip flip-direction: check on mouseenter so tooltip doesn't overflow viewport
 document.getElementById('examList').addEventListener('mouseenter', e => {
     const pill = e.target.closest('.cal-exam');
     if (!pill) return;
@@ -1692,7 +1561,6 @@ document.getElementById('examList').addEventListener('mouseenter', e => {
     tooltip.style.display = '';
 }, true);
 
-// Compact card hover tooltip flip-direction
 document.getElementById('examList').addEventListener('mouseenter', e => {
     const card = e.target.closest('.exam-card');
     if (!card) return;
@@ -1708,24 +1576,19 @@ document.getElementById('examList').addEventListener('mouseenter', e => {
     tooltip.style.display = '';
 }, true);
 
-// Countdown box click handlers — scroll to the relevant exam
 function scrollToExam(examCode) {
     if (!examCode) return;
     
-    // Find the exam element - could be .exam-card (default), .cal-exam (calendar), or .exam-row (compact)
-    const examList = document.getElementById('examList');
+        const examList = document.getElementById('examList');
     if (!examList) return;
     
     let examEl = null;
-    // Search for the exam in any display mode
-    examEl = examList.querySelector(`[data-code="${examCode}"]`);
+        examEl = examList.querySelector(`[data-code="${examCode}"]`);
     
     if (examEl) {
-        // Scroll into view
-        examEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                examEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         
-        // Find the containing card/row/item and add highlight
-        const container = examEl.closest('.exam-card') || examEl.closest('.cal-exam') || examEl.closest('.exam-row');
+                const container = examEl.closest('.exam-card') || examEl.closest('.cal-exam') || examEl.closest('.exam-row');
         if (container) {
             container.classList.add('highlight-flash');
             setTimeout(() => container.classList.remove('highlight-flash'), 600);
@@ -1733,15 +1596,13 @@ function scrollToExam(examCode) {
     }
 }
 
-// Add click handlers to countdown boxes - attach to parent container
 if (countdownsMenu) {
     const countdownBoxes = countdownsMenu.querySelectorAll('.countdown-box');
     countdownBoxes[0]?.addEventListener('click', () => scrollToExam(document.getElementById('remtime')?.dataset.code));
     countdownBoxes[1]?.addEventListener('click', () => scrollToExam(document.getElementById('halfTermTime')?.dataset.code));
     countdownBoxes[2]?.addEventListener('click', () => scrollToExam(document.getElementById('endremtime')?.dataset.code));
     
-    // Add cursor pointer styling
-    countdownBoxes.forEach(box => {
+        countdownBoxes.forEach(box => {
         box.style.cursor = 'pointer';
     });
 }
@@ -1751,10 +1612,8 @@ if (countdownsMenu) {
    ══════════════════════════════════════════════════════════════════════════ */
 (function() {
 
-// ── Storage keys ─────────────────────────────────────────────────────────
 const ASST_KEY = 'asst_data_v1';
 
-// ── Grade boundaries (Edexcel/AQA approx.) ───────────────────────────────
 function pctToGrade(pct) {
     if (pct >= 91) return 9;
     if (pct >= 79) return 8;
@@ -1767,7 +1626,6 @@ function pctToGrade(pct) {
     return 1;
 }
 
-// ── Persistent state ─────────────────────────────────────────────────────
 function loadAsstData() {
     try {
         const raw = localStorage.getItem(ASST_KEY);
@@ -1779,10 +1637,6 @@ function saveAsstData(d) {
 }
 
 let asstData = loadAsstData();
-// shape: {
-//   subjects: { [subjectName]: { priority: number, difficulty: { [code]: number }, pastPapers: [{pct,grade,date}] } },
-//   coursework: { history: {pct, grade}, sc: {pct, grade} }
-// }
 
 function ensureSubject(name) {
     if (!asstData.subjects) asstData.subjects = {};
@@ -1793,23 +1647,18 @@ function ensureCW() {
     if (!asstData.coursework) asstData.coursework = { history: {}, sc: {} };
 }
 
-// ── Get active subjects from filters ─────────────────────────────────────
 function getActiveSubjects() {
-    // Use activeFilters from outer scope; if empty show all
-    const all = [...new Set(baseExams.map(e => e.subject))].sort();
+        const all = [...new Set(baseExams.map(e => e.subject))].sort();
     if (!activeFilters || activeFilters.size === 0) return all;
     return all.filter(s => activeFilters.has(s));
 }
 
-// ── Get exam papers for a subject ────────────────────────────────────────
 function getPapersForSubject(subj) {
     return baseExams.filter(e => e.subject === subj);
 }
 
-// ── Linear regression helper ──────────────────────────────────────────────
 function linearPredict(points, targetX) {
-    // points: [{x: timestamp, y: pct}]
-    if (points.length === 0) return null;
+        if (points.length === 0) return null;
     if (points.length === 1) return points[0].y;
     const n = points.length;
     const sumX = points.reduce((a,p) => a + p.x, 0);
@@ -1823,10 +1672,8 @@ function linearPredict(points, targetX) {
     return Math.max(0, Math.min(100, slope * targetX + intercept));
 }
 
-// ── Calculate predictions ─────────────────────────────────────────────────
 function calcPredictions() {
-    const results = {}; // subjectName -> { pct, grade, priorityAdj }
-    const subjects = getActiveSubjects();
+    const results = {};     const subjects = getActiveSubjects();
     ensureCW();
 
     subjects.forEach(subj => {
@@ -1836,8 +1683,7 @@ function calcPredictions() {
         const papers = sd.pastPapers.filter(p => p.pct !== '' && p.pct !== null && !isNaN(+p.pct) && p.date);
         if (papers.length === 0) return;
 
-        // Get exam date for this subject (earliest remaining exam)
-        const examDates = getPapersForSubject(subj).map(e => e.start.getTime()).sort((a,b)=>a-b);
+                const examDates = getPapersForSubject(subj).map(e => e.start.getTime()).sort((a,b)=>a-b);
         const targetX = examDates.length > 0 ? examDates[0] : Date.now() + 30*24*3600*1000;
 
         const points = papers.map(p => ({
@@ -1849,21 +1695,17 @@ function calcPredictions() {
 
         let predicted = linearPredict(points, targetX);
 
-        // Adjust by priority: priority 1-10, default 5. Shift by ±5% max
-        const priority = +(sd.priority || 5);
-        const priorityAdj = (priority - 5) * 1.0; // +/- 5%
-        predicted = Math.max(0, Math.min(100, predicted + priorityAdj));
+                const priority = +(sd.priority || 5);
+        const priorityAdj = (priority - 5) * 1.0;         predicted = Math.max(0, Math.min(100, predicted + priorityAdj));
 
         results[subj] = { pct: predicted, grade: pctToGrade(predicted), priority };
     });
 
-    // Incorporate coursework into subject predictions
-    const cw = asstData.coursework || {};
+        const cw = asstData.coursework || {};
     if (cw.history?.pct !== undefined && cw.history?.pct !== '') {
         if (!results['History']) results['History'] = { pct: +cw.history.pct, grade: pctToGrade(+cw.history.pct), priority: 5 };
         else {
-            // History: 30% coursework
-            const examPct = results['History'].pct;
+                        const examPct = results['History'].pct;
             const cwPct = +cw.history.pct;
             results['History'].pct = 0.7 * examPct + 0.3 * cwPct;
             results['History'].grade = pctToGrade(results['History'].pct);
@@ -1883,18 +1725,14 @@ function calcPredictions() {
     return results;
 }
 
-// ── Calc total weighted mean ───────────────────────────────────────────────
 function calcTotal(predictions) {
     const vals = Object.values(predictions).map(v => v.pct);
     if (vals.length === 0) return null;
     return vals.reduce((a,b) => a+b, 0) / vals.length;
 }
 
-// ── Calc revision priority ranking ────────────────────────────────────────
 function calcRevisionPriority(predictions) {
-    // Score = low predicted % = high priority; also factor in user priority
-    // Use last 2 past paper mean if available, else predicted pct
-    const subjects = getActiveSubjects();
+            const subjects = getActiveSubjects();
     const ranked = [];
 
     subjects.forEach(subj => {
@@ -1910,14 +1748,12 @@ function calcRevisionPriority(predictions) {
         if (basePct === undefined && pred) basePct = pred.pct;
         if (basePct === undefined) return;
 
-        // Priority score: invert %, weight by user priority (high priority = higher score)
-        const userPri = +(sd?.priority || 5);
+                const userPri = +(sd?.priority || 5);
         const score = (100 - basePct) * (userPri / 5);
         ranked.push({ subj, score, basePct, userPri });
     });
 
-    // Incorporate coursework subjects that have no exam papers
-    const cw = asstData.coursework || {};
+        const cw = asstData.coursework || {};
     ['History', 'S&C / PD'].forEach(s => {
         if (!ranked.find(r => r.subj === s)) {
             const cwPct = s === 'History' ? +cw.history?.pct : +cw.sc?.pct;
@@ -1933,8 +1769,6 @@ function calcRevisionPriority(predictions) {
     return ranked.sort((a,b) => b.score - a.score);
 }
 
-// ── Pie chart drawing ─────────────────────────────────────────────────────
-// Grade band buckets: each pct value is bucketed, chart shows count per band
 const GRADE_BANDS = [
     { label: '90–100%', min: 90, max: 100, color: '#22c55e' },
     { label: '80–90%',  min: 80, max: 90,  color: '#86efac' },
@@ -1945,9 +1779,7 @@ const GRADE_BANDS = [
 ];
 
 function bucketPcts(pcts) {
-    // pcts: array of numbers
-    // returns [{label, count, color}] for bands that have count > 0
-    const counts = GRADE_BANDS.map(b => ({ ...b, count: 0 }));
+            const counts = GRADE_BANDS.map(b => ({ ...b, count: 0 }));
     pcts.forEach(p => {
         for (let i = 0; i < counts.length; i++) {
             if (p >= counts[i].min && (p < counts[i].max || (counts[i].max === 100 && p <= 100))) {
@@ -1960,8 +1792,7 @@ function bucketPcts(pcts) {
 }
 
 function drawPie(canvasId, bands) {
-    // bands: [{label, count, color}]
-    const canvas = document.getElementById(canvasId);
+        const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
@@ -1999,7 +1830,6 @@ function drawLegend(legendId, bands, total) {
     `).join('');
 }
 
-// ── Render predictions pane ───────────────────────────────────────────────
 function renderPredictions() {
     const predictions = calcPredictions();
     const predContent = document.getElementById('asstPredictionsContent');
@@ -2057,7 +1887,6 @@ function renderPredictions() {
     }
 }
 
-// ── Render overview pane ──────────────────────────────────────────────────
 function renderOverview() {
     const predictions = calcPredictions();
     const subjects = Object.keys(predictions);
@@ -2072,14 +1901,12 @@ function renderOverview() {
     if (emptyEl) emptyEl.style.display = 'none';
     if (chartsRow) chartsRow.style.display = 'flex';
 
-    // By subject — bucket predicted % per subject
-    const subjectPcts = subjects.map(s => predictions[s].pct);
+        const subjectPcts = subjects.map(s => predictions[s].pct);
     const subjectBands = bucketPcts(subjectPcts);
     drawPie('chartBySubject', subjectBands);
     drawLegend('legendBySubject', subjectBands, subjectPcts.length);
 
-    // By exam — bucket per individual exam paper
-    const examPcts = [];
+        const examPcts = [];
     subjects.forEach(subj => {
         const papers = getPapersForSubject(subj);
         const sd = asstData.subjects?.[subj];
@@ -2092,8 +1919,7 @@ function renderOverview() {
     drawPie('chartByExam', examBands);
     drawLegend('legendByExam', examBands, examPcts.length);
 
-    // Top-4 revision priority
-    const ranked = calcRevisionPriority(predictions);
+        const ranked = calcRevisionPriority(predictions);
     const top4El = document.getElementById('asstOverviewTop4');
     if (top4El) {
         const top4 = ranked.slice(0, 4);
@@ -2115,7 +1941,6 @@ function renderOverview() {
     }
 }
 
-// ── Build past paper rows HTML ─────────────────────────────────────────────
 function buildPPRows(subj) {
     const sd = asstData.subjects?.[subj];
     const papers = sd?.pastPapers || [];
@@ -2132,7 +1957,6 @@ function buildPPRows(subj) {
     <button class="asst-add-pp" data-subj="${subj}"><i class="fas fa-plus"></i> Add Past Paper</button>`;
 }
 
-// ── Render input pane ─────────────────────────────────────────────────────
 function renderInputPane() {
     const subjects = getActiveSubjects();
     const container = document.getElementById('asstSubjectInputs');
@@ -2142,8 +1966,7 @@ function renderInputPane() {
         const sd = ensureSubject(subj);
         const papers = getPapersForSubject(subj);
 
-        // Difficulty sliders per paper
-        const diffRows = papers.map(p => {
+                const diffRows = papers.map(p => {
             const val = sd.difficulty?.[p.code] ?? 5;
             return `<div class="asst-difficulty-row">
                 <span class="asst-diff-label">${p.component}</span>
@@ -2176,27 +1999,22 @@ function renderInputPane() {
         </div>`;
     }).join('');
 
-    // Attach events
-    attachInputEvents();
+        attachInputEvents();
 }
 
-// ── Event delegation for input pane ──────────────────────────────────────
 function attachInputEvents() {
     const container = document.getElementById('asstSubjectInputs');
     if (!container) return;
 
-    // Subject header toggle
-    container.querySelectorAll('.asst-subject-header').forEach(h => {
+        container.querySelectorAll('.asst-subject-header').forEach(h => {
         h.addEventListener('click', function(e) {
-            // Don't toggle if clicking on input
-            if (e.target.tagName === 'INPUT') return;
+                        if (e.target.tagName === 'INPUT') return;
             const block = this.closest('.asst-subject-block');
             block.classList.toggle('open');
         });
     });
 
-    // Priority slider
-    container.querySelectorAll('[data-field="priority"]').forEach(inp => {
+        container.querySelectorAll('[data-field="priority"]').forEach(inp => {
         inp.addEventListener('input', function() {
             const subj = this.dataset.subj;
             const valEl = document.getElementById('priVal-' + CSS.escape(subj));
@@ -2206,8 +2024,7 @@ function attachInputEvents() {
         });
     });
 
-    // Difficulty sliders
-    container.querySelectorAll('.asst-slider[data-code]').forEach(inp => {
+        container.querySelectorAll('.asst-slider[data-code]').forEach(inp => {
         inp.addEventListener('input', function() {
             const subj = this.dataset.subj;
             const code = this.dataset.code;
@@ -2218,8 +2035,7 @@ function attachInputEvents() {
         });
     });
 
-    // Past paper field changes
-    container.addEventListener('change', function(e) {
+        container.addEventListener('change', function(e) {
         const inp = e.target;
         if (!inp.dataset.subj || !inp.dataset.field || inp.dataset.idx === undefined) return;
         const subj = inp.dataset.subj;
@@ -2231,22 +2047,19 @@ function attachInputEvents() {
         saveAsstData(asstData);
     });
 
-    // Add past paper button
-    container.querySelectorAll('.asst-add-pp').forEach(btn => {
+        container.querySelectorAll('.asst-add-pp').forEach(btn => {
         btn.addEventListener('click', function() {
             const subj = this.dataset.subj;
             const sd = ensureSubject(subj);
             sd.pastPapers.push({ pct: '', grade: '', date: '' });
             saveAsstData(asstData);
-            // Re-render just the pp section of this subject
-            const ppSection = this.parentElement;
+                        const ppSection = this.parentElement;
             ppSection.innerHTML = buildPPRows(subj);
             reAttachPPEvents(subj, ppSection);
         });
     });
 
-    // Delete past paper buttons
-    container.querySelectorAll('.asst-pp-del').forEach(btn => {
+        container.querySelectorAll('.asst-pp-del').forEach(btn => {
         btn.addEventListener('click', function() {
             const subj = this.dataset.subj;
             const idx = +this.dataset.idx;
@@ -2292,7 +2105,6 @@ function reAttachPPEvents(subj, ppSection) {
     });
 }
 
-// ── Coursework inputs ─────────────────────────────────────────────────────
 function attachCourseworkEvents() {
     const fields = [
         ['cwHistoryPct', 'history', 'pct'],
@@ -2314,7 +2126,6 @@ function attachCourseworkEvents() {
     });
 }
 
-// ── Tab switching ─────────────────────────────────────────────────────────
 const ASST_TAB_KEY = 'asst_tab';
 function initTabs() {
     const tabs = document.querySelectorAll('.asst-tab');
@@ -2333,8 +2144,7 @@ function initTabs() {
         if (tab.dataset.tab === 'ai') initAIPane();
     }
 
-    // Restore persisted tab
-    try { activateTab(localStorage.getItem(ASST_TAB_KEY) || 'input'); } catch(e) { activateTab('input'); }
+        try { activateTab(localStorage.getItem(ASST_TAB_KEY) || 'input'); } catch(e) { activateTab('input'); }
 
     tabs.forEach(tab => {
         tab.addEventListener('click', function() {
@@ -2344,13 +2154,11 @@ function initTabs() {
     });
 }
 
-// ── AI Tab ────────────────────────────────────────────────────────────────
 const ASST_AI_DISCLAIMER_KEY = 'asst_ai_disclaimer_seen';
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const OPENROUTER_MODEL = 'openrouter/free';
 
-let aiConversation = []; // [{role, content}]
-let aiSystemPrompt = '';
+let aiConversation = []; let aiSystemPrompt = '';
 
 function buildAISystemPrompt() {
     const subjects = getActiveSubjects();
@@ -2396,14 +2204,12 @@ Answer the questions the student asks. If they just say 'hello' or similar, just
 function aiAppendMessage(role, text) {
     const output = document.getElementById('asstAiOutput');
     if (!output) return;
-    // Remove placeholder
-    const placeholder = output.querySelector('.asst-ai-placeholder');
+        const placeholder = output.querySelector('.asst-ai-placeholder');
     if (placeholder) placeholder.remove();
 
     const div = document.createElement('div');
     div.className = 'asst-ai-msg asst-ai-msg-' + role;
-    // Simple markdown: **bold**, newlines
-    div.innerHTML = text
+        div.innerHTML = text
         .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
         .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
         .replace(/\n/g,'<br>');
@@ -2421,8 +2227,7 @@ async function aiSend(userText) {
     if (inputEl) inputEl.value = '';
     if (sendBtn) sendBtn.disabled = true;
 
-    // Typing indicator
-    const output = document.getElementById('asstAiOutput');
+        const output = document.getElementById('asstAiOutput');
     const typing = document.createElement('div');
     typing.className = 'asst-ai-msg asst-ai-msg-assistant asst-ai-typing';
     typing.innerHTML = '<span></span><span></span><span></span>';
@@ -2457,8 +2262,7 @@ async function aiSend(userText) {
             return;
         }
 
-        // Stream the response
-        if (typing.parentNode) typing.parentNode.removeChild(typing);
+                if (typing.parentNode) typing.parentNode.removeChild(typing);
         const output = document.getElementById('asstAiOutput');
         const msgDiv = document.createElement('div');
         msgDiv.className = 'asst-ai-msg asst-ai-msg-assistant';
@@ -2474,8 +2278,7 @@ async function aiSend(userText) {
             if (done) break;
             buf += decoder.decode(value, { stream: true });
             const lines = buf.split('\n');
-            buf = lines.pop(); // keep incomplete line
-            for (const line of lines) {
+            buf = lines.pop();             for (const line of lines) {
                 if (!line.startsWith('data: ')) continue;
                 const raw = line.slice(6).trim();
                 if (raw === '[DONE]') continue;
@@ -2537,8 +2340,7 @@ function setupAIInput() {
     if (aiInputSetup) return;
     aiInputSetup = true;
 
-    // Prompt for API key if not set
-    if (!window._orKey) {
+        if (!window._orKey) {
         const stored = localStorage.getItem('asst_or_key');
         if (stored) {
             window._orKey = stored;
@@ -2548,8 +2350,7 @@ function setupAIInput() {
         }
     }
 
-    // Build system prompt fresh
-    aiSystemPrompt = buildAISystemPrompt();
+        aiSystemPrompt = buildAISystemPrompt();
 
     const sendBtn = document.getElementById('asstAiSend');
     const inputEl = document.getElementById('asstAiInput');
@@ -2566,7 +2367,6 @@ function setupAIInput() {
     }
 }
 
-// ── Expand button ─────────────────────────────────────────────────────────
 function initExpand() {
     const btn = document.getElementById('assistantExpandBtn');
     const panel = document.getElementById('assistantPanel');
@@ -2577,18 +2377,14 @@ function initExpand() {
     });
 }
 
-// ── Re-render when filters change ─────────────────────────────────────────
-// Observe activeFilters changes by patching renderExams
 const _origRenderExams = window.renderExams;
 if (typeof _origRenderExams === 'function') {
     window.renderExams = function() {
         _origRenderExams.apply(this, arguments);
-        // Only re-render input pane (don't disturb active tab)
-        renderInputPane();
+                renderInputPane();
     };
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
 function init() {
     initTabs();
     initExpand();
