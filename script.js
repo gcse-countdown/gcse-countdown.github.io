@@ -1477,7 +1477,7 @@ function renderProgressTracker() {
         const cwPct = COURSEWORK[subject] || 0;
         const writtenPct = 100 - cwPct;
         const writtenFillPct = stats.total > 0 ? (stats.completed / stats.total) * writtenPct : 0;
-        const countText = writtenFillPct + cwPct + '%';
+        const countText = (writtenFillPct + cwPct).toFixed(0) + '%';
 
         let html = '<div class="subject-progress-item">' +
             '<div class="subject-progress-label">' + subject + '</div>' +
