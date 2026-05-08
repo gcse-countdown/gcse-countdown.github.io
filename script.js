@@ -1068,188 +1068,191 @@ function renderExams(){
     const now=Date.now();
     const filtered=activeFilters.size===0?exams:exams.filter(e=>activeFilters.has(e.subject));
     currentFiltered = filtered;
-    if(!filtered.length){emptyEl.style.display='block';countInfo.textContent='';return;}
-
-    emptyEl.style.display='none';
+    
     const upcoming =filtered.filter(e=>getState(e.start,e.end,now)==='upcoming');
     const inprogress = filtered.filter(e=>getState(e.start,e.end,now)==='inprogress');
     const over =filtered.filter(e=>getState(e.start,e.end,now)==='over');
 
     countInfo.innerHTML=
-        `Showing <strong>${filtered.length}</strong> exam${filtered.length!==1?'s':''} &nbsp;·&nbsp; `+
-        `<strong>${over.length}</strong> over &nbsp;·&nbsp; `+
-        `<strong>${inprogress.length}</strong> in progress &nbsp;·&nbsp; `+
-        `<strong>${upcoming.length}</strong> upcoming`;
-    
-    const halfTermStartMs = HALF_TERM_START.getTime();
-    let active = [...inprogress,...upcoming];
-    let halfTermInserted = false;
+    `Showing <strong>${filtered.length}</strong> exam${filtered.length!==1?'s':''} &nbsp;·&nbsp; `+
+    `<strong>${over.length}</strong> over &nbsp;·&nbsp; `+
+    `<strong>${inprogress.length}</strong> in progress &nbsp;·&nbsp; `+
+    `<strong>${upcoming.length}</strong> upcoming`;
 
-        if (displayMode === DISPLAY_MODE_CALENDAR) {
-        active = filtered.slice();
-        
-                if (showOtherExams && activeFilters.size > 0) {
-            const otherExams = exams.filter(e => !activeFilters.has(e.subject));
-            active = [...active, ...otherExams];
-        }
-    }
-
-    if (displayMode !== DISPLAY_MODE_CALENDAR) {
-        active.forEach((e,i)=>{
-            if(!halfTermInserted && e.start.getTime() >= halfTermStartMs){
-                const div=document.createElement('div');
-                div.className='section-divider half-term-divider';
-                div.innerHTML='<i class="fas fa-leaf"></i> Half Term';
-                list.appendChild(div);
-                halfTermInserted=true;
-            }
-            list.appendChild(makeCard(e,i));
-        });
-        if(over.length){
-            const div=document.createElement('div');div.className='section-divider';div.textContent='Exam Over';
-            list.appendChild(div);
-            over.slice().reverse().forEach((e,i)=>list.appendChild(makeCard(e,inprogress.length+upcoming.length+i)));
-        }
+    if (!filtered.length) {
+        emptyEl.style.display='block';
     } else {
-        if (!legacyCalMode) {
-        renderMultiMonthCalendar(list, active, filtered);
-        } else {
-        const div = document.createElement('div');
-        const buttonsDiv = document.createElement('div');
-        buttonsDiv.className="buttonsDiv";
-        const monthBackBtn = document.createElement('button');
-        monthBackBtn.id='monthBackBtn';
-        monthBackBtn.textContent='← Prev';
+        emptyEl.style.display='none';
+        
+        const halfTermStartMs = HALF_TERM_START.getTime();
+        let active = [...inprogress,...upcoming];
+        let halfTermInserted = false;
 
-        const monthText = document.createElement('p');
-        monthText.textContent="Loading..."
-        const monthFwdBtn = document.createElement('button');
-        monthFwdBtn.id='monthFwdBtn';
-        monthFwdBtn.textContent='Next →';
-        buttonsDiv.appendChild(monthBackBtn);
-        buttonsDiv.appendChild(monthText);
-        buttonsDiv.appendChild(monthFwdBtn);
-        list.appendChild(buttonsDiv)
-
-        div.className='calendar';
-        function getDay(date) {let day = date.getDay(); if (day == 0) day = 7; return day - 1;}
-        currentDate = new Date(Date.now());
-        offsetDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+monthOffset, 1)
-        monthText.textContent = offsetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-        monthBackBtn.addEventListener('click' ,() => {
-            monthOffset -= 1;
-            offsetDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+monthOffset, 1);
-            monthText.textContent = offsetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-            createCalendar(offsetDate.valueOf());
-            addExams();
-        })
-        monthFwdBtn.addEventListener('click' ,() => {
-            monthOffset += 1;
-            offsetDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+monthOffset, 1);
-            monthText.textContent = offsetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-            createCalendar(offsetDate.valueOf());
-            addExams();
-        })
-        function createCalendar(dateMS) {
-            const today = new Date(Date.now());
-            let date = new Date(dateMS);
-            const curMonth = date.getMonth();
-            let table = '<table id="calendar"' + (weekends ? ' class="hide-weekends"' : '') + '><tr><th>MONDAY</th><th>TUESDAY</th><th>WEDNESDAY</th><th>THURSDAY</th><th>FRIDAY</th><th>SATURDAY</th><th>SUNDAY</th></tr><tr>';
-            for (let i = 0; i < getDay(date); i++) {table += '<td id="0 0">'+'</td>';}
-            while (date.getMonth() == curMonth) {
-                if (date.getFullYear() == today.getFullYear() && date.getMonth() == today.getMonth() && date.getDate() == today.getDate()) {
-                    table += '<td class="curMonth today" id="' + date.getDate() + " "+ date.getMonth() + '">' + date.getDate() + '</td>';
-                } else {
-                    table += '<td class="curMonth" id="' + date.getDate() + " "+ date.getMonth() + '">' + date.getDate() + '</td>';
-                }
-                if (getDay(date) % 7 == 6) {table += '</tr><tr>';}
-                date.setDate(date.getDate() + 1);
+            if (displayMode === DISPLAY_MODE_CALENDAR) {
+            active = filtered.slice();
+            
+                    if (showOtherExams && activeFilters.size > 0) {
+                const otherExams = exams.filter(e => !activeFilters.has(e.subject));
+                active = [...active, ...otherExams];
             }
-            if (getDay(date) != 0) {
-                for (let i = getDay(date); i < 7; i++) {
-                    table += '<td class="nextMonth" id="' + date.getDate() + " " + date.getMonth() + '">' + Number(date.getDate()) + '</td>';
+        }
+
+        if (displayMode !== DISPLAY_MODE_CALENDAR) {
+            active.forEach((e,i)=>{
+                if(!halfTermInserted && e.start.getTime() >= halfTermStartMs){
+                    const div=document.createElement('div');
+                    div.className='section-divider half-term-divider';
+                    div.innerHTML='<i class="fas fa-leaf"></i> Half Term';
+                    list.appendChild(div);
+                    halfTermInserted=true;
+                }
+                list.appendChild(makeCard(e,i));
+            });
+            if(over.length){
+                const div=document.createElement('div');div.className='section-divider';div.textContent='Exam Over';
+                list.appendChild(div);
+                over.slice().reverse().forEach((e,i)=>list.appendChild(makeCard(e,inprogress.length+upcoming.length+i)));
+            }
+        } else {
+            if (!legacyCalMode) {
+            renderMultiMonthCalendar(list, active, filtered);
+            } else {
+            const div = document.createElement('div');
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.className="buttonsDiv";
+            const monthBackBtn = document.createElement('button');
+            monthBackBtn.id='monthBackBtn';
+            monthBackBtn.textContent='← Prev';
+
+            const monthText = document.createElement('p');
+            monthText.textContent="Loading..."
+            const monthFwdBtn = document.createElement('button');
+            monthFwdBtn.id='monthFwdBtn';
+            monthFwdBtn.textContent='Next →';
+            buttonsDiv.appendChild(monthBackBtn);
+            buttonsDiv.appendChild(monthText);
+            buttonsDiv.appendChild(monthFwdBtn);
+            list.appendChild(buttonsDiv)
+
+            div.className='calendar';
+            function getDay(date) {let day = date.getDay(); if (day == 0) day = 7; return day - 1;}
+            currentDate = new Date(Date.now());
+            offsetDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+monthOffset, 1)
+            monthText.textContent = offsetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+            monthBackBtn.addEventListener('click' ,() => {
+                monthOffset -= 1;
+                offsetDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+monthOffset, 1);
+                monthText.textContent = offsetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+                createCalendar(offsetDate.valueOf());
+                addExams();
+            })
+            monthFwdBtn.addEventListener('click' ,() => {
+                monthOffset += 1;
+                offsetDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+monthOffset, 1);
+                monthText.textContent = offsetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+                createCalendar(offsetDate.valueOf());
+                addExams();
+            })
+            function createCalendar(dateMS) {
+                const today = new Date(Date.now());
+                let date = new Date(dateMS);
+                const curMonth = date.getMonth();
+                let table = '<table id="calendar"' + (weekends ? ' class="hide-weekends"' : '') + '><tr><th>MONDAY</th><th>TUESDAY</th><th>WEDNESDAY</th><th>THURSDAY</th><th>FRIDAY</th><th>SATURDAY</th><th>SUNDAY</th></tr><tr>';
+                for (let i = 0; i < getDay(date); i++) {table += '<td id="0 0">'+'</td>';}
+                while (date.getMonth() == curMonth) {
+                    if (date.getFullYear() == today.getFullYear() && date.getMonth() == today.getMonth() && date.getDate() == today.getDate()) {
+                        table += '<td class="curMonth today" id="' + date.getDate() + " "+ date.getMonth() + '">' + date.getDate() + '</td>';
+                    } else {
+                        table += '<td class="curMonth" id="' + date.getDate() + " "+ date.getMonth() + '">' + date.getDate() + '</td>';
+                    }
+                    if (getDay(date) % 7 == 6) {table += '</tr><tr>';}
                     date.setDate(date.getDate() + 1);
                 }
-            }
-            table += '</tr></table>';
-            div.innerHTML = table;
-            list.appendChild(div);
-                        const calTable = document.getElementById("calendar");
-            if (calTable && calTable.rows) {
-                for (let i = 0; i < calTable.rows.length; i++) {
-                    calTable.rows[i].style.animationDelay = `${Math.min(i * 20, 300)}ms`;
+                if (getDay(date) != 0) {
+                    for (let i = getDay(date); i < 7; i++) {
+                        table += '<td class="nextMonth" id="' + date.getDate() + " " + date.getMonth() + '">' + Number(date.getDate()) + '</td>';
+                        date.setDate(date.getDate() + 1);
+                    }
+                }
+                table += '</tr></table>';
+                div.innerHTML = table;
+                list.appendChild(div);
+                            const calTable = document.getElementById("calendar");
+                if (calTable && calTable.rows) {
+                    for (let i = 0; i < calTable.rows.length; i++) {
+                        calTable.rows[i].style.animationDelay = `${Math.min(i * 20, 300)}ms`;
+                    }
                 }
             }
-        }
-        
-        function addExams() {
-            let table = document.getElementById("calendar");
-            for (let i=1, row; row=table.rows[i]; i++) {
-                for (let j=0, col; col=row.cells[j]; j++) {
-                    let nday = Number(col.id.split(" ")[0])
-                    let nmonth = Number(col.id.split(" ")[1]) + 1
-                    let examsOnDay = active.filter(e => [...e.date.split("/")][0] == nday && [...e.date.split("/")][1] == nmonth);
-                    if (examsOnDay.length > 0) {
-                        for (let i=0; i<examsOnDay.length; i++) {
-                            const ex = examsOnDay[i];
-                            const examDiv = document.createElement('div');
-                            examDiv.className = 'cal-exam';
-                            
-                                                        const isOtherExam = activeFilters.size > 0 && !activeFilters.has(ex.subject);
-                            if (isOtherExam) {
-                                examDiv.classList.add('other-exam');
-                            }
-                            
-                            examDiv.dataset.code = ex.code;
-                            const now = Date.now();
-                            const state = getState(ex.start, ex.end, now);
-                            const statusBadge = state === 'inprogress'
-                            ? `<span class="status-badge inprogress">● IN PROGRESS</span>`
-                            : state === 'over' ? `<span class="status-badge over">EXAM OVER</span>` : '';
-                            const msLeft = ex.start - now;
-                            const timerText = state === 'upcoming' ? fmtCountdown(msLeft) : '–';
-                            const frac=state==='upcoming'?getFrac(msLeft):0;
-                            const color=state==='upcoming'?fracToColor(frac):state==='inprogress'?'#a855f7':'#3b82f6';
-                            
-                                                        if (!isOtherExam) {
-                                examDiv.style.borderLeftColor = color;
-                            }
-                            
-                            examDiv.innerHTML = `<span class="cal-exam-subject">${ex.subject}</span><span class="cal-exam-component">${ex.component}</span>`;
-                            examDiv.innerHTML += `<div class="cal-exam-tooltip" style="border-left-color: ${color}">
-                                <div class="cal-tooltip-top">
-                                    <div class="cal-tooltip-title-block">
-                                        <span class="exam-subject">${ex.subject}</span>
-                                        <span class="exam-component">${ex.component}</span>
+            
+            function addExams() {
+                let table = document.getElementById("calendar");
+                for (let i=1, row; row=table.rows[i]; i++) {
+                    for (let j=0, col; col=row.cells[j]; j++) {
+                        let nday = Number(col.id.split(" ")[0])
+                        let nmonth = Number(col.id.split(" ")[1]) + 1
+                        let examsOnDay = active.filter(e => [...e.date.split("/")][0] == nday && [...e.date.split("/")][1] == nmonth);
+                        if (examsOnDay.length > 0) {
+                            for (let i=0; i<examsOnDay.length; i++) {
+                                const ex = examsOnDay[i];
+                                const examDiv = document.createElement('div');
+                                examDiv.className = 'cal-exam';
+                                
+                                                            const isOtherExam = activeFilters.size > 0 && !activeFilters.has(ex.subject);
+                                if (isOtherExam) {
+                                    examDiv.classList.add('other-exam');
+                                }
+                                
+                                examDiv.dataset.code = ex.code;
+                                const now = Date.now();
+                                const state = getState(ex.start, ex.end, now);
+                                const statusBadge = state === 'inprogress'
+                                ? `<span class="status-badge inprogress">● IN PROGRESS</span>`
+                                : state === 'over' ? `<span class="status-badge over">EXAM OVER</span>` : '';
+                                const msLeft = ex.start - now;
+                                const timerText = state === 'upcoming' ? fmtCountdown(msLeft) : '–';
+                                const frac=state==='upcoming'?getFrac(msLeft):0;
+                                const color=state==='upcoming'?fracToColor(frac):state==='inprogress'?'#a855f7':'#3b82f6';
+                                
+                                                            if (!isOtherExam) {
+                                    examDiv.style.borderLeftColor = color;
+                                }
+                                
+                                examDiv.innerHTML = `<span class="cal-exam-subject">${ex.subject}</span><span class="cal-exam-component">${ex.component}</span>`;
+                                examDiv.innerHTML += `<div class="cal-exam-tooltip" style="border-left-color: ${color}">
+                                    <div class="cal-tooltip-top">
+                                        <div class="cal-tooltip-title-block">
+                                            <span class="exam-subject">${ex.subject}</span>
+                                            <span class="exam-component">${ex.component}</span>
+                                        </div>
+                                        ${statusBadge}
                                     </div>
-                                    ${statusBadge}
-                                </div>
-                                <div class="exam-meta">
-                                    <span class="badge"><i class="fas fa-calendar"></i> ${ex.date}/26</span>
-                                    <span class="badge"><i class="fas fa-scroll"></i> ${ex.board} ${ex.level}</span>
-                                    <span class="badge"><i class="fas fa-code"></i> ${ex.code}</span>
-                                    <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
-                                    <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
-                                </div>
-                                <div class="countdown-block">
-                                    <span class="countdown-timer${state !== 'upcoming' ? ' dim' : ''}" data-code="${ex.code}">${timerText}</span>
-                                    <div class="progress-wrap"><div class="progress-bar" data-bar="${ex.code}" style="width:${(getFrac(msLeft)*100).toFixed(3)}%;background:${fracToColor(getFrac(msLeft))}"></div></div>
-                                </div>
-                            </div>`;
-                            col.appendChild(examDiv);
+                                    <div class="exam-meta">
+                                        <span class="badge"><i class="fas fa-calendar"></i> ${ex.date}/26</span>
+                                        <span class="badge"><i class="fas fa-scroll"></i> ${ex.board} ${ex.level}</span>
+                                        <span class="badge"><i class="fas fa-code"></i> ${ex.code}</span>
+                                        <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
+                                        <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
+                                    </div>
+                                    <div class="countdown-block">
+                                        <span class="countdown-timer${state !== 'upcoming' ? ' dim' : ''}" data-code="${ex.code}">${timerText}</span>
+                                        <div class="progress-wrap"><div class="progress-bar" data-bar="${ex.code}" style="width:${(getFrac(msLeft)*100).toFixed(3)}%;background:${fracToColor(getFrac(msLeft))}"></div></div>
+                                    </div>
+                                </div>`;
+                                col.appendChild(examDiv);
+                            }
                         }
                     }
                 }
             }
+            createCalendar(offsetDate.valueOf());
+            addExams();
         }
-        createCalendar(offsetDate.valueOf());
-        addExams();
-    }
+        }
     }
 
-        updateSidebarTimers();
-
-        if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
+    updateSidebarTimers();
+    if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
 }
 
 function makeCard(ex,idx){
