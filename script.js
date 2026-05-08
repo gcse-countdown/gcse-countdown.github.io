@@ -1311,7 +1311,9 @@ function renderProgressTracker() {
     const now = Date.now();
     const allExams = activeFilters.size === 0 ? exams : currentFiltered;
 
-        const subjectStats = {};
+    let totalCompleted = 0;
+
+    const subjectStats = {};
     allExams.forEach(e => {
         const w = Number(e.weight) || 1;
         if (!subjectStats[e.subject]) {
@@ -1320,6 +1322,7 @@ function renderProgressTracker() {
         subjectStats[e.subject].totalWeight += w;
         if (getState(e.start, e.end, now) === 'over') {
             subjectStats[e.subject].completedWeight += w;
+            totalCompleted += 1;
         }
     });
 
@@ -1351,15 +1354,53 @@ function renderProgressTracker() {
         const lastExam = allExams[allExams.length - 1];
     const daysRemaining = lastExam ? Math.max(0, Math.ceil((lastExam.end - now) / (1000 * 60 * 60 * 24))) : 0;
 
-        document.getElementById('progressCirclePercent').textContent = percent + '%';
+    document.getElementById('progressCircleLabel').textContent = `of ${numSubjects} GCSEs`;
+    document.getElementById('progressCirclePercent').textContent = percent + '%';
 
-        const circle = document.querySelector('.progress-fill');
+    const circle = document.querySelector('.progress-fill');
     if (circle) {
         const circumference = 595.9;
         circle.style.strokeDashoffset = circumference * (1 - percent / 100);
     }
 
-        const subjectsList = document.getElementById('progressSubjectsList');
+    // ── Hours circle ──
+    const totalMin = allExams.reduce((sum, e) => sum + (Number(e.durationMin) || 0), 0);
+    const doneMin  = allExams.filter(e => getState(e.start, e.end, now) === 'over')
+                             .reduce((sum, e) => sum + (Number(e.durationMin) || 0), 0);
+    const remainMin = totalMin - doneMin;
+
+    function fmtHoursMin(min) {
+        const h = Math.floor(min / 60), m = min % 60;
+        if (!h) return `${m}m`;
+        if (!m) return `${h}h`;
+        return `${h}h ${m}m`;
+    }
+
+    const hoursDoneEl      = document.getElementById('hoursCircleDone');
+    const hoursLabelEl     = document.getElementById('hoursCircleLabel');
+    const hoursCircle      = document.querySelector('.hours-fill');
+
+    if (hoursDoneEl)   hoursDoneEl.textContent   = fmtHoursMin(doneMin);
+    if (hoursLabelEl)  hoursLabelEl.textContent  = `of ${fmtHoursMin(totalMin)}`;
+    if (hoursCircle) {
+        const circumference = 595.9;
+        const hoursFrac = totalMin > 0 ? doneMin / totalMin : 0;
+        hoursCircle.style.strokeDashoffset = circumference * (1 - hoursFrac);
+    }
+
+    const examsDoneEl      = document.getElementById('examsCircleDone');
+    const examsLabelEl     = document.getElementById('examsCircleLabel');
+    const examsCircle      = document.querySelector('.exams-fill');
+
+    if (examsDoneEl)   examsDoneEl.textContent   = totalCompleted;
+    if (examsLabelEl)  examsLabelEl.textContent  = `of ${allExams.length} exams`;
+    if (examsCircle) {
+        const circumference = 595.9;
+        const examsFrac = allExams.length > 0 ? totalCompleted / allExams.length : 0;
+        examsCircle.style.strokeDashoffset = circumference * (1 - examsFrac);
+    }
+
+    const subjectsList = document.getElementById('progressSubjectsList');
     if (!subjectsList) return;
 
     subjectsList.innerHTML = '';
@@ -1367,7 +1408,7 @@ function renderProgressTracker() {
         const cwPct = COURSEWORK[subject] || 0;
         const writtenPct = 100 - cwPct;
         const writtenFillPct = stats.totalWeight > 0 ? (stats.completedWeight / stats.totalWeight) * writtenPct : 0;
-        const countText = (writtenFillPct + cwPct).toFixed(1) + '%';
+        const countText = Number((writtenFillPct + cwPct).toFixed(1)) + '%';
 
         let html = '<div class="subject-progress-item">' +
             '<div class="subject-progress-label">' + subject + '</div>' +

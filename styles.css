@@ -4,7 +4,7 @@
     --surface2: #1c1c26;
     --border: #2a2a38;
     --text: #e8e8f0;
-    --text-muted: #a2a2b9;
+    --text-muted: #848497;
     --text-dim: #4c4c55;
     --accent: #c8b8ff;
     --grid-line: rgba(200,184,255,0.03);
@@ -940,11 +940,39 @@ body.progress .empty-state { display: none; }
 }
 
 /* ── Circular Progress ── */
+
+/* Row holding both circles */
+.progress-circles-row {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+
+/* Wrapper for each individual circle + caption */
+.progress-circle-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.progress-circle-caption {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: center;
+}
+
 .progress-circle-container {
     position: relative;
     width: 200px;
     height: 200px;
-    margin: 0 auto 40px;
+    margin: 0;
 }
 
 .progress-circle {
@@ -959,9 +987,8 @@ body.progress .empty-state { display: none; }
     stroke-width: 8;
 }
 
-.progress-fill {
+.circle-fill {
     fill: none;
-    stroke: url(#progressGradient);
     stroke-width: 8;
     stroke-linecap: round;
     stroke-dasharray: 595.9;
@@ -979,10 +1006,9 @@ body.progress .empty-state { display: none; }
 
 .progress-text-percent {
     display: block;
-    font-family: 'DM Mono', monospace;
-    font-size: 32px;
+    font-family: 'DM Sans', 'DM Mono', monospace;
+    font-size: 27px;
     font-weight: 700;
-    color: var(--accent);
     line-height: 1;
 }
 
