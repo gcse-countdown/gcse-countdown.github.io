@@ -195,7 +195,8 @@ function rebuildExams() {
         exams.forEach(e=>{ if(!(e.code in prevStates)) prevStates[e.code]=getState(e.start,e.end,Date.now()); });
 }
 
-const ALL_SUBJECTS=[...new Set(baseExams.map(e=>e.subject))];
+// Collect all subjects that actually appear in the data, plus coursework-only subjects
+const ALL_SUBJECTS = [...new Set([...baseExams.map(e => e.subject), ...Object.keys(COURSEWORK)])];
 
 let activeFilters=load(STORAGE_KEY) || [];
 let lastFilterCount = activeFilters.size;
@@ -739,7 +740,7 @@ CATEGORIES.forEach(cat=>{
             else                 { activeFilters.add(s);        subjectBtnMap[s]&&subjectBtnMap[s].classList.add('active'); }
         });
         refreshCategoryLabels();
-        updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); renderExams(); renderSpeakingDates();
+        updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); rebuildExams(); renderExams(); renderSpeakingDates();
     });
 
     const line=document.createElement('div');
@@ -761,7 +762,7 @@ CATEGORIES.forEach(cat=>{
             if(btn.classList.contains('active')){ btn.classList.remove('active'); activeFilters.delete(subj); }
             else { btn.classList.add('active'); activeFilters.add(subj); }
             refreshCategoryLabels();
-            updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); renderExams(); renderSpeakingDates();
+            updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); rebuildExams(); renderExams(); renderSpeakingDates();
         });
         grid.appendChild(btn);
     });
@@ -776,7 +777,7 @@ document.getElementById('clearFilters').addEventListener('click',()=>{
     activeFilters.clear();
     Object.values(subjectBtnMap).forEach(b=>b.classList.remove('active'));
     refreshCategoryLabels();
-    updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); renderExams(); renderSpeakingDates();
+    updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); rebuildExams(); renderExams(); renderSpeakingDates();
 });
 
 function toggleMenusVisibility() {
@@ -1308,16 +1309,24 @@ function makeCard(ex,idx){
 
 function renderProgressTracker() {
     const now = Date.now();
-    const allExams = currentFiltered.length > 0 ? currentFiltered : exams;
+    const allExams = activeFilters.size === 0 ? exams : currentFiltered;
 
         const subjectStats = {};
     allExams.forEach(e => {
+        const w = Number(e.weight) || 1;
         if (!subjectStats[e.subject]) {
-            subjectStats[e.subject] = { total: 0, completed: 0 };
+            subjectStats[e.subject] = { totalWeight: 0, completedWeight: 0 };
         }
-        subjectStats[e.subject].total++;
+        subjectStats[e.subject].totalWeight += w;
         if (getState(e.start, e.end, now) === 'over') {
-            subjectStats[e.subject].completed++;
+            subjectStats[e.subject].completedWeight += w;
+        }
+    });
+
+    // Ensure coursework-only subjects show up in progress output only when they are in the active filters
+    Object.keys(COURSEWORK).forEach(subject => {
+        if ((activeFilters.size === 0 || activeFilters.has(subject)) && !subjectStats[subject]) {
+            subjectStats[subject] = { totalWeight: 0, completedWeight: 0 };
         }
     });
 
@@ -1329,8 +1338,9 @@ function renderProgressTracker() {
         const stats = subjectStats[subject];
         const cwPct = COURSEWORK[subject] || 0;
         const writtenPct = 100 - cwPct;
-        const writtenDoneFrac = stats.total > 0 ? (stats.completed / stats.total) : 0;
-                const subjectFrac = (cwPct + writtenDoneFrac * writtenPct) / 100;
+        const writtenDoneFrac = stats.totalWeight > 0 ? (stats.completedWeight / stats.totalWeight) : 0;
+        // subject's contribution = (cw always done + written proportion done) / 100, weighted 1/N
+        const subjectFrac = (cwPct + writtenDoneFrac * writtenPct) / 100;
         overallFrac += subjectFrac / numSubjects;
     });
     const percent = numSubjects > 0 ? Math.round(overallFrac * 100 * 10) / 10 : 0;
@@ -1356,8 +1366,8 @@ function renderProgressTracker() {
     Object.entries(subjectStats).sort((a, b) => a[0].localeCompare(b[0])).forEach(([subject, stats]) => {
         const cwPct = COURSEWORK[subject] || 0;
         const writtenPct = 100 - cwPct;
-        const writtenFillPct = stats.total > 0 ? (stats.completed / stats.total) * writtenPct : 0;
-        const countText = (writtenFillPct + cwPct).toFixed(0) + '%';
+        const writtenFillPct = stats.totalWeight > 0 ? (stats.completedWeight / stats.totalWeight) * writtenPct : 0;
+        const countText = (writtenFillPct + cwPct).toFixed(1) + '%';
 
         let html = '<div class="subject-progress-item">' +
             '<div class="subject-progress-label">' + subject + '</div>' +
@@ -1637,11 +1647,13 @@ function ensureSubject(name) {
     return asstData.subjects[name];
 }
 function ensureCW() {
-    if (!asstData.coursework) asstData.coursework = { history: {}, sc: {} };
+    if (!asstData.coursework) asstData.coursework = { history: {}, sc: {}, art: {}, electronics: {}, music: {}, drama: {} };
 }
 
 function getActiveSubjects() {
-        const all = [...new Set(baseExams.map(e => e.subject))].sort();
+    const examSubjects = [...new Set(baseExams.map(e => e.subject))];
+    const courseworkSubjects = Object.keys(COURSEWORK).filter(s => !examSubjects.includes(s));
+    const all = [...new Set([...examSubjects, ...courseworkSubjects])].sort();
     if (!activeFilters || activeFilters.size === 0) return all;
     return all.filter(s => activeFilters.has(s));
 }
@@ -1694,26 +1706,32 @@ function calcPredictions() {
         results[subj] = { pct: predicted, grade: pctToGrade(predicted), priority };
     });
 
-        const cw = asstData.coursework || {};
-    if (cw.history?.pct !== undefined && cw.history?.pct !== '') {
-        if (!results['History']) results['History'] = { pct: +cw.history.pct, grade: pctToGrade(+cw.history.pct), priority: 5 };
-        else {
-                        const examPct = results['History'].pct;
-            const cwPct = +cw.history.pct;
-            results['History'].pct = 0.7 * examPct + 0.3 * cwPct;
-            results['History'].grade = pctToGrade(results['History'].pct);
+    // Incorporate coursework into subject predictions
+    const cw = asstData.coursework || {};
+    const courseworkSubjects = Object.keys(COURSEWORK).reduce((acc, subject) => {
+        const ids = getCWFieldIds(subject);
+        acc[subject] = cw[ids.key];
+        return acc;
+    }, {});
+    Object.entries(courseworkSubjects).forEach(([subject, data]) => {
+        if (!data?.pct && data?.pct !== 0 && data?.pct !== '0') return;
+        const pct = +data.pct;
+        if (isNaN(pct)) return;
+
+        if (!results[subject]) {
+            results[subject] = { pct, grade: pctToGrade(pct), priority: 5 };
+        } else {
+            const examPct = results[subject].pct;
+            const cwWeight = COURSEWORK[subject] || 0;
+            const examWeight = 100 - cwWeight;
+            if (examWeight <= 0) {
+                results[subject].pct = pct;
+            } else {
+                results[subject].pct = (cwWeight * pct + examWeight * examPct) / 100;
+            }
+            results[subject].grade = pctToGrade(results[subject].pct);
         }
-    }
-    if (cw.sc?.pct !== undefined && cw.sc?.pct !== '') {
-        const scSubj = 'S&C / PD';
-        if (!results[scSubj]) results[scSubj] = { pct: +cw.sc.pct, grade: pctToGrade(+cw.sc.pct), priority: 5 };
-        else {
-            const examPct = results[scSubj].pct;
-            const cwPct = +cw.sc.pct;
-            results[scSubj].pct = 0.5 * examPct + 0.5 * cwPct;
-            results[scSubj].grade = pctToGrade(results[scSubj].pct);
-        }
-    }
+    });
 
     return results;
 }
@@ -1746,16 +1764,21 @@ function calcRevisionPriority(predictions) {
         ranked.push({ subj, score, basePct, userPri });
     });
 
-        const cw = asstData.coursework || {};
-    ['History', 'S&C / PD'].forEach(s => {
-        if (!ranked.find(r => r.subj === s)) {
-            const cwPct = s === 'History' ? +cw.history?.pct : +cw.sc?.pct;
-            if (!isNaN(cwPct) && cwPct > 0) {
-                const sd = asstData.subjects?.[s];
-                const userPri = +(sd?.priority || 5);
-                const score = (100 - cwPct) * (userPri / 5);
-                ranked.push({ subj: s, score, basePct: cwPct, userPri });
-            }
+    // Incorporate coursework subjects that have no exam papers
+    const cw = asstData.coursework || {};
+    const courseworkSubjects = Object.keys(COURSEWORK).reduce((acc, subject) => {
+        const ids = getCWFieldIds(subject);
+        acc[subject] = cw[ids.key];
+        return acc;
+    }, {});
+    Object.entries(courseworkSubjects).forEach(([subj, pctValue]) => {
+        if (ranked.find(r => r.subj === subj)) return;
+        const cwPct = pctValue === undefined || pctValue === '' ? NaN : +pctValue;
+        if (!isNaN(cwPct)) {
+            const sd = asstData.subjects?.[subj];
+            const userPri = +(sd?.priority || 5);
+            const score = (100 - cwPct) * (userPri / 5);
+            ranked.push({ subj, score, basePct: cwPct, userPri });
         }
     });
 
@@ -1950,6 +1973,48 @@ function buildPPRows(subj) {
     <button class="asst-add-pp" data-subj="${subj}"><i class="fas fa-plus"></i> Add Past Paper</button>`;
 }
 
+// ── Render input pane ─────────────────────────────────────────────────────
+function normalizeCWKey(subject) {
+    return subject.toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+function getCWFieldIds(subject) {
+    const key = normalizeCWKey(subject);
+    return { key, pctId: `cw${key}Pct`, gradeId: `cw${key}Grade` };
+}
+function courseworkLabel(subject) {
+    if (subject === 'S&C / PD') return 'S&C / PD NEA';
+    return `${subject} Coursework`;
+}
+function renderCourseworkHTML() {
+    const grid = document.getElementById('asstCourseworkGrid');
+    if (!grid) return;
+    grid.innerHTML = Object.keys(COURSEWORK).map(subject => {
+        const ids = getCWFieldIds(subject);
+        return `<div class="asst-coursework-row" data-subject="${subject}">
+            <span class="asst-cw-label">${courseworkLabel(subject)}</span>
+            <input class="asst-input-sm" type="number" min="0" max="100" placeholder="%" id="${ids.pctId}" title="Mark as %">
+            <input class="asst-input-sm asst-grade" type="number" min="1" max="9" placeholder="1-9" id="${ids.gradeId}" title="Grade">
+        </div>`;
+    }).join('');
+}
+function renderCourseworkInputs() {
+    const selectedCoursework = activeFilters.size === 0
+        ? Object.keys(COURSEWORK)
+        : Object.keys(COURSEWORK).filter(subject => activeFilters.has(subject));
+
+    Object.keys(COURSEWORK).forEach(subject => {
+        const ids = getCWFieldIds(subject);
+        const row = document.querySelector(`.asst-coursework-row[data-subject="${subject}"]`);
+        if (!row) return;
+        row.style.display = selectedCoursework.includes(subject) ? '' : 'none';
+    });
+
+    const grid = document.getElementById('asstCourseworkGrid');
+    if (grid) {
+        grid.style.display = selectedCoursework.length > 0 ? '' : 'none';
+    }
+}
+
 function renderInputPane() {
     const subjects = getActiveSubjects();
     const container = document.getElementById('asstSubjectInputs');
@@ -1992,7 +2057,9 @@ function renderInputPane() {
         </div>`;
     }).join('');
 
-        attachInputEvents();
+    // Attach events
+    attachInputEvents();
+    renderCourseworkInputs();
 }
 
 function attachInputEvents() {
@@ -2099,12 +2166,13 @@ function reAttachPPEvents(subj, ppSection) {
 }
 
 function attachCourseworkEvents() {
-    const fields = [
-        ['cwHistoryPct', 'history', 'pct'],
-        ['cwHistoryGrade', 'history', 'grade'],
-        ['cwSCPct', 'sc', 'pct'],
-        ['cwSCGrade', 'sc', 'grade'],
-    ];
+    const fields = Object.keys(COURSEWORK).flatMap(subject => {
+        const ids = getCWFieldIds(subject);
+        return [
+            [ids.pctId, ids.key, 'pct'],
+            [ids.gradeId, ids.key, 'grade'],
+        ];
+    });
     fields.forEach(([id, key, field]) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -2174,10 +2242,12 @@ function buildAISystemPrompt() {
     const predLines = Object.entries(predictions).map(([s,v]) => `  ${s}: ${v.pct.toFixed(1)}% → grade ${v.grade}`).join('\n');
 
     const cw = asstData.coursework || {};
-    const cwLines = [
-        cw.history?.pct ? `  History Coursework: ${cw.history.pct}% (grade ${cw.history.grade||'?'})` : null,
-        cw.sc?.pct ? `  S&C NEA: ${cw.sc.pct}% (grade ${cw.sc.grade||'?'})` : null,
-    ].filter(Boolean).join('\n');
+    const cwLines = Object.keys(COURSEWORK).map(subject => {
+        const ids = getCWFieldIds(subject);
+        const data = cw[ids.key];
+        if (!data?.pct && data?.pct !== 0 && data?.pct !== '0') return null;
+        return `  ${courseworkLabel(subject)}: ${data.pct}% (grade ${data.grade||'?'})`;
+    }).filter(Boolean).join('\n');
 
     return `You are a helpful GCSE revision assistant, whose name is Dale. Introduce yourself as Dale at the start of your conversation. Here is the student's data:
 
@@ -2381,6 +2451,7 @@ if (typeof _origRenderExams === 'function') {
 function init() {
     initTabs();
     initExpand();
+    renderCourseworkHTML();
     attachCourseworkEvents();
     renderInputPane();
 }
