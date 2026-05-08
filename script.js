@@ -2563,7 +2563,7 @@ addEventListener("beforeunload", (e) => {
     for (const exam in currentFiltered) {
         ex = (currentFiltered[exam]);
         if (getState(ex.start, ex.end, Date.now()) == "over") {
-            finishedExams.add(ex.component);
+            finishedExams.add(`${ex.subject}: ${ex.component}`)
         }
     }
     save(FINISHED_EXAMS_KEY, finishedExams); //comment out for testing so you can just add other exams to test
