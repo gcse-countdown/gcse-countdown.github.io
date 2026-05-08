@@ -2158,8 +2158,8 @@ function getCWFieldIds(subject) {
     return { key, pctId: `cw${key}Pct`, gradeId: `cw${key}Grade` };
 }
 function courseworkLabel(subject) {
-    if (subject === 'S&C / PD') return 'S&C NEA';
-    return subject === 'Art' ? 'Art Coursework' : `${subject} Coursework`;
+    if (subject === 'S&C / PD') return 'S&C / PD NEA';
+    return `${subject} Coursework`;
 }
 function renderCourseworkHTML() {
     const grid = document.getElementById('asstCourseworkGrid');
