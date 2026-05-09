@@ -1020,6 +1020,65 @@ body.progress .empty-state { display: none; }
     letter-spacing: 0.05em;
 }
 
+@media (max-width: 768px) {
+    .progress-circles-row {
+        flex-direction: column;
+        gap: 18px;
+        align-items: stretch;
+    }
+
+    .progress-circle-wrap {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        gap: 14px;
+        padding: 8px 0;
+        min-width: 0;
+    }
+
+    .progress-circle-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        width: auto;
+        height: auto;
+        min-width: 0;
+    }
+
+    .progress-circle {
+        width: 80px;
+        height: 80px;
+        flex: none;
+    }
+
+    .progress-text {
+        position: static;
+        transform: none;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        padding-right: 0;
+    }
+
+    .progress-text-percent {
+        font-size: 22px;
+    }
+
+    .progress-text-label {
+        font-size: 12px;
+        margin-top: 6px;
+    }
+}
+
 /* ── Milestone Celebration ── */
 .progress-milestone {
     background: rgba(168, 85, 247, 0.1);

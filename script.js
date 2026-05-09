@@ -1337,6 +1337,21 @@ function renderProgressTracker() {
         }
     });
 
+    // Always include MFL subjects in progress mode and treat the speaking exam as completed when it exists.
+    MFL_SUBJECTS.forEach(subject => {
+        if (activeFilters.size === 0 || activeFilters.has(subject)) {
+            if (!subjectStats[subject]) {
+                subjectStats[subject] = { totalWeight: 0, completedWeight: 0 };
+            }
+
+            const hasSpeakingExam = allExams.some(e => e.subject === subject && e.isSpeaking);
+            if (!hasSpeakingExam) {
+                subjectStats[subject].completedWeight = Math.min(subjectStats[subject].completedWeight + 1, 4);                
+            }
+            subjectStats[subject].totalWeight = 4;
+        }
+    });
+
     const subjects = Object.keys(subjectStats);
     const numSubjects = subjects.length;
 
