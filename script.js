@@ -1365,7 +1365,7 @@ function renderProgressTracker() {
         const subjectFrac = (cwPct + writtenDoneFrac * writtenPct) / 100;
         overallFrac += subjectFrac / numSubjects;
     });
-    const percent = numSubjects > 0 ? Math.round(overallFrac * 100 * 10) / 10 : 0;
+    const percent = numSubjects > 0 ? Number((overallFrac * 100).toFixed(1)) : 0;
 
         const completedPapers = allExams.filter(e => getState(e.start, e.end, now) === 'over').length;
     const totalPapers = allExams.length;
