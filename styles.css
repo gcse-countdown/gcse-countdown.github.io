@@ -1382,7 +1382,7 @@ html.light .cal-exam {
 .cal-exam.other-exam {
     border-left: none;
     background: rgba(107,107,127,0.08);
-    opacity: 0.7;
+    opacity: 0.8;
 }
 
 html.light .cal-exam.other-exam {
@@ -1439,7 +1439,7 @@ html.light .cal-exam.other-exam {
     top: calc(100% + 6px);
     min-width: 280px;
     max-width: 340px;
-    background: var(--surface2);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-left-width: 3px;
     border-radius: 10px;

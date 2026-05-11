@@ -126,6 +126,30 @@ function fmtCountdown(ms){
     return`${String(d).padStart(2,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
 }
 
+function makeCountdownBlock(ex, state, now, color, barId) {
+    const msUntilStart = ex.start - now;
+    const msUntilEnd = ex.end - now;
+    const timerText = state === 'upcoming'
+        ? fmtCountdown(msUntilStart)
+        : state === 'inprogress'
+            ? `Ends in ${fmtCountdown(msUntilEnd)}`
+            : '–';
+    const duration = ex.end - ex.start;
+    const barFraction = state === 'upcoming'
+        ? getFrac(msUntilStart)
+        : state === 'inprogress'
+            ? Math.max(0, Math.min(1, msUntilEnd / duration))
+            : 0;
+    const barColor = state === 'upcoming'
+        ? fracToColor(getFrac(msUntilStart))
+        : color;
+    const barStyle = `width:${(barFraction * 100).toFixed(3)}%;background:${barColor}`;
+    return `<div class="countdown-block">
+            <span class="countdown-timer" data-code="${barId}">${timerText}</span>
+            <div class="progress-wrap"><div class="progress-bar" data-bar="${barId}" style="${barStyle}"></div></div>
+        </div>`;
+}
+
 function buildSpeakingExams() {
     const result = [];
             const saved = load(SPEAKING_KEY);
@@ -1028,9 +1052,7 @@ function renderMultiMonthCalendar(list, active, filtered) {
             ? `<span class="status-badge inprogress">● IN PROGRESS</span>`
             : state === 'over' ? `<span class="status-badge over">EXAM OVER</span>` : '';
         const msLeft = ex.start - now;
-        const timerText = state === 'upcoming' ? fmtCountdown(msLeft) : '–';
-        const frac = state === 'upcoming' ? getFrac(msLeft) : 0;
-        const color = state === 'upcoming' ? fracToColor(frac) : state === 'inprogress' ? '#a855f7' : '#3b82f6';
+        const color = state === 'upcoming' ? fracToColor(getFrac(msLeft)) : state === 'inprogress' ? '#a855f7' : '#3b82f6';
         
                 if (!isOtherExam) {
             examDiv.style.borderLeftColor = color;
@@ -1052,10 +1074,7 @@ function renderMultiMonthCalendar(list, active, filtered) {
                 <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
                 <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
             </div>
-            <div class="countdown-block">
-                <span class="countdown-timer${state !== 'upcoming' ? ' dim' : ''}" data-code="${ex.code}">${timerText}</span>
-                <div class="progress-wrap"><div class="progress-bar" data-bar="${ex.code}" style="width:${(getFrac(msLeft)*100).toFixed(3)}%;background:${fracToColor(getFrac(msLeft))}"></div></div>
-            </div>
+            ${makeCountdownBlock(ex, state, now, color, ex.code)}
         </div>`;
         td.appendChild(examDiv);
     });
@@ -1211,9 +1230,7 @@ function renderExams(){
                                 ? `<span class="status-badge inprogress">● IN PROGRESS</span>`
                                 : state === 'over' ? `<span class="status-badge over">EXAM OVER</span>` : '';
                                 const msLeft = ex.start - now;
-                                const timerText = state === 'upcoming' ? fmtCountdown(msLeft) : '–';
-                                const frac=state==='upcoming'?getFrac(msLeft):0;
-                                const color=state==='upcoming'?fracToColor(frac):state==='inprogress'?'#a855f7':'#3b82f6';
+                                const color = state === 'upcoming' ? fracToColor(getFrac(msLeft)) : state === 'inprogress' ? '#a855f7' : '#3b82f6';
                                 
                                                             if (!isOtherExam) {
                                     examDiv.style.borderLeftColor = color;
@@ -1235,10 +1252,7 @@ function renderExams(){
                                         <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
                                         <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
                                     </div>
-                                    <div class="countdown-block">
-                                        <span class="countdown-timer${state !== 'upcoming' ? ' dim' : ''}" data-code="${ex.code}">${timerText}</span>
-                                        <div class="progress-wrap"><div class="progress-bar" data-bar="${ex.code}" style="width:${(getFrac(msLeft)*100).toFixed(3)}%;background:${fracToColor(getFrac(msLeft))}"></div></div>
-                                    </div>
+                                    ${makeCountdownBlock(ex, state, now, color, ex.code)}
                                 </div>`;
                                 col.appendChild(examDiv);
                             }
@@ -1258,14 +1272,12 @@ function renderExams(){
 
 function makeCard(ex,idx){
     const now=Date.now(),state=getState(ex.start,ex.end,now),msLeft=ex.start-now;
-    const frac=state==='upcoming'?getFrac(msLeft):0;
-    const color=state==='upcoming'?fracToColor(frac):state==='inprogress'?'#a855f7':'#3b82f6';
+    const color=state==='upcoming'?fracToColor(getFrac(msLeft)):state==='inprogress'?'#a855f7':'#3b82f6';
     const card=document.createElement('div');
     card.className=`exam-card state-${state}${ex.isSpeaking?' speaking-card':''}`;
     card.style.borderLeftColor=color;
     card.style.animationDelay=`${Math.min(idx*20,300)}ms`;
     card.dataset.code=ex.code;
-    const timerText=state==='upcoming'?fmtCountdown(msLeft):'–';
     const statusBadge=state==='inprogress'
         ?`<span class="status-badge inprogress">● IN PROGRESS</span>`
         :state==='over'?`<span class="status-badge over">EXAM OVER</span>`:'';
@@ -1284,10 +1296,7 @@ function makeCard(ex,idx){
             <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
             <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
         </div>
-        <div class="countdown-block">
-            <span class="countdown-timer${state!=='upcoming'?' dim':''}" data-code="${ex.code}">${timerText}</span>
-            <div class="progress-wrap"><div class="progress-bar" data-bar="${ex.code}" style="width:${(frac*100).toFixed(3)}%;background:${color}"></div></div>
-        </div>
+        ${makeCountdownBlock(ex, state, now, color, ex.code)}
         <div class="card-hover-tooltip">
             <div class="cal-tooltip-top">
                 <div class="cal-tooltip-title-block">
@@ -1303,11 +1312,8 @@ function makeCard(ex,idx){
                 <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
                 <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
             </div>
-                <div class="countdown-block">
-                <span class="countdown-timer${state!=='upcoming'?' dim':''}" data-code="${ex.code}-hover">${timerText}</span>
-                <div class="progress-wrap"><div class="progress-bar" data-bar="${ex.code}-hover" style="width:${(frac*100).toFixed(3)}%;background:${color}"></div></div>
-                </div>
-                </div>`;
+            ${makeCountdownBlock(ex, state, now, color, `${ex.code}-hover`)}
+        </div>`;
     return card;
 }
 
@@ -1594,18 +1600,35 @@ function tick(){
     document.querySelectorAll('[data-code]').forEach(el=>{
         if(!el.classList.contains('countdown-timer'))return;
         const code = el.dataset.code.replace('-hover','');
-        const exam=exams.find(x=>x.code===code);
-        if(!exam||getState(exam.start,exam.end,now)!=='upcoming')return;
-        const msLeft=exam.start-now;
-        el.textContent=fmtCountdown(msLeft);
-        const frac=getFrac(msLeft),color=fracToColor(frac);
-                if (!el.dataset.code.endsWith('-hover')) {
-            const bar=document.querySelector(`[data-bar="${exam.code}"]`);
-            if(bar){bar.style.width=(frac*100).toFixed(3)+'%';bar.style.background=color;}
-            const barHover=document.querySelector(`[data-bar="${exam.code}-hover"]`);
-            if(barHover){barHover.style.width=(frac*100).toFixed(3)+'%';barHover.style.background=color;}
-            const card=el.closest('.exam-card');
-            if(card)card.style.borderLeftColor=color;
+        const exam = exams.find(x=>x.code===code);
+        if(!exam) return;
+        const state = getState(exam.start, exam.end, now);
+        if(state !== 'upcoming' && state !== 'inprogress') return;
+
+        const msLeft = exam.start - now;
+        const msUntilEnd = exam.end - now;
+        const timerText = state === 'upcoming'
+            ? fmtCountdown(msLeft)
+            : `Ends in ${fmtCountdown(msUntilEnd)}`;
+        el.textContent = timerText;
+
+        if (!el.dataset.code.endsWith('-hover')) {
+            const bar = document.querySelector(`[data-bar="${exam.code}"]`);
+            const barHover = document.querySelector(`[data-bar="${exam.code}-hover"]`);
+            if (state === 'upcoming') {
+                const frac = getFrac(msLeft);
+                const color = fracToColor(frac);
+                if(bar){bar.style.width=(frac*100).toFixed(3)+'%'; bar.style.background=color;}
+                if(barHover){barHover.style.width=(frac*100).toFixed(3)+'%'; barHover.style.background=color;}
+                const card = el.closest('.exam-card');
+                if(card) card.style.borderLeftColor = color;
+            } else {
+                const duration = exam.end - exam.start;
+                const frac = Math.max(0, Math.min(1, msUntilEnd / duration));
+                const color = '#a855f7';
+                if(bar){bar.style.width=(frac*100).toFixed(3)+'%'; bar.style.background=color;}
+                if(barHover){barHover.style.width=(frac*100).toFixed(3)+'%'; barHover.style.background=color;}
+            }
         }
     });
 }
