@@ -511,12 +511,14 @@ function setAdvancedToggle(on) {
         document.getElementById("showOtherExamsWrapper").style.display = "none";
         document.getElementById("hideWeekends").style.display = "none";
         document.getElementById("hideAprilWrapper").style.display = "none";
-                document.querySelector(".controls-settings-box").classList.add("expanded");
+        document.getElementById("showOngoingExamsWrapper").style.display = "none";
+        document.querySelector(".controls-settings-box").classList.add("expanded");
     } else {
         console.log("active");
         advancedToggle = true;
         advancedOptsBtn.classList.add("cat-active");
         document.getElementById("legacyUI").style = "";
+        document.getElementById("showOngoingExamsWrapper").style.display = "";
         if (displayMode === DISPLAY_MODE_CALENDAR) {
             document.getElementById("legacyCal").style = "";
             document.getElementById("showOtherExamsWrapper").style = "";
@@ -525,7 +527,7 @@ function setAdvancedToggle(on) {
                 document.getElementById("hideAprilWrapper").style = "";
             }
         }
-                document.querySelector(".controls-settings-box").classList.remove("expanded");
+        document.querySelector(".controls-settings-box").classList.remove("expanded");
     }
     save(ADVANCED_KEY, advancedToggle);
 }
@@ -2642,7 +2644,7 @@ function makeConfetti(coord_x) {
     });
 }
 
-addEventListener("load", (e) => {
+window.addEventListener("load", (e) => {
     if (activeFilters.size > 0) {
         const lastsavedfinished = load(FINISHED_EXAMS_KEY);
         let finishedExams = new Set();
