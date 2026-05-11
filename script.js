@@ -286,16 +286,12 @@ function syncAllToggles() {
     if (showOngoingExamsToggle) showOngoingExamsToggle.checked = showOngoingExams;
     if (weekendsToggle) weekendsToggle.checked = weekends;
     if (hideAprilToggle) hideAprilToggle.checked = hideApril;
-    
-        if (showOngoingExamsWrapper) {
-        showOngoingExamsWrapper.style.display = (displayMode === DISPLAY_MODE_DEFAULT || displayMode === DISPLAY_MODE_COMPACT) ? '' : 'none';
-    }
 
-        if (calModeOnly) {
+    if (calModeOnly) {
         calModeOnly.forEach((el) => {el.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle) ? 'flex' : 'none'});
     }
     
-        if(defaultbtn) defaultbtn.classList.toggle('active', displayMode === DISPLAY_MODE_DEFAULT);
+    if(defaultbtn) defaultbtn.classList.toggle('active', displayMode === DISPLAY_MODE_DEFAULT);
     if(compactbtn) compactbtn.classList.toggle('active', displayMode === DISPLAY_MODE_COMPACT);
     if(calbtn) calbtn.classList.toggle('active', displayMode === DISPLAY_MODE_CALENDAR);
     if(progressbtn) progressbtn.classList.toggle('active', displayMode === DISPLAY_MODE_PROGRESS);
@@ -424,17 +420,21 @@ function setDisplayMode(newMode) {
     
         switch (displayMode) {
         case DISPLAY_MODE_COMPACT:
+            console.log(advancedToggle)
+            document.getElementById("showOngoingExamsWrapper").style.display = advancedToggle ? "" : "none";
             document.body.classList.add('compact');
             if(compactbtn) compactbtn.classList.add('active');
             if(progressContainer) progressContainer.style.display = 'none';
             break;
         case DISPLAY_MODE_CALENDAR:
             document.body.classList.add('cal');
+            document.getElementById("showOngoingExamsWrapper").style.display = "none";
             if(calbtn) calbtn.classList.add('active');
             if(progressContainer) progressContainer.style.display = 'none';
             break;
         case DISPLAY_MODE_PROGRESS:
             document.body.classList.add('progress');
+            document.getElementById("showOngoingExamsWrapper").style.display = "none";
             if(progressbtn) progressbtn.classList.add('active');
             if(progressContainer) progressContainer.style.display = 'block';
             renderProgressTracker();
@@ -443,15 +443,13 @@ function setDisplayMode(newMode) {
             if(assistantmodebtn) assistantmodebtn.classList.add('active');
             if(progressContainer) progressContainer.style.display = 'none';
             document.getElementById('examList').style.display = 'none'; 
+            document.getElementById("showOngoingExamsWrapper").style.display = "none";
             break;
         case DISPLAY_MODE_DEFAULT:
         default:
+            document.getElementById("showOngoingExamsWrapper").style.display = advancedToggle ? "" : "none";
             if(defaultbtn) defaultbtn.classList.add('active');
             if(progressContainer) progressContainer.style.display = 'none';
-    }
-    
-        if (showOngoingExamsWrapper) {
-        showOngoingExamsWrapper.style.display = (displayMode === DISPLAY_MODE_DEFAULT || displayMode === DISPLAY_MODE_COMPACT) ? '' : 'none';
     }
         if (calModeOnly) {
         calModeOnly.forEach((el) => {
@@ -518,7 +516,6 @@ function setAdvancedToggle(on) {
         advancedToggle = true;
         advancedOptsBtn.classList.add("cat-active");
         document.getElementById("legacyUI").style = "";
-        document.getElementById("showOngoingExamsWrapper").style.display = "";
         if (displayMode === DISPLAY_MODE_CALENDAR) {
             document.getElementById("legacyCal").style = "";
             document.getElementById("showOtherExamsWrapper").style = "";
@@ -526,7 +523,9 @@ function setAdvancedToggle(on) {
             if (!legacyCalMode) {
                 document.getElementById("hideAprilWrapper").style = "";
             }
-        }
+        } 
+        console.log((displayMode === DISPLAY_MODE_DEFAULT || displayMode === DISPLAY_MODE_COMPACT))
+        document.getElementById("showOngoingExamsWrapper").style.display = (displayMode === DISPLAY_MODE_DEFAULT || displayMode === DISPLAY_MODE_COMPACT) ? "" : "none"; 
         document.querySelector(".controls-settings-box").classList.remove("expanded");
     }
     save(ADVANCED_KEY, advancedToggle);
