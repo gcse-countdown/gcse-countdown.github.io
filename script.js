@@ -20,7 +20,7 @@ const COURSEWORK = {
     "Drama": 60,
 };
 
-const STORAGE_KEY = 'filters_v3';
+const FILTERS_KEY = 'filters_v3';
 const DISPLAY_MODE_KEY = 'display_mode_v1';
 const LEGACY_CAL_KEY = 'legacy_calendar_mode';
 const LIGHT_KEY = 'light_mode';
@@ -51,7 +51,7 @@ const SETTINGS_CONFIG = {
     [LIGHT_KEY]: { type: 'bool', default: false },
     [TOPBAR_KEY]: { type: 'bool', default: false },
     [FILTER_COLLAPSED_KEY]: { type: 'bool', default: false },
-    [STORAGE_KEY]: { type: 'set', default: new Set() },
+    [FILTERS_KEY]: { type: 'set', default: new Set() },
     [PLANNER_KEY]: { type: 'json', default: null },
     [SPEAKING_KEY]: { type: 'json', default: {} },
     [ADVANCED_KEY]: {type: 'bool', default: false},
@@ -198,7 +198,7 @@ function rebuildExams() {
 // Collect all subjects that actually appear in the data, plus coursework-only subjects
 const ALL_SUBJECTS = [...new Set([...baseExams.map(e => e.subject), ...Object.keys(COURSEWORK)])];
 
-let activeFilters=load(STORAGE_KEY) || [];
+let activeFilters=load(FILTERS_KEY) || [];
 let lastFilterCount = activeFilters.size;
 activeFilters.forEach(s=>{if(!ALL_SUBJECTS.includes(s))activeFilters.delete(s);});
 
@@ -741,7 +741,7 @@ CATEGORIES.forEach(cat=>{
             else                 { activeFilters.add(s);        subjectBtnMap[s]&&subjectBtnMap[s].classList.add('active'); }
         });
         refreshCategoryLabels();
-        updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); rebuildExams(); renderExams(); renderSpeakingDates();
+        updateClearBtn(); updateFilterCount(); save(FILTERS_KEY, activeFilters); rebuildExams(); renderExams(); renderSpeakingDates();
     });
 
     const line=document.createElement('div');
@@ -763,7 +763,7 @@ CATEGORIES.forEach(cat=>{
             if(btn.classList.contains('active')){ btn.classList.remove('active'); activeFilters.delete(subj); }
             else { btn.classList.add('active'); activeFilters.add(subj); }
             refreshCategoryLabels();
-            updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); rebuildExams(); renderExams(); renderSpeakingDates();
+            updateClearBtn(); updateFilterCount(); save(FILTERS_KEY, activeFilters); rebuildExams(); renderExams(); renderSpeakingDates();
         });
         grid.appendChild(btn);
     });
@@ -778,7 +778,7 @@ document.getElementById('clearFilters').addEventListener('click',()=>{
     activeFilters.clear();
     Object.values(subjectBtnMap).forEach(b=>b.classList.remove('active'));
     refreshCategoryLabels();
-    updateClearBtn(); updateFilterCount(); save(STORAGE_KEY, activeFilters); rebuildExams(); renderExams(); renderSpeakingDates();
+    updateClearBtn(); updateFilterCount(); save(FILTERS_KEY, activeFilters); rebuildExams(); renderExams(); renderSpeakingDates();
 });
 
 function toggleMenusVisibility() {
@@ -2570,64 +2570,66 @@ function makeConfetti(coord_x) {
 }
 
 addEventListener("load", (e) => {
-    const lastsavedfinished = load(FINISHED_EXAMS_KEY);
-    let finishedExams = new Set();
-    for (const exam in currentFiltered) {
-        ex = (currentFiltered[exam]);
-        if (getState(ex.start, ex.end, Date.now()) == "over") {
-            finishedExams.add(`${ex.subject}: ${ex.component}`);
+    if (activeFilters.size > 0) {
+        const lastsavedfinished = load(FINISHED_EXAMS_KEY);
+        let finishedExams = new Set();
+        for (const exam in currentFiltered) {
+            ex = (currentFiltered[exam]);
+            if (getState(ex.start, ex.end, Date.now()) == "over") {
+                finishedExams.add(`${ex.subject}: ${ex.component}`);
+            }
+        }
+        save(FINISHED_EXAMS_KEY, finishedExams);
+        if (finishedExams.difference(lastsavedfinished).size > 0) {
+            makeConfetti(0);
+            makeConfetti(0.125);
+            makeConfetti(0.25);
+            makeConfetti(0.5);
+            makeConfetti(0.625);
+            makeConfetti(0.75);
+            makeConfetti(0.875);
+            makeConfetti(1);
+            const popup = document.createElement("div");
+
+            popup.innerHTML = `
+                <button id="popupCloseBtn">✕</button>
+
+                <h2>🎉 Well done!</h2>
+
+                <p>
+                    You completed:
+                </p>
+
+                <div class="popup-exams">
+                    ${Array.from(finishedExams.difference(lastsavedfinished))
+                        .map(exam => `<div class="popup-exam">${exam}</div>`)
+                        .join("")}
+                </div>
+            `;
+
+            popup.querySelector("#popupCloseBtn").addEventListener("click", () => {
+                popup.remove();
+            });
+
+            popup.setAttribute("id", "popup");
+            document.body.appendChild(popup);
+            // setTimeout(() => {
+            //     popup.remove();
+            // }, 6000);
         }
     }
-    if (finishedExams.difference(lastsavedfinished).size > 0) {
-        makeConfetti(0);
-        makeConfetti(0.125);
-        makeConfetti(0.25);
-        makeConfetti(0.5);
-        makeConfetti(0.625);
-        makeConfetti(0.75);
-        makeConfetti(0.875);
-        makeConfetti(1);
-        const popup = document.createElement("div");
-
-        popup.innerHTML = `
-            <button id="popupCloseBtn">✕</button>
-
-            <h2>🎉 Well done!</h2>
-
-            <p>
-                You completed:
-            </p>
-
-            <div class="popup-exams">
-                ${Array.from(finishedExams.difference(lastsavedfinished))
-                    .map(exam => `<div class="popup-exam">${exam}</div>`)
-                    .join("")}
-            </div>
-        `;
-
-        popup.querySelector("#popupCloseBtn").addEventListener("click", () => {
-            popup.remove();
-        });
-
-        popup.setAttribute("id", "popup");
-        document.body.appendChild(popup);
-        setTimeout(() => {
-            popup.remove();
-        }, 6000);
-    }
-    save(FINISHED_EXAMS_KEY, finishedExams);
 });
 
-addEventListener("beforeunload", (e) => {
-    let finishedExams = new Set();
-    for (const exam in currentFiltered) {
-        ex = (currentFiltered[exam]);
-        if (getState(ex.start, ex.end, Date.now()) == "over") {
-            finishedExams.add(`${ex.subject}: ${ex.component}`)
-        }
-    }
-    save(FINISHED_EXAMS_KEY, finishedExams); //comment out for testing so you can just add other exams to test
-});
+// addEventListener("beforeunload", (e) => {
+//     let finishedExams = new Set();
+//     for (const exam in currentFiltered) {
+//         ex = (currentFiltered[exam]);
+//         if (getState(ex.start, ex.end, Date.now()) == "over") {
+//             finishedExams.add(`${ex.subject}: ${ex.component}`)
+//         }
+//     }
+//     save(FINISHED_EXAMS_KEY, finishedExams); //comment out for testing so you can just add other exams to test
+// });
 
 setAdvancedToggle(advancedToggle);
 renderExams();
