@@ -755,13 +755,17 @@ body.compact .exam-card .status-badge.over {
 .status-badge.inprogress {
     background: rgba(168,85,247,0.18); color: #d8b4fe;
     border: 1px solid rgba(168,85,247,0.4);
-    animation: pulse 1.5s ease-in-out infinite;
+    animation: none;
 }
 .status-badge.over {
     background: rgba(59,130,246,0.12); color: #93c5fd;
     border: 1px solid rgba(59,130,246,0.3);
 }
 @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.55;} }
+.count-info-extra {
+    color: var(--text-muted);
+    font-weight: 700;
+}
 
 .exam-meta {
     display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 14px;
@@ -804,6 +808,7 @@ body.compact .exam-card .status-badge.over {
 
 .count-info { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
 .count-info strong { color: var(--accent); font-family: 'DM Mono', monospace; }
+.count-info .count-info-extra { color: var(--text-muted); font-weight: 700; }
 
 .empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); font-size:14px; display:none; }
 

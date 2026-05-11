@@ -28,6 +28,7 @@ const PLANNER_KEY = 'planner';
 const SPEAKING_KEY = 'speaking_dates_v1';
 const HIDE_MENUS_KEY = 'hide_menus';
 const SHOW_OTHER_EXAMS_KEY = 'show_other_exams';
+const SHOW_ONGOING_EXAMS_KEY = 'show_ongoing_exams';
 const TOPBAR_KEY = 'topbar_hidden';
 const WEEKENDS_KEY = 'hide_weekends';
 const FILTER_COLLAPSED_KEY = 'filter_collapsed';
@@ -45,6 +46,7 @@ const DISPLAY_MODE_ASSISTANT = 4;
 const SETTINGS_CONFIG = {
     [HIDE_MENUS_KEY]: { type: 'bool', default: false },
     [SHOW_OTHER_EXAMS_KEY]: { type: 'bool', default: false },
+    [SHOW_ONGOING_EXAMS_KEY]: { type: 'bool', default: true },
     [WEEKENDS_KEY]: { type: 'bool', default: true },
     [DISPLAY_MODE_KEY]: { type: 'int', default: DISPLAY_MODE_DEFAULT },
     [LEGACY_CAL_KEY]: { type: 'bool', default: false },
@@ -240,6 +242,7 @@ if (displayMode === DISPLAY_MODE_CALENDAR) {
 let weekends = load(WEEKENDS_KEY);
 
 let showOtherExams = load(SHOW_OTHER_EXAMS_KEY);
+let showOngoingExams = load(SHOW_ONGOING_EXAMS_KEY);
 
 let hideApril = load(HIDE_APRIL_KEY);
 
@@ -265,6 +268,8 @@ const printBtn = document.getElementById('printBtn');
 
 const lightToggleTop = document.getElementById('lightToggleTop');
 const showOtherExamsToggle = document.getElementById('showOtherExamsToggle');
+const showOngoingExamsToggle = document.getElementById('showOngoingExamsToggle');
+const showOngoingExamsWrapper = document.getElementById('showOngoingExamsWrapper');
 const calModeOnly = document.querySelectorAll('.calModeOnly');
 const weekendsToggle = document.getElementById('weekendsToggle');
 const hideAprilToggle = document.getElementById('hideAprilToggle');
@@ -278,9 +283,14 @@ function syncAllToggles() {
     
     if (legacyCalToggle) legacyCalToggle.checked = legacyCalMode;
     if (showOtherExamsToggle) showOtherExamsToggle.checked = showOtherExams;
+    if (showOngoingExamsToggle) showOngoingExamsToggle.checked = showOngoingExams;
     if (weekendsToggle) weekendsToggle.checked = weekends;
     if (hideAprilToggle) hideAprilToggle.checked = hideApril;
     
+        if (showOngoingExamsWrapper) {
+        showOngoingExamsWrapper.style.display = (displayMode === DISPLAY_MODE_DEFAULT || displayMode === DISPLAY_MODE_COMPACT) ? '' : 'none';
+    }
+
         if (calModeOnly) {
         calModeOnly.forEach((el) => {el.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle) ? 'flex' : 'none'});
     }
@@ -315,6 +325,15 @@ function setShowOtherExams(on) {
     save(SHOW_OTHER_EXAMS_KEY, showOtherExams);
     renderExams();
 }
+
+function setShowOngoingExams(on) {
+    showOngoingExams = on ? 1 : 0;
+    if (showOngoingExamsToggle) showOngoingExamsToggle.checked = on;
+    save(SHOW_ONGOING_EXAMS_KEY, showOngoingExams);
+    renderExams();
+}
+
+if (showOngoingExamsToggle) showOngoingExamsToggle.addEventListener('change', e => setShowOngoingExams(e.target.checked));
 
 function setWeekends(on) {
     weekends = on ? 1 : 0;
@@ -431,6 +450,9 @@ function setDisplayMode(newMode) {
             if(progressContainer) progressContainer.style.display = 'none';
     }
     
+        if (showOngoingExamsWrapper) {
+        showOngoingExamsWrapper.style.display = (displayMode === DISPLAY_MODE_DEFAULT || displayMode === DISPLAY_MODE_COMPACT) ? '' : 'none';
+    }
         if (calModeOnly) {
         calModeOnly.forEach((el) => {
             if (el.id === 'hideAprilWrapper') {
@@ -544,8 +566,13 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'e' || e.key === 'E') {
         toggleMenusVisibility();
     } else if (e.key === 's' || e.key === 'S') {
-        e.preventDefault();
-        setShowOtherExams(!showOtherExams);
+        if (displayMode === DISPLAY_MODE_CALENDAR) {
+            e.preventDefault();
+            setShowOtherExams(!showOtherExams);
+        } else if (displayMode === DISPLAY_MODE_DEFAULT || displayMode === DISPLAY_MODE_COMPACT) {
+            e.preventDefault();
+            setShowOngoingExams(!showOngoingExams);
+        }
     } else if (e.key === 'd' || e.key === 'D') {
         e.preventDefault();
         setWeekends(!weekends);
@@ -1089,23 +1116,46 @@ function renderExams(){
     const filtered=activeFilters.size===0?exams:exams.filter(e=>activeFilters.has(e.subject));
     currentFiltered = filtered;
     
-    const upcoming =filtered.filter(e=>getState(e.start,e.end,now)==='upcoming');
-    const inprogress = filtered.filter(e=>getState(e.start,e.end,now)==='inprogress');
-    const over =filtered.filter(e=>getState(e.start,e.end,now)==='over');
+    const upcoming = filtered.filter(e => getState(e.start,e.end,now) === 'upcoming');
+    const inprogress = filtered.filter(e => getState(e.start,e.end,now) === 'inprogress');
+    const over = filtered.filter(e => getState(e.start,e.end,now) === 'over');
+    const allInprogress = exams.filter(e => getState(e.start,e.end,now) === 'inprogress');
+    const otherInprogress = allInprogress.filter(e => !filtered.includes(e));
+    const otherCalendarExams = (displayMode === DISPLAY_MODE_CALENDAR && showOtherExams && activeFilters.size > 0)
+        ? exams.filter(e => !activeFilters.has(e.subject))
+        : [];
 
-    countInfo.innerHTML=
-    `Showing <strong>${filtered.length}</strong> exam${filtered.length!==1?'s':''} &nbsp;·&nbsp; `+
-    `<strong>${over.length}</strong> over &nbsp;·&nbsp; `+
-    `<strong>${inprogress.length}</strong> in progress &nbsp;·&nbsp; `+
-    `<strong>${upcoming.length}</strong> upcoming`;
+    const extraTotal = displayMode === DISPLAY_MODE_CALENDAR
+        ? otherCalendarExams.length
+        : (showOngoingExams ? otherInprogress.length : 0);
+    const extraOver = displayMode === DISPLAY_MODE_CALENDAR
+        ? otherCalendarExams.filter(e => getState(e.start,e.end,now) === 'over').length
+        : 0;
+    const extraInprogress = displayMode === DISPLAY_MODE_CALENDAR
+        ? otherCalendarExams.filter(e => getState(e.start,e.end,now) === 'inprogress').length
+        : (showOngoingExams ? otherInprogress.length : 0);
+    const extraUpcoming = displayMode === DISPLAY_MODE_CALENDAR
+        ? otherCalendarExams.filter(e => getState(e.start,e.end,now) === 'upcoming').length
+        : 0;
 
-    if (!filtered.length) {
+    const displayCount = filtered.length + extraTotal;
+
+    const formatCount = (base, extra) =>
+        extra ? `<strong>${base}</strong><span class="count-info-extra">+${extra}</span>` : `<strong>${base}</strong>`;
+
+    countInfo.innerHTML =
+    `Showing ${formatCount(filtered.length, extraTotal)} exam${displayCount!==1?'s':''} &nbsp;·&nbsp; `+
+    `${formatCount(over.length, extraOver)} over &nbsp;·&nbsp; `+
+    `${formatCount(inprogress.length, extraInprogress)} in progress &nbsp;·&nbsp; `+
+    `${formatCount(upcoming.length, extraUpcoming)} upcoming`;
+
+    if (!displayCount) {
         emptyEl.style.display='block';
     } else {
         emptyEl.style.display='none';
         
         const halfTermStartMs = HALF_TERM_START.getTime();
-        let active = [...inprogress,...upcoming];
+        let active = [...(showOngoingExams && displayMode !== DISPLAY_MODE_CALENDAR ? allInprogress : inprogress), ...upcoming];
         let halfTermInserted = false;
 
             if (displayMode === DISPLAY_MODE_CALENDAR) {
@@ -1131,7 +1181,7 @@ function renderExams(){
             if(over.length){
                 const div=document.createElement('div');div.className='section-divider';div.textContent='Exam Over';
                 list.appendChild(div);
-                over.slice().reverse().forEach((e,i)=>list.appendChild(makeCard(e,inprogress.length+upcoming.length+i)));
+                over.slice().reverse().forEach((e,i)=>list.appendChild(makeCard(e,active.length+i)));
             }
         } else {
             if (!legacyCalMode) {
