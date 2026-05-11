@@ -1478,17 +1478,6 @@ html.light .cal-exam.other-exam {
     display: block;
 }
 
-/* Blurred background for "other exam" tooltips in calendar */
-.cal-exam.other-exam .cal-exam-tooltip {
-    background: rgba(28, 28, 38, 1);
-    backdrop-filter: blur(15px);
-}
-
-html.light .cal-exam.other-exam .cal-exam-tooltip {
-    background: rgba(255, 255, 255, 1);
-    backdrop-filter: blur(15px);
-}
-
 .cal-tooltip-top {
     display: flex;
     align-items: flex-start;
