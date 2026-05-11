@@ -1442,7 +1442,7 @@ function renderProgressTracker() {
     // ── Hours circle ──
     const totalMin = allExams.reduce((sum, e) => sum + (Number(e.durationMin) || 0), 0);
     const doneMin  = allExams.filter(e => getState(e.start, e.end, now) === 'over')
-                             .reduce((sum, e) => sum + (Number(e.durationMin) || 0), 0);
+                            .reduce((sum, e) => sum + (Number(e.durationMin) || 0), 0);
     const remainMin = totalMin - doneMin;
 
     function fmtHoursMin(min) {
