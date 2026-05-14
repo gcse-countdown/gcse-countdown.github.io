@@ -3021,6 +3021,7 @@ html.light body.hover-cards.compact .exam-card.other-exam .card-hover-tooltip {
     .count-info-row .print-btn,
     .rev-planner-wrapper,
     .empty-state:not(:only-child),
+    #seaBackground,
     body::before {
         display: none !important;
     }
