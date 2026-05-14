@@ -35,6 +35,7 @@ const FILTER_COLLAPSED_KEY = 'filter_collapsed';
 const ADVANCED_KEY = 'advanced_options';
 const HIDE_APRIL_KEY = 'hide_april';
 const HIDE_ASSISTANT_KEY = 'hide_assistant';
+const SEA_EFFECT_KEY = 'sea_effect';
 const FINISHED_EXAMS_KEY = 'finished_exams';
 
 const DISPLAY_MODE_DEFAULT = 0;
@@ -58,6 +59,7 @@ const SETTINGS_CONFIG = {
     [SPEAKING_KEY]: { type: 'json', default: {} },
     [ADVANCED_KEY]: {type: 'bool', default: false},
     [HIDE_APRIL_KEY]: { type: 'bool', default: false },
+    [SEA_EFFECT_KEY]: { type: 'bool', default: true },
     [FINISHED_EXAMS_KEY]: { type: 'set', default: new Set() },
 };
 
@@ -110,6 +112,8 @@ function makeStart(dateStr, session) {
     else [hours,minutes]=session.split(':');
     return new Date(2026,m-1,d,+hours,+minutes,0,0);
 }
+
+const SEA_OFF_TARGET = -0.25;
 
 function fmtDuration(min){const h=Math.floor(min/60),m=min%60;if(!h)return`${m}m`;if(!m)return`${h}h`;return`${h}h ${m}m`;}
 function fmtTime(d){return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
@@ -239,14 +243,18 @@ if (displayMode === DISPLAY_MODE_CALENDAR) {
     document.body.classList.add('progress');
 }
 
+let lightMode = load(LIGHT_KEY);
+
 let weekends = load(WEEKENDS_KEY);
 
 let showOtherExams = load(SHOW_OTHER_EXAMS_KEY);
 let showOngoingExams = load(SHOW_ONGOING_EXAMS_KEY);
 
 let hideApril = load(HIDE_APRIL_KEY);
+let seaEffectEnabled = load(SEA_EFFECT_KEY);
 
 let plannerMode = 0;
+let currentFiltered = exams.slice();
 
 const clearBtnWrap = document.getElementById('clearBtnWrap');
 const filterCountEl = document.getElementById('filterCount');
@@ -273,9 +281,17 @@ const showOngoingExamsWrapper = document.getElementById('showOngoingExamsWrapper
 const calModeOnly = document.querySelectorAll('.calModeOnly');
 const weekendsToggle = document.getElementById('weekendsToggle');
 const hideAprilToggle = document.getElementById('hideAprilToggle');
+const seaEffectToggle = document.getElementById('seaEffectToggle');
 if (weekendsToggle) weekendsToggle.addEventListener('change', e => setWeekends(e.target.checked));
 
 let advancedToggle = load(ADVANCED_KEY);
+let seaCanvas = null;
+let seaCtx = null;
+let seaAnimationId = null;
+let seaProgressPercent = 0;   // target progress (0–100)
+let seaDisplayPercent = null; // currently rendered progress (lerps toward target); null = uninitialised
+let seaWaveOffset = 0;
+let seaLastFrameTime = 0;
 
 function syncAllToggles() {
     const isLight = document.documentElement.classList.contains('light');
@@ -284,6 +300,7 @@ function syncAllToggles() {
     if (legacyCalToggle) legacyCalToggle.checked = legacyCalMode;
     if (showOtherExamsToggle) showOtherExamsToggle.checked = showOtherExams;
     if (showOngoingExamsToggle) showOngoingExamsToggle.checked = showOngoingExams;
+    if (seaEffectToggle) seaEffectToggle.checked = seaEffectEnabled;
     if (weekendsToggle) weekendsToggle.checked = weekends;
     if (hideAprilToggle) hideAprilToggle.checked = hideApril;
 
@@ -330,6 +347,186 @@ function setShowOngoingExams(on) {
 }
 
 if (showOngoingExamsToggle) showOngoingExamsToggle.addEventListener('change', e => setShowOngoingExams(e.target.checked));
+if (seaEffectToggle) seaEffectToggle.addEventListener('change', e => setSeaEffect(e.target.checked));
+
+function getProgressPercent() {
+    const now = Date.now();
+    const allExams = activeFilters.size === 0 ? exams : (currentFiltered || exams);
+    const subjectStats = {};
+
+    allExams.forEach(e => {
+        const w = Number(e.weight) || 1;
+        if (!subjectStats[e.subject]) {
+            subjectStats[e.subject] = { totalWeight: 0, completedWeight: 0 };
+        }
+        subjectStats[e.subject].totalWeight += w;
+        if (getState(e.start, e.end, now) === 'over') {
+            subjectStats[e.subject].completedWeight += w;
+        }
+    });
+
+    Object.keys(COURSEWORK).forEach(subject => {
+        if ((activeFilters.size === 0 || activeFilters.has(subject)) && !subjectStats[subject]) {
+            subjectStats[subject] = { totalWeight: 0, completedWeight: 0 };
+        }
+    });
+
+    MFL_SUBJECTS.forEach(subject => {
+        if (activeFilters.size === 0 || activeFilters.has(subject)) {
+            if (!subjectStats[subject]) {
+                subjectStats[subject] = { totalWeight: 0, completedWeight: 0 };
+            }
+            const hasSpeakingExam = allExams.some(e => e.subject === subject && e.isSpeaking);
+            if (!hasSpeakingExam) {
+                subjectStats[subject].completedWeight = Math.min(subjectStats[subject].completedWeight + 1, 4);
+            }
+            subjectStats[subject].totalWeight = 4;
+        }
+    });
+
+    const subjects = Object.keys(subjectStats);
+    if (!subjects.length) return 0;
+
+    let overallFrac = 0;
+    subjects.forEach(subject => {
+        const stats = subjectStats[subject];
+        const cwPct = COURSEWORK[subject] || 0;
+        const writtenPct = 100 - cwPct;
+        const writtenDoneFrac = stats.totalWeight > 0 ? (stats.completedWeight / stats.totalWeight) : 0;
+        const subjectFrac = (cwPct + writtenDoneFrac * writtenPct) / 100;
+        overallFrac += subjectFrac / subjects.length;
+    });
+
+    return Number((overallFrac * 100).toFixed(1));
+}
+
+
+function updateSeaHeight(percent) {
+    seaProgressPercent = Number(percent) || 0;
+    const seaEl = document.getElementById('seaBackground');
+    if (seaEl && seaCanvas) resizeSeaCanvas();
+}
+
+function resizeSeaCanvas() {
+    const seaEl = document.getElementById('seaBackground');
+    if (!seaEl || !seaCanvas || !seaCtx) return;
+    const rect = seaEl.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+    seaCanvas.width = rect.width * ratio;
+    seaCanvas.height = rect.height * ratio;
+    seaCanvas.style.width = `${rect.width}px`;
+    seaCanvas.style.height = `${rect.height}px`;
+    seaCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+}
+
+function drawWave(layer, width, height, amplitude, offset, color, opacity, progress) {
+    const yBase = height * ((1 - progress) + layer * 0.05);
+    seaCtx.beginPath();
+    seaCtx.moveTo(0, height);
+    seaCtx.lineTo(0, yBase);
+    for (let x = 0; x <= width; x += 12) {
+        const theta = (x / width) * Math.PI * 2 * (1 + layer * 0.25) + offset;
+        const y = yBase + Math.sin(theta + layer) * amplitude * (1 - layer * 0.14);
+        seaCtx.lineTo(x, y);
+    }
+    seaCtx.lineTo(width, height);
+    seaCtx.closePath();
+    seaCtx.fillStyle = `rgba(${color}, ${opacity})`;
+    seaCtx.fill();
+}
+
+function drawSeaFrame(dt) {
+    if (!seaCanvas || !seaCtx) return;
+    const width  = seaCanvas.clientWidth;
+    const height = seaCanvas.clientHeight;
+    seaCtx.clearRect(0, 0, width, height);
+
+    // Target: if the effect is enabled, use real progress; otherwise sink off-screen.
+    const targetPercent = seaEffectEnabled
+        ? seaProgressPercent
+        : SEA_OFF_TARGET * 100;   // convert fraction → percent-space
+
+    // Initialise display on first frame.
+    if (seaDisplayPercent === null) {
+        seaDisplayPercent = seaEffectEnabled ? targetPercent : SEA_OFF_TARGET * 100;
+    }
+
+    // Smooth lerp — speed ~55 % of the gap per second, giving a silky ease-out.
+    const lerpSpeed = 5;   // higher = faster
+    const alpha = 1 - Math.exp(-lerpSpeed * dt);
+    seaDisplayPercent += (targetPercent - seaDisplayPercent) * alpha;
+
+    const progress = (seaDisplayPercent / 100) + 0.05;
+    const amplitude = 8 + Math.max(0, progress) * 18;
+    const baseColor = lightMode ? '31,77,119' : '72,36,89';
+
+    seaWaveOffset += 0.02 + randomInRange(0, 0.02);
+
+    drawWave(0, width, height, amplitude * 0.9,  seaWaveOffset,        baseColor, 0.42, progress);
+    drawWave(1, width, height, amplitude * 0.72, seaWaveOffset * 1.18, baseColor, 0.32, progress);
+    drawWave(2, width, height, amplitude * 0.5,  seaWaveOffset * 1.42, baseColor, 0.24, progress);
+
+    // Once the sea has fully sunk off-screen and the effect is disabled, stop animating.
+    if (!seaEffectEnabled && seaDisplayPercent <= SEA_OFF_TARGET * 100 + 0.2) {
+        cancelAnimationFrame(seaAnimationId);
+        seaAnimationId = null;
+        window.removeEventListener('resize', resizeSeaCanvas);
+        if (seaCanvas && seaCanvas.parentNode) seaCanvas.parentNode.removeChild(seaCanvas);
+        seaCanvas = null;
+        seaCtx = null;
+    }
+}
+
+function renderSeaWave(timestamp) {
+    const dt = seaLastFrameTime ? Math.min((timestamp - seaLastFrameTime) / 1000, 0.1) : 0.016;
+    seaLastFrameTime = timestamp;
+    drawSeaFrame(dt);
+    if (seaCanvas) seaAnimationId = requestAnimationFrame(renderSeaWave);
+}
+
+function createSeaCanvas() {
+    const seaEl = document.getElementById('seaBackground');
+    if (!seaEl || seaCanvas) return;
+    seaCanvas = document.createElement('canvas');
+    seaCanvas.id = 'seaCanvas';
+    seaCanvas.style.position = 'absolute';
+    seaCanvas.style.left = '0';
+    seaCanvas.style.top = '0';
+    seaCanvas.style.width = '100%';
+    seaCanvas.style.height = '100%';
+    seaCanvas.style.pointerEvents = 'none';
+    seaCanvas.style.opacity = '0.95';
+    seaCanvas.style.zIndex = '0';
+    seaEl.appendChild(seaCanvas);
+    seaCtx = seaCanvas.getContext('2d');
+    resizeSeaCanvas();
+    window.addEventListener('resize', resizeSeaCanvas);
+    seaLastFrameTime = 0;
+    seaAnimationId = requestAnimationFrame(renderSeaWave);
+}
+
+function setSeaEffect(on) {
+    seaEffectEnabled = Boolean(on);
+    if (seaEffectToggle) seaEffectToggle.checked = seaEffectEnabled;
+    document.documentElement.classList.toggle('sea-effect-enabled', seaEffectEnabled);
+    save(SEA_EFFECT_KEY, seaEffectEnabled);
+
+    if (seaEffectEnabled) {
+        // Rise up from below: start display at off-screen position, then lerp up.
+        if (!seaCanvas) {
+            seaDisplayPercent = SEA_OFF_TARGET * 100;
+            createSeaCanvas();
+        }
+        seaProgressPercent = getProgressPercent();
+    } else {
+        // Just set the target to off-screen; the render loop will animate the sink
+        // and then clean up the canvas itself once fully gone.
+        if (seaCanvas && !seaAnimationId) {
+            seaLastFrameTime = 0;
+            seaAnimationId = requestAnimationFrame(renderSeaWave);
+        }
+    }
+}
 
 function setWeekends(on) {
     weekends = on ? 1 : 0;
@@ -589,6 +786,9 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'o' || e.key === 'O') {
         e.preventDefault();
         setAdvancedToggle(!advancedToggle);
+    } else if (e.key === 'w' || e.key === 'W') {
+        e.preventDefault();
+        setSeaEffect(!seaEffectEnabled);
     } 
     
 });
@@ -924,8 +1124,6 @@ if (topBarClose) {
 
 
 let monthOffset = 0;
-
-let currentFiltered = exams.slice();
 
 function renderMultiMonthCalendar(list, active, filtered) {
     const wrapper = document.createElement('div');
@@ -1317,6 +1515,9 @@ function renderExams(){
         }
     }
 
+    if (seaEffectEnabled) {
+        updateSeaHeight(getProgressPercent());
+    }
     updateSidebarTimers();
     if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
 }
@@ -2687,10 +2888,12 @@ window.addEventListener("load", (e) => {
 
             popup.setAttribute("id", "popup");
             document.body.appendChild(popup);
-            // setTimeout(() => {
-            //     popup.remove();
-            // }, 6000);
+            setTimeout(() => {
+                setSeaEffect(seaEffectEnabled);
+            }, 1500);
         }
+    } else {
+        setSeaEffect(seaEffectEnabled);
     }
 });
 

@@ -1,6 +1,6 @@
 :root {
     --bg: #0a0a0f;
-    --surface: #13131a;
+    --surface: rgba(21, 21, 27, 0.6);
     --surface2: #1c1c26;
     --border: #2a2a38;
     --text: #e8e8f0;
@@ -14,14 +14,14 @@
 }
 
 /* ── Theme Variables ── */
-html.dark {
+:root {
     --bg: #0a0a0f;
-    --surface: #13131a;
+    --surface: rgba(21, 21, 27, 0.6);
     --surface2: #1c1c26;
     --border: #2a2a38;
     --text: #e8e8f0;
-    --text-muted: #6b6b85;
-    --text-dim: #3a3a50;
+    --text-muted: #848497;
+    --text-dim: #4c4c55;
     --accent: #c8b8ff;
     --grid-line: rgba(200,184,255,0.03);
     --link: darkgoldenrod;
@@ -64,7 +64,27 @@ body::before {
         linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
+    z-index: -1;
+}
+
+#seaBackground {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 0;
+    height: 100vh;
+    pointer-events: none;
+    overflow: hidden;
     z-index: 0;
+    background: radial-gradient(circle at top, rgba(30, 70, 116, 0.26), transparent 38%);
+    transition: height 0.25s ease;
+    opacity: 0.8;
+}
+
+#seaBackground canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 
@@ -3065,6 +3085,7 @@ html.light body.hover-cards.compact .exam-card.other-exam .card-hover-tooltip {
 
 #printBtn {
     color: var(--accent);
+    background: var(--surface);
 }
 
 #printBtn:disabled {
