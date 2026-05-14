@@ -2935,7 +2935,9 @@ window.addEventListener("load", (e) => {
         } else {
             setSeaEffect(seaEffectEnabled);
         }
-    } 
+    } else {
+        setSeaEffect(seaEffectEnabled);
+    }
 });
 
 // addEventListener("beforeunload", (e) => {
