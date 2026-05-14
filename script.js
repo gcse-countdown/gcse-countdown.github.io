@@ -278,7 +278,7 @@ if (weekendsToggle) weekendsToggle.addEventListener('change', e => setWeekends(e
 let advancedToggle = load(ADVANCED_KEY);
 
 function syncAllToggles() {
-        const isLight = document.documentElement.classList.contains('light');
+    const isLight = document.documentElement.classList.contains('light');
     if (lightToggleTop) lightToggleTop.checked = isLight;
     
     if (legacyCalToggle) legacyCalToggle.checked = legacyCalMode;
