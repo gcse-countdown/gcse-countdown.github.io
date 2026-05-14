@@ -2891,10 +2891,10 @@ window.addEventListener("load", (e) => {
             setTimeout(() => {
                 setSeaEffect(seaEffectEnabled);
             }, 1500);
+        } else {
+            setSeaEffect(seaEffectEnabled);
         }
-    } else {
-        setSeaEffect(seaEffectEnabled);
-    }
+    } 
 });
 
 // addEventListener("beforeunload", (e) => {
