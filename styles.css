@@ -1450,6 +1450,10 @@ html.light .cal-exam.other-exam {
     position: relative;
 }
 
+.cal-exam.open {
+    z-index: 200;
+}
+
 @media (hover: hover) and (pointer: fine) {
     .cal-exam:hover {
         z-index: 200;
@@ -1474,6 +1478,7 @@ html.light .cal-exam.other-exam {
     font-family: 'DM Sans', sans-serif;
     font-size: 14px;
     color: var(--text);
+    backdrop-filter: blur(10px);
 }
 
 /* Flip to above if near bottom — handled via .flip-up class added by JS */
@@ -1487,6 +1492,7 @@ html.light .cal-exam.other-exam {
     left: auto;
     right: 0;
 }
+
 
 @media (hover: hover) and (pointer: fine) {
     .cal-exam:hover .cal-exam-tooltip {

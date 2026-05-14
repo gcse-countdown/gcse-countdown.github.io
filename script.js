@@ -1885,20 +1885,61 @@ function tick(){
     });
 }
 
-document.getElementById('examList').addEventListener('mouseenter', e => {
-    const pill = e.target.closest('.cal-exam');
-    if (!pill) return;
-    const tooltip = pill.querySelector('.cal-exam-tooltip');
-    if (!tooltip) return;
+const examList = document.getElementById('examList');
+
+function positionTooltip(pill, tooltip) {
     pill.classList.remove('flip-up', 'flip-left');
+
     tooltip.style.display = 'block';
+
     const tr = tooltip.getBoundingClientRect();
     const vw = document.documentElement.clientWidth;
     const vh = document.documentElement.clientHeight;
+
     if (tr.bottom > vh - 10) pill.classList.add('flip-up');
     if (tr.right > vw - 10) pill.classList.add('flip-left');
+
     tooltip.style.display = '';
+}
+
+// Desktop hover
+examList.addEventListener('mouseenter', e => {
+    const pill = e.target.closest('.cal-exam');
+    if (!pill) return;
+
+    const tooltip = pill.querySelector('.cal-exam-tooltip');
+    if (!tooltip) return;
+
+    positionTooltip(pill, tooltip);
 }, true);
+
+// Mobile tap
+document.addEventListener('click', e => {
+    const pill = e.target.closest('.cal-exam');
+
+    // Hide all tooltips first
+    document.querySelectorAll('.cal-exam.open').forEach(el => {
+        if (el !== pill) el.classList.remove('open');
+    });
+
+    // Clicked outside any exam
+    if (!pill) return;
+
+    const tooltip = pill.querySelector('.cal-exam-tooltip');
+    if (!tooltip) return;
+
+    e.stopPropagation();
+
+    const isOpen = pill.classList.contains('open');
+
+    document.querySelectorAll('.cal-exam.open')
+        .forEach(el => el.classList.remove('open'));
+
+    if (!isOpen) {
+        pill.classList.add('open');
+        positionTooltip(pill, tooltip);
+    }
+});
 
 document.getElementById('examList').addEventListener('mouseenter', e => {
     const card = e.target.closest('.exam-card');
