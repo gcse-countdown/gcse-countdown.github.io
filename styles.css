@@ -3162,6 +3162,9 @@ html.light #popup::before {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    
+    overflow: scroll;
+    max-height: 70vh;
 }
 
 #popup .popup-exam {
