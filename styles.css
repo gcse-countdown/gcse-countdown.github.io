@@ -1274,15 +1274,20 @@ body.cal .exam-list {
     }
 }
 
+.calendar {
+    border: 1px solid var(--border);
+    overflow: hidden;
+    border-radius: 10px;
+}
+
 /* Calendar table */
 #calendar {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
     background: var(--surface);
-    border: 1px solid var(--border);
     border-radius: 10px;
-    overflow: visible;
+    overflow: hidden;
     animation: slideIn 0.3s ease;
 }
 
@@ -1542,6 +1547,9 @@ html.light .cal-exam.other-exam {
     gap: 0;
     margin-bottom: 20px;
     width: 100%;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    border-radius: 10px;
 }
 
 /* The single continuous table */
@@ -1550,7 +1558,6 @@ html.light .cal-exam.other-exam {
     border-collapse: collapse;
     table-layout: fixed;
     background: var(--surface);
-    border: 1px solid var(--border);
     border-radius: 10px;
     overflow: visible;
     animation: slideIn 0.3s ease;
