@@ -1274,20 +1274,15 @@ body.cal .exam-list {
     }
 }
 
-.calendar {
-    border: 1px solid var(--border);
-    overflow: hidden;
-    border-radius: 10px;
-}
-
 /* Calendar table */
 #calendar {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
     background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 10px;
-    overflow: hidden;
+    overflow: visible;
     animation: slideIn 0.3s ease;
 }
 
@@ -1548,7 +1543,7 @@ html.light .cal-exam.other-exam {
     margin-bottom: 20px;
     width: 100%;
     border: 1px solid var(--border);
-    overflow: hidden;
+    overflow: visible;
     border-radius: 10px;
 }
 
@@ -1562,6 +1557,11 @@ html.light .cal-exam.other-exam {
     overflow: visible;
     animation: slideIn 0.3s ease;
 }
+
+.continuous-calendar thead tr:first-child :first-child { border-top-left-radius: 10px; }
+.continuous-calendar thead tr:first-child :last-child  { border-top-right-radius: 10px; }
+.continuous-calendar tbody tr:last-child  :first-child { border-bottom-left-radius: 10px; }
+.continuous-calendar tbody tr:last-child  :last-child  { border-bottom-right-radius: 10px; }
 
 /* Month-label column — narrow, left side */
 .continuous-calendar th.cal-month-col,
