@@ -31,7 +31,7 @@
 
 html.light {
     --bg: #f4f4f8;
-    --surface: #ffffff;
+    --surface: rgba(255,255,255,0.7);;
     --surface2: #eeeef4;
     --border: #d0d0e0;
     --text: #1a1a2e;
