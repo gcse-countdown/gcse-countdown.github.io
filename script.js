@@ -37,6 +37,7 @@ const HIDE_APRIL_KEY = 'hide_april';
 const HIDE_ASSISTANT_KEY = 'hide_assistant';
 const SEA_EFFECT_KEY = 'sea_effect';
 const FINISHED_EXAMS_KEY = 'finished_exams';
+const SELECTED_CIRCLE_KEY = 'selected_progress_circle';
 
 const DISPLAY_MODE_DEFAULT = 0;
 const DISPLAY_MODE_COMPACT = 1;
@@ -61,6 +62,7 @@ const SETTINGS_CONFIG = {
     [HIDE_APRIL_KEY]: { type: 'bool', default: false },
     [SEA_EFFECT_KEY]: { type: 'bool', default: true },
     [FINISHED_EXAMS_KEY]: { type: 'set', default: new Set() },
+    [SELECTED_CIRCLE_KEY]: { type: 'string', default: 'progress' },
 };
 
 function load(key, defaultValue = undefined) {
@@ -253,6 +255,8 @@ let showOngoingExams = load(SHOW_ONGOING_EXAMS_KEY);
 let hideApril = load(HIDE_APRIL_KEY);
 let seaEffectEnabled = load(SEA_EFFECT_KEY);
 
+let selectedProgressCircle = load(SELECTED_CIRCLE_KEY, 'progress'); // 'progress', 'hours', 'exams'
+
 let plannerMode = 0;
 let currentFiltered = exams.slice();
 
@@ -407,6 +411,12 @@ function updateSeaHeight(percent) {
     if (seaEl && seaCanvas) resizeSeaCanvas();
 }
 
+function refreshSeaFromSelectedCircle() {
+    if (seaEffectEnabled) {
+        seaProgressPercent = getSeaTargetPercent();
+    }
+}
+
 function resizeSeaCanvas() {
     const seaEl = document.getElementById('seaBackground');
     if (!seaEl || !seaCanvas || !seaCtx) return;
@@ -458,7 +468,14 @@ function drawSeaFrame(dt) {
 
     const progress = (seaDisplayPercent / 100) + 0.05;
     const amplitude = 8 + Math.max(0, progress) * 18;
-    const baseColor = lightMode ? '31,77,119' : '126,58,158';
+
+    // Colour depends on which circle is selected
+    const SEA_COLORS = {
+        progress: lightMode ? '59,7,100'   : '126,58,158',  // purple
+        hours:    lightMode ? '14,116,144'  : '6,148,162',   // teal/cyan
+        exams:    lightMode ? '22,101,52'   : '21,128,61',   // green
+    };
+    const baseColor = SEA_COLORS[selectedProgressCircle] || SEA_COLORS.progress;
 
     seaWaveOffset += 0.02 + randomInRange(0, 0.01);
 
@@ -505,6 +522,24 @@ function createSeaCanvas() {
     seaAnimationId = requestAnimationFrame(renderSeaWave);
 }
 
+function getSeaTargetPercent() {
+    const now = Date.now();
+    const allExams = activeFilters.size === 0 ? exams : (currentFiltered || exams);
+
+    if (selectedProgressCircle === 'hours') {
+        const totalMin = allExams.reduce((sum, e) => sum + (Number(e.durationMin) || 0), 0);
+        const doneMin  = allExams.filter(e => getState(e.start, e.end, now) === 'over')
+                                 .reduce((sum, e) => sum + (Number(e.durationMin) || 0), 0);
+        return totalMin > 0 ? (doneMin / totalMin) * 100 : 0;
+    } else if (selectedProgressCircle === 'exams') {
+        const totalCount = allExams.length;
+        const doneCount  = allExams.filter(e => getState(e.start, e.end, now) === 'over').length;
+        return totalCount > 0 ? (doneCount / totalCount) * 100 : 0;
+    } else {
+        return getProgressPercent();
+    }
+}
+
 function setSeaEffect(on) {
     seaEffectEnabled = Boolean(on);
     if (seaEffectToggle) seaEffectToggle.checked = seaEffectEnabled;
@@ -517,7 +552,7 @@ function setSeaEffect(on) {
             seaDisplayPercent = SEA_OFF_TARGET * 100;
             createSeaCanvas();
         }
-        seaProgressPercent = getProgressPercent();
+        seaProgressPercent = getSeaTargetPercent();
     } else {
         // Just set the target to off-screen; the render loop will animate the sink
         // and then clean up the canvas itself once fully gone.
@@ -1516,7 +1551,7 @@ function renderExams(){
     }
 
     if (seaEffectEnabled) {
-        updateSeaHeight(getProgressPercent());
+        updateSeaHeight(getSeaTargetPercent());
     }
     updateSidebarTimers();
     if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
@@ -1679,6 +1714,46 @@ function renderProgressTracker() {
 
     const subjectsList = document.getElementById('progressSubjectsList');
     if (!subjectsList) return;
+
+    // ── Circle selection: click handlers + selected ring ──
+    const circleWrapEls = {
+        progress: document.querySelector('.progress-circle-wrap[data-circle="progress"]'),
+        hours:    document.querySelector('.progress-circle-wrap[data-circle="hours"]'),
+        exams:    document.querySelector('.progress-circle-wrap[data-circle="exams"]'),
+    };
+    // Fallback: if data-circle attrs not yet set, find them by content
+    if (!circleWrapEls.progress || !circleWrapEls.hours || !circleWrapEls.exams) {
+        const allWraps = document.querySelectorAll('.progress-circle-wrap');
+        if (allWraps.length >= 3) {
+            allWraps[0].dataset.circle = 'hours';
+            allWraps[1].dataset.circle = 'progress';
+            allWraps[2].dataset.circle = 'exams';
+            circleWrapEls.hours    = allWraps[0];
+            circleWrapEls.progress = allWraps[1];
+            circleWrapEls.exams    = allWraps[2];
+        }
+    }
+
+    function applyCircleSelection() {
+        Object.entries(circleWrapEls).forEach(([key, el]) => {
+            if (!el) return;
+            el.classList.toggle('circle-selected', key === selectedProgressCircle);
+        });
+    }
+
+    Object.entries(circleWrapEls).forEach(([key, el]) => {
+        if (!el || el._circleClickBound) return;
+        el._circleClickBound = true;
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', () => {
+            selectedProgressCircle = key;
+            save(SELECTED_CIRCLE_KEY, key);
+            applyCircleSelection();
+            refreshSeaFromSelectedCircle();
+        });
+    });
+
+    applyCircleSelection();
 
     subjectsList.innerHTML = '';
     Object.entries(subjectStats).sort((a, b) => a[0].localeCompare(b[0])).forEach(([subject, stats]) => {

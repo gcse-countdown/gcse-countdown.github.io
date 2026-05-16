@@ -1045,6 +1045,31 @@ body.progress .empty-state { display: none; }
     letter-spacing: 0.05em;
 }
 
+/* ── Selected circle ring ── */
+.progress-circle-wrap {
+    transition: transform 0.2s ease;
+}
+
+.progress-circle-wrap:hover {
+    transform: scale(1.04);
+}
+
+.progress-circle-container {
+    transition: box-shadow 0.3s ease;
+}
+
+.sea-effect-enabled .progress-circle-wrap.circle-selected .progress-circle {
+    filter: drop-shadow(0 0 0 3px rgba(255, 255, 255, 0.5));
+    outline: 2px solid rgba(255, 255, 255, 0.45);
+    outline-offset: 4px;
+    border-radius: 50%;
+}
+
+html.light.sea-effect-enabled .progress-circle-wrap.circle-selected .progress-circle {
+    filter: drop-shadow(0 0 0 3px rgba(0, 0, 0, 0.3));
+    outline: 2px solid rgba(0, 0, 0, 0.25);
+}
+
 @media (max-width: 768px) {
     .progress-circles-row {
         flex-direction: column;
