@@ -1,76 +1,78 @@
 name: Build and Deploy to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+    contents: read
+    pages: write
+    id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: true
+    group: "pages"
+    cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+    build:
+        runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+        steps:
+            - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24
 
-      - name: Install tools
-        run: npm install
+            - name: Install tools
+              run: npm install
 
-      - name: Build assets
-        run: |
-          npx postcss styles.css -o styles.min.css
+            - name: Build assets
+              run: |
+                  echo "module.exports = { plugins: [require('autoprefixer'), require('cssnano')({preset: 'default'})] };" > postcss.config.js
 
-          npx terser script.js -o script.min.js -c -m
+                  npx postcss styles.css -o styles.min.css
 
-          VERSION=$(date +%s)
+                  npx terser script.js -o script.min.js -c -m
 
-          mv styles.min.css styles.min.$VERSION.css
-          mv script.min.js script.min.$VERSION.js
+                  VERSION=$(date +%s)
 
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+                  mv styles.min.css styles.min.$VERSION.css
+                  mv script.min.js script.min.$VERSION.js
 
-      - name: Update HTML references
-        run: |
-          sed -i "s/styles\.css/styles.min.${VERSION}.css/g" index.html
-          sed -i "s/script\.js/script.min.${VERSION}.js/g" index.html
+                  echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Prepare site folder
-        run: |
-          mkdir site
-          cp index.html site/
-          cp -r static site/
-          cp styles.min.${VERSION}.css site/
-          cp script.min.${VERSION}.js site/
+            - name: Update HTML references
+              run: |
+                  sed -i "s/styles\.css/styles.min.${VERSION}.css/g" index.html
+                  sed -i "s/script\.js/script.min.${VERSION}.js/g" index.html
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+            - name: Prepare site folder
+              run: |
+                  mkdir site
+                  cp index.html site/
+                  cp -r static site/
+                  cp styles.min.${VERSION}.css site/
+                  cp script.min.${VERSION}.js site/
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
+            - name: Setup Pages
+              uses: actions/configure-pages@v5
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: site
 
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    deploy:
+        needs: build
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+
+        steps:
+            - name: Deploy
+              id: deployment
+              uses: actions/deploy-pages@v4
