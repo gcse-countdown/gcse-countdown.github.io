@@ -458,13 +458,13 @@ function drawSeaFrame(dt) {
 
     const progress = (seaDisplayPercent / 100) + 0.05;
     const amplitude = 8 + Math.max(0, progress) * 18;
-    const baseColor = lightMode ? '31,77,119' : '72,36,89';
+    const baseColor = lightMode ? '31,77,119' : '126,58,158';
 
-    seaWaveOffset += 0.02 + randomInRange(0, 0.02);
+    seaWaveOffset += 0.02 + randomInRange(0, 0.01);
 
-    drawWave(0, width, height, amplitude * 0.9,  seaWaveOffset,        baseColor, 0.42, progress);
-    drawWave(1, width, height, amplitude * 0.72, seaWaveOffset * 1.18, baseColor, 0.32, progress);
-    drawWave(2, width, height, amplitude * 0.5,  seaWaveOffset * 1.42, baseColor, 0.24, progress);
+    drawWave(0, width, height, amplitude * 0.9, seaWaveOffset + randomInRange(0, 0.01), baseColor, 0.42, progress);
+    drawWave(1, width, height, amplitude * 0.72, seaWaveOffset - randomInRange(0, 0.01) * 1.18, baseColor, 0.32, progress);
+    drawWave(2, width, height, amplitude * 0.5, seaWaveOffset + randomInRange(0, 0.02) * 1.42, baseColor, 0.24, progress);
 
     // Once the sea has fully sunk off-screen and the effect is disabled, stop animating.
     if (!seaEffectEnabled && seaDisplayPercent <= SEA_OFF_TARGET * 100 + 0.2) {
