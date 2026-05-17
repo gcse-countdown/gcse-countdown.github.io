@@ -49,7 +49,7 @@ const SETTINGS_CONFIG = {
     [HIDE_MENUS_KEY]: { type: 'bool', default: false },
     [SHOW_OTHER_EXAMS_KEY]: { type: 'bool', default: false },
     [SHOW_ONGOING_EXAMS_KEY]: { type: 'bool', default: true },
-    [WEEKENDS_KEY]: { type: 'bool', default: true },
+    [WEEKENDS_KEY]: { type: 'bool', default: false },
     [DISPLAY_MODE_KEY]: { type: 'int', default: DISPLAY_MODE_DEFAULT },
     [LEGACY_CAL_KEY]: { type: 'bool', default: false },
     [LIGHT_KEY]: { type: 'bool', default: false },
