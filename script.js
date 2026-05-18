@@ -1,3 +1,7 @@
+Set.prototype.difference = function (otherSet) {
+    return new Set([...this].filter(x => !otherSet.has(x)));
+};
+
 let prevStates={};
 
 const MFL_SUBJECTS = ["French", "German", "Spanish", "Italian", "Chinese"];
@@ -39,6 +43,8 @@ const SEA_EFFECT_KEY = 'sea_effect';
 const FINISHED_EXAMS_KEY = 'finished_exams';
 const SELECTED_CIRCLE_KEY = 'selected_progress_circle';
 
+const RESET_MOBILE_CONFETTI = 'reset_mobile_confetti_may18';
+
 const DISPLAY_MODE_DEFAULT = 0;
 const DISPLAY_MODE_COMPACT = 1;
 const DISPLAY_MODE_CALENDAR = 2;
@@ -63,6 +69,7 @@ const SETTINGS_CONFIG = {
     [SEA_EFFECT_KEY]: { type: 'bool', default: true },
     [FINISHED_EXAMS_KEY]: { type: 'set', default: new Set() },
     [SELECTED_CIRCLE_KEY]: { type: 'string', default: 'progress' },
+    [RESET_MOBILE_CONFETTI]: { type: 'bool', default: false },
 };
 
 function load(key, defaultValue = undefined) {
@@ -3034,7 +3041,8 @@ function makeConfetti(coord_x) {
 
 window.addEventListener("load", (e) => {
     if (activeFilters.size > 0) {
-        const lastsavedfinished = load(FINISHED_EXAMS_KEY);
+        let lastsavedfinished = load(FINISHED_EXAMS_KEY);
+        const isMobile = window.innerWidth <= 768;
         let finishedExams = new Set();
         for (const exam in currentFiltered) {
             ex = (currentFiltered[exam]);
@@ -3042,16 +3050,27 @@ window.addEventListener("load", (e) => {
                 finishedExams.add(`${ex.subject}: ${ex.component}`);
             }
         }
+
+        if (!(load(RESET_MOBILE_CONFETTI)) && isMobile) {
+            lastsavedfinished = new Set();
+            save(RESET_MOBILE_CONFETTI, true);
+        }
+
         save(FINISHED_EXAMS_KEY, finishedExams);
         if (finishedExams.difference(lastsavedfinished).size > 0) {
-            makeConfetti(0);
-            makeConfetti(0.125);
-            makeConfetti(0.25);
+            if (!isMobile){
+                makeConfetti(0);
+                makeConfetti(0.125);
+                makeConfetti(0.25);
+            }
+            makeConfetti(0.375);
             makeConfetti(0.5);
             makeConfetti(0.625);
-            makeConfetti(0.75);
-            makeConfetti(0.875);
-            makeConfetti(1);
+            if (!isMobile) {
+                makeConfetti(0.75);
+                makeConfetti(0.875);
+                makeConfetti(1);
+            }
             const popup = document.createElement("div");
 
             popup.innerHTML = `
