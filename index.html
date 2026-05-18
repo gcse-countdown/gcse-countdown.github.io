@@ -114,74 +114,8 @@
                     </div>
                 </div>
                 <div class="controls-settings-box">
-                    <div class="controls-column controls-column-left">
-                        <div class="controls-setting">
-                            <span>Light Mode</span>
-                            <span class="shortcut-label">L</span>
-                            <label class="switch">
-                                <input type="checkbox" id="lightToggleTop">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="controls-setting">
-                            <span>Progress Background</span>
-                            <span class="shortcut-label">W</span>
-                            <label class="switch">
-                                <input type="checkbox" id="seaEffectToggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="controls-setting" id="legacyUI">
-                            <span>Legacy UI</span>
-                            <span class="shortcut-label">E</span>
-                            <label class="switch">
-                                <input type="checkbox" id="hideMenusToggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="controls-setting" id="showOngoingExamsWrapper" style="display: none;">
-                            <span>Show Ongoing Exams</span>
-                            <span class="shortcut-label">S</span>
-                            <label class="switch">
-                                <input type="checkbox" id="showOngoingExamsToggle" checked>
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="controls-column controls-column-middle">
-                        <div class="controls-setting calModeOnly" id="legacyCal">
-                            <span>Legacy Calendar</span>
-                            <span class="shortcut-label">A</span>
-                            <label class="switch">
-                                <input type="checkbox" id="legacyCalToggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="controls-setting calModeOnly" id="showOtherExamsWrapper" style="display: none;">
-                            <span>Show Other Exams</span>
-                            <span class="shortcut-label">S</span>
-                            <label class="switch">
-                                <input type="checkbox" id="showOtherExamsToggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="controls-setting calModeOnly" id="hideWeekends">
-                            <span>Hide Weekends</span>
-                            <span class="shortcut-label">D</span>
-                            <label class="switch">
-                                <input type="checkbox" id="weekendsToggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="controls-setting calModeOnly" id="hideAprilWrapper" style="display: none;">
-                            <span>Hide April</span>
-                            <span class="shortcut-label">F</span>
-                            <label class="switch">
-                                <input type="checkbox" id="hideAprilToggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    </div>
+                    <div class="controls-column controls-column-left" id="layoutControlsContainer"></div>
+                    <div class="controls-column controls-column-middle"></div>
                     <div class="controls-column controls-column-right">
                         <button id="defaultbtn" class="filter-btn" title="Default view (Z)"><i class="fas fa-th-large"></i> Default <span class="shortcut-label">Z</span></button>
                         <button id="compactbtn" class="filter-btn" title="Compact view (X)"><i class="fas fa-bars"></i> Compact <span class="shortcut-label">X</span></button>
@@ -189,6 +123,17 @@
                         <button id="progressbtn" class="filter-btn" title="Progress tracker (V)"><i class="fas fa-chart-pie"></i> Progress <span class="shortcut-label">V</span></button>
                         <button id="assistantmodebtn" class="filter-btn" title="Assistant view (B)"><i class="fas fa-wand-magic-sparkles"></i> Assistant <span class="shortcut-label">B</span></button>
                     </div>
+                </div>
+            </div>
+
+            <div class="controls" id="modeSpecificControlsBox" style="display: none;">
+                <div class="controls-topbar">
+                    <div class="controls-topbar-left">
+                        <span class="controls-label" style="margin-bottom:0">Mode Options</span>
+                    </div>
+                </div>
+                <div class="">
+                    <div class="controls-column flattened-column"  id="modeSpecificControls"></div>
                 </div>
             </div>
 

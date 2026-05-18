@@ -106,6 +106,222 @@ function save(key, value) {
         }
     } catch (e) {}
 }
+const TOGGLES = [
+    {
+        key: LIGHT_KEY,
+        stateVar: 'lightMode',
+        checkboxId: 'lightToggleTop',
+        wrapperId: 'lightToggleTopWrapper',
+        label: 'Light Mode',
+        shortcut: 'L',
+        group: 'layout',
+        column: 'left',
+        sideEffect(on) {
+            document.documentElement.classList.toggle('light', on);
+            document.documentElement.classList.toggle('dark', !on);
+        },
+    },
+    {
+        key: SEA_EFFECT_KEY,
+        stateVar: 'seaEffectEnabled',
+        checkboxId: 'seaEffectToggle',
+        wrapperId: 'seaEffectToggleWrapper',
+        label: 'Progress Background',
+        shortcut: 'W',
+        group: 'layout',
+        column: 'left',
+        sideEffect(on) {
+            document.documentElement.classList.toggle('sea-effect-enabled', on);
+            if (on) {
+                if (!seaCanvas) {
+                    seaDisplayPercent = SEA_OFF_TARGET * 100;
+                    createSeaCanvas();
+                }
+                seaProgressPercent = getSeaTargetPercent();
+            } else {
+                if (seaCanvas && !seaAnimationId) {
+                    seaLastFrameTime = 0;
+                    seaAnimationId = requestAnimationFrame(renderSeaWave);
+                }
+            }
+        },
+    },
+    {
+        key: HIDE_MENUS_KEY,
+        stateVar: 'hideMenus',
+        checkboxId: 'hideMenusToggle',
+        wrapperId: 'hideMenusToggleWrapper',
+        label: 'Legacy UI',
+        shortcut: 'E',
+        group: 'layout',
+        column: 'left',
+        advanced: true,
+        sideEffect() { updateSidebarVisibility(); },
+    },
+    {
+        key: SHOW_ONGOING_EXAMS_KEY,
+        stateVar: 'showOngoingExams',
+        checkboxId: 'showOngoingExamsToggle',
+        wrapperId: 'showOngoingExamsWrapper',
+        label: 'Show Ongoing Exams',
+        shortcut: 'S',
+        group: 'mode-specific',
+        advanced: true,
+        display_mode: [DISPLAY_MODE_DEFAULT, DISPLAY_MODE_COMPACT],
+        column: 'left',
+        sideEffect() { renderExams(); },
+    },
+    {
+        key: LEGACY_CAL_KEY,
+        stateVar: 'legacyCalMode',
+        checkboxId: 'legacyCalToggle',
+        wrapperId: 'legacyCalWrapper',
+        label: 'Legacy Calendar',
+        shortcut: 'A',
+        group: 'mode-specific',
+        advanced: true,
+        display_mode: DISPLAY_MODE_CALENDAR,
+        column: 'left',
+        sideEffect() { renderExams(); },
+    },
+    {
+        key: SHOW_OTHER_EXAMS_KEY,
+        stateVar: 'showOtherExams',
+        checkboxId: 'showOtherExamsToggle',
+        wrapperId: 'showOtherExamsWrapper',
+        label: 'Show Other Exams',
+        shortcut: 'S',
+        group: 'mode-specific',
+        advanced: true,
+        display_mode: DISPLAY_MODE_CALENDAR,
+        column: 'left',
+        sideEffect() { renderExams(); },
+    },
+    {
+        key: WEEKENDS_KEY,
+        stateVar: 'weekends',
+        checkboxId: 'weekendsToggle',
+        wrapperId: 'hideWeekendsWrapper',
+        label: 'Hide Weekends',
+        shortcut: 'D',
+        group: 'mode-specific',
+        advanced: true,
+        display_mode: DISPLAY_MODE_CALENDAR,
+        column: 'left',
+        sideEffect() { renderExams(); },
+    },
+    {
+        key: HIDE_APRIL_KEY,
+        stateVar: 'hideApril',
+        checkboxId: 'hideAprilToggle',
+        wrapperId: 'hideAprilWrapper',
+        label: 'Hide April',
+        shortcut: 'F',
+        group: 'mode-specific',
+        advanced: true,
+        display_mode: DISPLAY_MODE_CALENDAR,
+        column: 'left',
+        visible: () => !legacyCalMode,
+        sideEffect() { renderExams(); },
+    },
+];
+
+function buildToggleHandler(def) {
+    return function onChange(on) {
+        const val = on ? 1 : 0;
+
+        if (def.stateVar) {
+            if (TOGGLE_STATES) TOGGLE_STATES[def.stateVar] = val;
+        }
+
+        const checkbox = document.getElementById(def.checkboxId);
+        if (checkbox) checkbox.checked = Boolean(on);
+
+        save(def.key, val);
+        if (def.sideEffect) def.sideEffect(Boolean(on));
+
+        updateToggleVisibility();
+    };
+}
+
+let TOGGLE_STATES = null;
+
+function createToggleSetting(def) {
+    const wrapper = document.createElement('label');
+    wrapper.className = 'controls-setting';
+    wrapper.id = def.wrapperId;
+
+    const label = document.createElement('span');
+    label.textContent = def.label;
+    wrapper.appendChild(label);
+
+    if (def.shortcut) {
+        const shortcut = document.createElement('span');
+        shortcut.className = 'shortcut-label';
+        shortcut.textContent = def.shortcut;
+        wrapper.appendChild(shortcut);
+    }
+
+    const switchLabel = document.createElement('label');
+    switchLabel.className = 'switch';
+
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.id = def.checkboxId;
+    input.checked = Boolean(load(def.key));
+    input.addEventListener('change', e => def.onChange(e.target.checked));
+
+    const slider = document.createElement('span');
+    slider.className = 'slider round';
+
+    switchLabel.appendChild(input);
+    switchLabel.appendChild(slider);
+    wrapper.appendChild(switchLabel);
+
+    return wrapper;
+}
+
+function renderToggleSettings() {
+    const layoutContainer = document.getElementById('layoutControlsContainer');
+    const modeSpecificContainer = document.getElementById('modeSpecificControls');
+
+    if (layoutContainer) layoutContainer.innerHTML = '';
+    if (modeSpecificContainer) modeSpecificContainer.innerHTML = '';
+
+    TOGGLES.forEach(def => {
+        const node = createToggleSetting(def);
+        if (def.group === 'layout' && layoutContainer) {
+            layoutContainer.appendChild(node);
+        } else if (def.group === 'mode-specific') {
+            modeSpecificContainer.appendChild(node);
+        }
+    });
+
+    updateToggleVisibility();
+}
+
+function updateToggleVisibility() {
+    const modeSpecificControlsBox = document.getElementById('modeSpecificControlsBox');
+    let advancedVisibleCount = 0;
+
+    TOGGLES.forEach(def => {
+        const wrapper = document.getElementById(def.wrapperId);
+        if (!wrapper) return;
+
+        const matchesDisplayMode = def.display_mode === undefined ||
+            (Array.isArray(def.display_mode) ? def.display_mode.includes(displayMode) : def.display_mode === displayMode);
+        const isVisible = matchesDisplayMode && (!def.advanced || advancedToggle) && (def.visible ? def.visible() : true);
+
+        wrapper.style.display = isVisible ? '' : 'none';
+        if (def.group === 'mode-specific' && isVisible) advancedVisibleCount += 1;
+    });
+
+    if (modeSpecificControlsBox) {
+        modeSpecificControlsBox.style.display = advancedToggle && advancedVisibleCount > 0 ? '' : 'none';
+    }
+}
+
+function setHideMenus(on) { getToggleOnChange(HIDE_MENUS_KEY)(on); }
 
 function makeStart(dateStr, session) {
     const [d,m]=dateStr.split('/').map(Number);
@@ -271,22 +487,11 @@ const assistantmodebtn = document.getElementById('assistantmodebtn');
 const assistantPanel = document.getElementById('assistantPanel');
 const quickLinksMenu = document.querySelector('.quick-links-menu');
 const countdownsMenu = document.querySelector('.countdowns-menu');
-const legacyCalToggle = document.getElementById('legacyCalToggle');
 const filterCatsEl = document.getElementById('filterCategories');
 const plannerbtn = document.getElementById('rev-planner');
 const speakingDatesEl = document.getElementById('speakingDates');
 const advancedOptsBtn = document.getElementById('advanced-btn');
 const printBtn = document.getElementById('printBtn');
-
-const lightToggleTop = document.getElementById('lightToggleTop');
-const showOtherExamsToggle = document.getElementById('showOtherExamsToggle');
-const showOngoingExamsToggle = document.getElementById('showOngoingExamsToggle');
-const showOngoingExamsWrapper = document.getElementById('showOngoingExamsWrapper');
-const calModeOnly = document.querySelectorAll('.calModeOnly');
-const weekendsToggle = document.getElementById('weekendsToggle');
-const hideAprilToggle = document.getElementById('hideAprilToggle');
-const seaEffectToggle = document.getElementById('seaEffectToggle');
-if (weekendsToggle) weekendsToggle.addEventListener('change', e => setWeekends(e.target.checked));
 
 let advancedToggle = load(ADVANCED_KEY);
 let seaCanvas = null;
@@ -298,60 +503,53 @@ let seaWaveOffset = 0;
 let seaLastFrameTime = 0;
 
 function syncAllToggles() {
-    const isLight = document.documentElement.classList.contains('light');
-    if (lightToggleTop) lightToggleTop.checked = isLight;
-    
-    if (legacyCalToggle) legacyCalToggle.checked = legacyCalMode;
-    if (showOtherExamsToggle) showOtherExamsToggle.checked = showOtherExams;
-    if (showOngoingExamsToggle) showOngoingExamsToggle.checked = showOngoingExams;
-    if (seaEffectToggle) seaEffectToggle.checked = seaEffectEnabled;
-    if (weekendsToggle) weekendsToggle.checked = weekends;
-    if (hideAprilToggle) hideAprilToggle.checked = hideApril;
+    TOGGLES.forEach(def => {
+        const input = document.getElementById(def.checkboxId);
+        if (input) {
+            input.checked = Boolean(load(def.key));
+        }
+    });
 
-    if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle) ? 'flex' : 'none'});
-    }
-    
+    updateToggleVisibility();
+
     if(defaultbtn) defaultbtn.classList.toggle('active', displayMode === DISPLAY_MODE_DEFAULT);
     if(compactbtn) compactbtn.classList.toggle('active', displayMode === DISPLAY_MODE_COMPACT);
     if(calbtn) calbtn.classList.toggle('active', displayMode === DISPLAY_MODE_CALENDAR);
     if(progressbtn) progressbtn.classList.toggle('active', displayMode === DISPLAY_MODE_PROGRESS);
     if(assistantmodebtn) assistantmodebtn.classList.toggle('active', displayMode === DISPLAY_MODE_ASSISTANT);
+    if (advancedOptsBtn) advancedOptsBtn.classList.toggle('cat-active', advancedToggle);
+    const settingsBox = document.querySelector('.controls-settings-box');
+    if (settingsBox) settingsBox.classList.toggle('expanded', !advancedToggle);
 }
 
+TOGGLE_STATES = {
+    set lightMode(v)          { lightMode          = v; },
+    set seaEffectEnabled(v)   { seaEffectEnabled   = v; },
+    set hideMenus(v)          { hideMenus          = v; },
+    set showOngoingExams(v)   { showOngoingExams   = v; },
+    set legacyCalMode(v)      { legacyCalMode      = v; },
+    set showOtherExams(v)     { showOtherExams     = v; },
+    set weekends(v)           { weekends           = v; },
+    set hideApril(v)          { hideApril          = v; },
+};
+
+TOGGLES.forEach(def => {
+    def.onChange = buildToggleHandler(def);
+});
+
+function getToggleOnChange(key) {
+    const def = TOGGLES.find(d => d.key === key);
+    if (!def) throw new Error(`No toggle definition for key: ${key}`);
+    return def.onChange;
+}
+
+renderToggleSettings();
 syncAllToggles();
 
 const progressContainer = document.getElementById('progressTrackerContainer');
 if (progressContainer && displayMode === DISPLAY_MODE_PROGRESS) {
     progressContainer.style.display = 'block';
 }
-
-function setLightMode(on) {
-    document.documentElement.classList.toggle('light', on);
-    document.documentElement.classList.toggle('dark', !on);
-    if (lightToggleTop) lightToggleTop.checked = on;
-    lightMode = on ? 1 : 0;
-    save(LIGHT_KEY, lightMode);
-}
-
-if (lightToggleTop) lightToggleTop.addEventListener('change', e => setLightMode(e.target.checked));
-
-function setShowOtherExams(on) {
-    showOtherExams = on ? 1 : 0;
-    if (showOtherExamsToggle) showOtherExamsToggle.checked = on;
-    save(SHOW_OTHER_EXAMS_KEY, showOtherExams);
-    renderExams();
-}
-
-function setShowOngoingExams(on) {
-    showOngoingExams = on ? 1 : 0;
-    if (showOngoingExamsToggle) showOngoingExamsToggle.checked = on;
-    save(SHOW_ONGOING_EXAMS_KEY, showOngoingExams);
-    renderExams();
-}
-
-if (showOngoingExamsToggle) showOngoingExamsToggle.addEventListener('change', e => setShowOngoingExams(e.target.checked));
-if (seaEffectToggle) seaEffectToggle.addEventListener('change', e => setSeaEffect(e.target.checked));
 
 function getProgressPercent() {
     const now = Date.now();
@@ -540,60 +738,11 @@ function getSeaTargetPercent() {
     }
 }
 
-function setSeaEffect(on) {
-    seaEffectEnabled = Boolean(on);
-    if (seaEffectToggle) seaEffectToggle.checked = seaEffectEnabled;
-    document.documentElement.classList.toggle('sea-effect-enabled', seaEffectEnabled);
-    save(SEA_EFFECT_KEY, seaEffectEnabled);
+function setSeaEffect(on) { getToggleOnChange(SEA_EFFECT_KEY)(on); }
 
-    if (seaEffectEnabled) {
-        // Rise up from below: start display at off-screen position, then lerp up.
-        if (!seaCanvas) {
-            seaDisplayPercent = SEA_OFF_TARGET * 100;
-            createSeaCanvas();
-        }
-        seaProgressPercent = getSeaTargetPercent();
-    } else {
-        // Just set the target to off-screen; the render loop will animate the sink
-        // and then clean up the canvas itself once fully gone.
-        if (seaCanvas && !seaAnimationId) {
-            seaLastFrameTime = 0;
-            seaAnimationId = requestAnimationFrame(renderSeaWave);
-        }
-    }
-}
+function setWeekends(on) { getToggleOnChange(WEEKENDS_KEY)(on); }
 
-function setWeekends(on) {
-    weekends = on ? 1 : 0;
-    const weekendsToggle = document.getElementById('weekendsToggle');
-    if (weekendsToggle) weekendsToggle.checked = on;
-    save(WEEKENDS_KEY, weekends);
-    const calendarTable = document.getElementById('calendar');
-    const multiCalendar = document.querySelector('.continuous-calendar');
-    if (on) {
-        if (calendarTable) calendarTable.classList.add('hide-weekends');
-        if (multiCalendar) multiCalendar.classList.add('hide-weekends');
-    } else {
-        if (calendarTable) calendarTable.classList.remove('hide-weekends');
-        if (multiCalendar) multiCalendar.classList.remove('hide-weekends');
-    }
-    renderExams();
-}
-
-if (showOtherExamsToggle) {
-    showOtherExamsToggle.addEventListener('change', e => setShowOtherExams(e.target.checked));
-}
-
-function setHideApril(on) {
-    hideApril = on ? 1 : 0;
-    if (hideAprilToggle) hideAprilToggle.checked = on;
-    save(HIDE_APRIL_KEY, hideApril);
-    renderExams();
-}
-
-if (hideAprilToggle) {
-    hideAprilToggle.addEventListener('change', e => setHideApril(e.target.checked));
-}
+function setHideApril(on) { getToggleOnChange(HIDE_APRIL_KEY)(on); }
 
 function updatePrintBtnVisibility() {
     if (!printBtn) return;
@@ -614,26 +763,7 @@ if (printBtn) {
 }
     
 
-function setLegacyCalMode(on) {
-    legacyCalMode = on ? 1 : 0;
-    if (legacyCalToggle) legacyCalToggle.checked = on;
-    if (displayMode !== DISPLAY_MODE_CALENDAR) setDisplayMode(DISPLAY_MODE_CALENDAR);
-    
-        if (hideAprilToggle) {
-        const hideAprilWrapper = document.getElementById('hideAprilWrapper');
-        if (hideAprilWrapper) {
-            hideAprilWrapper.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle && !legacyCalMode) ? 'flex' : 'none';
-        }
-    }
-    
-    save(LEGACY_CAL_KEY, legacyCalMode);
-    renderExams();
-}
-if (legacyCalToggle) {
-    legacyCalToggle.addEventListener('change', e => {
-        setLegacyCalMode(e.target.checked);
-    });
-}
+function setLegacyCalMode(on) { getToggleOnChange(LEGACY_CAL_KEY)(on); }
 
 function setDisplayMode(newMode) {
     displayMode = newMode;
@@ -652,21 +782,17 @@ function setDisplayMode(newMode) {
     
         switch (displayMode) {
         case DISPLAY_MODE_COMPACT:
-            console.log(advancedToggle)
-            document.getElementById("showOngoingExamsWrapper").style.display = advancedToggle ? "" : "none";
             document.body.classList.add('compact');
             if(compactbtn) compactbtn.classList.add('active');
             if(progressContainer) progressContainer.style.display = 'none';
             break;
         case DISPLAY_MODE_CALENDAR:
             document.body.classList.add('cal');
-            document.getElementById("showOngoingExamsWrapper").style.display = "none";
             if(calbtn) calbtn.classList.add('active');
             if(progressContainer) progressContainer.style.display = 'none';
             break;
         case DISPLAY_MODE_PROGRESS:
             document.body.classList.add('progress');
-            document.getElementById("showOngoingExamsWrapper").style.display = "none";
             if(progressbtn) progressbtn.classList.add('active');
             if(progressContainer) progressContainer.style.display = 'block';
             renderProgressTracker();
@@ -674,26 +800,15 @@ function setDisplayMode(newMode) {
         case DISPLAY_MODE_ASSISTANT:
             if(assistantmodebtn) assistantmodebtn.classList.add('active');
             if(progressContainer) progressContainer.style.display = 'none';
-            document.getElementById('examList').style.display = 'none'; 
-            document.getElementById("showOngoingExamsWrapper").style.display = "none";
+            document.getElementById('examList').style.display = 'none';
             break;
         case DISPLAY_MODE_DEFAULT:
         default:
-            document.getElementById("showOngoingExamsWrapper").style.display = advancedToggle ? "" : "none";
             if(defaultbtn) defaultbtn.classList.add('active');
             if(progressContainer) progressContainer.style.display = 'none';
     }
-        if (calModeOnly) {
-        calModeOnly.forEach((el) => {
-            if (el.id === 'hideAprilWrapper') {
-                el.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle && !legacyCalMode) ? 'flex' : 'none';
-            } else {
-                el.style.display = (displayMode === DISPLAY_MODE_CALENDAR && advancedToggle) ? 'flex' : 'none';
-            }
-        });
-    }
-    
-        save(DISPLAY_MODE_KEY, displayMode);
+    updateToggleVisibility();
+    save(DISPLAY_MODE_KEY, displayMode);
     updatePrintBtnVisibility();
     renderExams();
 }
@@ -732,100 +847,61 @@ if (progressbtn) progressbtn.addEventListener('click', () => setProgressMode(dis
 if (defaultbtn) defaultbtn.addEventListener('click', () => setDefaultMode(true));
 
 function setAdvancedToggle(on) {
-    if (!on) {
-        console.log("inactive");
-        advancedToggle = false;
-        advancedOptsBtn.classList.remove("cat-active");
-        document.getElementById("legacyUI").style.display = "none";
-        document.getElementById("legacyCal").style.display = "none";
-        document.getElementById("showOtherExamsWrapper").style.display = "none";
-        document.getElementById("hideWeekends").style.display = "none";
-        document.getElementById("hideAprilWrapper").style.display = "none";
-        document.getElementById("showOngoingExamsWrapper").style.display = "none";
-        document.querySelector(".controls-settings-box").classList.add("expanded");
-    } else {
-        console.log("active");
-        advancedToggle = true;
-        advancedOptsBtn.classList.add("cat-active");
-        document.getElementById("legacyUI").style = "";
-        if (displayMode === DISPLAY_MODE_CALENDAR) {
-            document.getElementById("legacyCal").style = "";
-            document.getElementById("showOtherExamsWrapper").style = "";
-            document.getElementById("hideWeekends").style = "";
-            if (!legacyCalMode) {
-                document.getElementById("hideAprilWrapper").style = "";
-            }
-        } 
-        console.log((displayMode === DISPLAY_MODE_DEFAULT || displayMode === DISPLAY_MODE_COMPACT))
-        document.getElementById("showOngoingExamsWrapper").style.display = (displayMode === DISPLAY_MODE_DEFAULT || displayMode === DISPLAY_MODE_COMPACT) ? "" : "none"; 
-        document.querySelector(".controls-settings-box").classList.remove("expanded");
-    }
+    const modeSpecificControlsBox = document.getElementById("modeSpecificControlsBox");
+    advancedToggle = Boolean(on);
+    advancedOptsBtn.classList.toggle("cat-active", advancedToggle);
+    if (modeSpecificControlsBox) modeSpecificControlsBox.style.display = advancedToggle ? "" : "none";
+    document.querySelector(".controls-settings-box").classList.toggle("expanded", !advancedToggle);
+    updateToggleVisibility();
     save(ADVANCED_KEY, advancedToggle);
 }
 
 advancedOptsBtn.addEventListener('click', () => {
     setAdvancedToggle(!advancedToggle);
 });
+
+const STATIC_SHORTCUTS = [
+    { key: 'p', action(e) { e.preventDefault(); doPrint(); },           skipModifierCheck: true },
+    { key: 'z', action(e) { e.preventDefault(); setDefaultMode(true); } },
+    { key: 'x', action(e) { e.preventDefault(); setCompactMode(displayMode !== DISPLAY_MODE_COMPACT); } },
+    { key: 'c', action(e) { e.preventDefault(); setCalMode(displayMode !== DISPLAY_MODE_CALENDAR); } },
+    { key: 'v', action(e) { e.preventDefault(); setProgressMode(displayMode !== DISPLAY_MODE_PROGRESS); } },
+    { key: 'b', action(e) { e.preventDefault(); setAssistantMode(displayMode !== DISPLAY_MODE_ASSISTANT); } },
+    { key: 'o', action(e) { e.preventDefault(); setAdvancedToggle(!advancedToggle); } },
+];
+
 document.addEventListener('keydown', (e) => {
     const tag = e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
-    
-    if (e.key === 'p' || e.key === 'P') {
-        e.preventDefault();
-        doPrint();
-        return
-    }
 
-    if (e.ctrlKey || e.altKey) {
+    const key = e.key.toLowerCase();
+
+    for (const sc of STATIC_SHORTCUTS) {
+        if (key !== sc.key.toLowerCase()) continue;
+        if (!sc.skipModifierCheck && (e.ctrlKey || e.altKey)) return;
+        sc.action(e);
         return;
     }
-    
-    if (e.key === 'z' || e.key === 'Z') {
+
+    if (e.ctrlKey || e.altKey) return;
+
+    const candidates = TOGGLES.filter(
+        def => def.shortcut && def.shortcut.toLowerCase() === key
+    );
+
+    for (const def of candidates) {
+        const matchesMode = def.display_mode === undefined ||
+            (Array.isArray(def.display_mode)
+                ? def.display_mode.includes(displayMode)
+                : def.display_mode === displayMode);
+        if (!matchesMode) continue;
+
+        if (def.visible && !def.visible()) continue;
+
         e.preventDefault();
-        setDefaultMode(true);
-    } else if (e.key === 'x' || e.key === 'X') {
-        e.preventDefault();
-        setCompactMode(displayMode !== DISPLAY_MODE_COMPACT);
-    } else if (e.key === 'c' || e.key === 'C') {
-        e.preventDefault();
-        setCalMode(displayMode !== DISPLAY_MODE_CALENDAR);
-    } else if (e.key === 'a' || e.key === 'a') {
-        e.preventDefault();
-        setLegacyCalMode(!legacyCalMode);
-    } else if (e.key === 'l' || e.key === 'L') {
-        e.preventDefault();
-        const isLight = document.documentElement.classList.contains('light');
-        setLightMode(!isLight);
-    } else if (e.key === 'e' || e.key === 'E') {
-        toggleMenusVisibility();
-    } else if (e.key === 's' || e.key === 'S') {
-        if (displayMode === DISPLAY_MODE_CALENDAR) {
-            e.preventDefault();
-            setShowOtherExams(!showOtherExams);
-        } else if (displayMode === DISPLAY_MODE_DEFAULT || displayMode === DISPLAY_MODE_COMPACT) {
-            e.preventDefault();
-            setShowOngoingExams(!showOngoingExams);
-        }
-    } else if (e.key === 'd' || e.key === 'D') {
-        e.preventDefault();
-        setWeekends(!weekends);
-    } else if (e.key === 'f' || e.key === 'F') {
-        e.preventDefault();
-        setHideApril(!hideApril);
-    } else if (e.key === 'v' || e.key === 'V') {
-        e.preventDefault();
-        setProgressMode(displayMode !== DISPLAY_MODE_PROGRESS);
-    } else if (e.key === 'b' || e.key === 'B') {
-        e.preventDefault();
-        setAssistantMode(displayMode !== DISPLAY_MODE_ASSISTANT);
-    } else if (e.key === 'o' || e.key === 'O') {
-        e.preventDefault();
-        setAdvancedToggle(!advancedToggle);
-    } else if (e.key === 'w' || e.key === 'W') {
-        e.preventDefault();
-        setSeaEffect(!seaEffectEnabled);
-    } 
-    
+        def.onChange(!Boolean(load(def.key)));
+        return;
+    }
 });
 
 if (legacyCalMode && legacyCalToggle) legacyCalToggle.classList.add('active');
@@ -1777,10 +1853,6 @@ function renderProgressTracker() {
 
         subjectsList.innerHTML += html;
     });
-
-    if (calModeOnly) {
-        calModeOnly.forEach((el) => {el.style.display = (displayMode == DISPLAY_MODE_CALENDAR && advancedToggle) ? 'flex' : 'none'});
-    }
 }
 
 function updateSidebarTimers() {
