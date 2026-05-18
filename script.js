@@ -2,6 +2,30 @@ Set.prototype.difference = function (otherSet) {
     return new Set([...this].filter(x => !otherSet.has(x)));
 };
 
+const FEEDBACK_PHRASES=[{text:"Progress Background",weight:1},{text:"Default Mode",weight:1},{text:"Show Ongoing Exams",weight:0.5},{text:"Compact Mode",weight:1},{text:"Calendar Mode",weight:2},{text:"Show Other Exams",weight:0.25},{text:"Progress Mode",weight:1},{text:"Assistant Mode",weight:1},{text:"Dale Intelligence",weight:0.5},{text:"Confetti",weight:1},{text:"Speaking Exams",weight:0.3},{text:"SPS Links",weight:0.5},{text:"Dale Charman",weight:0.1},{text:"FunDaleGames",weight:0.05},{text:"dale20",weight:0.01},{text:"dale dice",weight:0.01},{text:"flappydale",weight:0.01},{text:"dale pong",weight:0.01},{text:"dale track",weight:0.01},{text:"squishy dale",weight:0.01}];
+function weightedRandom(items) {
+    let totalWeight = 0;
+    for (const item of items) {
+        totalWeight += item.weight;
+    }
+    let random = Math.random() * totalWeight;
+    for (const item of items) {
+        if (random < item.weight) {
+            return item;
+        }
+        random -= item.weight;
+    }
+}
+
+document.querySelector('#feedbackSubject').textContent = weightedRandom(FEEDBACK_PHRASES).text;
+setInterval(() => {
+    for (let i = 0; i < 10; i++) {
+        setTimeout(() => {
+            document.querySelector('#feedbackSubject').textContent = weightedRandom(FEEDBACK_PHRASES).text;
+        }, 100 * i);
+    }
+}, 60000);
+
 let prevStates={};
 
 const MFL_SUBJECTS = ["French", "German", "Spanish", "Italian", "Chinese"];

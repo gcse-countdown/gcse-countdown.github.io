@@ -3331,3 +3331,17 @@ html.light #popupCloseBtn {
 #popupCloseBtn:active {
     transform: scale(0.95);
 }
+
+.accent-gradient-text {
+    background: linear-gradient(90deg, var(--accent), #605680, var(--accent));
+    background-size: 200% auto;
+    background-clip: text;
+    color: transparent;
+    animation: shine 3s linear infinite;
+}
+
+@keyframes shine {
+    to {
+        background-position: 200% center;
+    }
+}
