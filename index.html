@@ -1,15 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GCSE countdown timer for all major (I)GCSE Exams sat at St. Paul's School, with quick access links to revision resources.">
     <title>GCSE Exam Countdowns 2026</title>
     <link rel="icon" type="image/x-icon" href="static/gcse_favicon.svg">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap"></noscript>
+    
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+
     <link rel="stylesheet" href="styles.css"> <!-- version updates are not required now -->
+
     <script src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.9.1/tsparticles.confetti.bundle.min.js"></script>
-    <script src = 'https://code.jquery.com/jquery-3.6.3.min.js'></script>
+    
+    <!-- is this even used -->
+    <!-- <script src = 'https://code.jquery.com/jquery-3.6.3.min.js'></script>  -->
     <script>
         if (localStorage.getItem('light_mode') === '1') {
             document.documentElement.classList.add('light');
