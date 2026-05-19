@@ -1252,17 +1252,17 @@ updateFilterCount();
 rebuildExams();
 renderSpeakingDates();
 
-const topBar = document.querySelector('.top-bar');
-const topBarClose = document.getElementById('topBarClose');
-if (load(TOPBAR_KEY)) {
-    if (topBar) topBar.style.display = 'none';
-}
-if (topBarClose) {
-    topBarClose.addEventListener('click', () => {
-        if (topBar) topBar.style.display = 'none';
-        save(TOPBAR_KEY, true);
-    });
-}
+// const topBar = document.querySelector('.top-bar');
+// const topBarClose = document.getElementById('topBarClose');
+// if (load(TOPBAR_KEY)) {
+//     if (topBar) topBar.style.display = 'none';
+// }
+// if (topBarClose) {
+//     topBarClose.addEventListener('click', () => {
+//         if (topBar) topBar.style.display = 'none';
+//         save(TOPBAR_KEY, true);
+//     });
+// }
 
 
 let monthOffset = 0;
