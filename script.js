@@ -157,7 +157,7 @@ const TOGGLES = [
         stateVar: 'seaEffectEnabled',
         checkboxId: 'seaEffectToggle',
         wrapperId: 'seaEffectToggleWrapper',
-        label: 'Progress Background',
+        label: 'Wave Background',
         shortcut: 'W',
         group: 'layout',
         column: 'left',
@@ -1893,7 +1893,7 @@ function updateSidebarTimers() {
         sidebarQuickContent.innerHTML = document.querySelector('.quick-links-menu')?.innerHTML || '';
     }
     if (sidebarCountdownsContent) {
-                const rem = document.getElementById('remtime');
+        const rem = document.getElementById('remtime');
         const half = document.getElementById('halfTermTime');
         const end = document.getElementById('endremtime');
         sidebarCountdownsContent.innerHTML = `
@@ -1949,11 +1949,12 @@ function updateSidebarTimers() {
         if (sidebarEndremtimeLabelEl) { sidebarEndremtimeLabelEl.textContent = ''; }
     }
 
-        const halfTermTimeEl = document.getElementById('halfTermTime');
+    const halfTermTimeEl = document.getElementById('halfTermTime');
     const sidebarHalfTermTimeEl = document.getElementById('sidebar-halfTermTime');
     const halfTermLabelEl = document.getElementById('halfTermLabel');
     const sidebarHalfTermLabelEl = document.getElementById('sidebar-halfTermLabel');
     const halfTermBoxEl = halfTermTimeEl?.parentElement;
+    const sidebarHalfTermBoxEl = sidebarHalfTermTimeEl?.parentElement.parentElement;
     const halfTermMs = HALF_TERM_START.getTime();
     const examsBeforeHalfTerm = currentFiltered.filter(e => e.start.getTime() < halfTermMs);
     if (examsBeforeHalfTerm.length > 0) {
@@ -1961,6 +1962,7 @@ function updateSidebarTimers() {
         const msLeft = lastBeforeHT.end - now;
         if (msLeft > 0) {
             if (halfTermBoxEl) halfTermBoxEl.style.display = '';
+            if (sidebarHalfTermBoxEl) sidebarHalfTermBoxEl.style.display = '';
             const countdownText = fmtCountdown(msLeft);
             const labelText = `After: ${lastBeforeHT.subject} · ${lastBeforeHT.component}`;
             if (halfTermTimeEl) { halfTermTimeEl.textContent = countdownText; }
@@ -1971,6 +1973,7 @@ function updateSidebarTimers() {
             if (sidebarHalfTermTimeEl) { sidebarHalfTermTimeEl.dataset.code = lastBeforeHT.code; }
         } else {
             if (halfTermBoxEl) halfTermBoxEl.style.display = 'none';
+            if (sidebarHalfTermBoxEl) sidebarHalfTermBoxEl.style.display = 'none';
             if (halfTermTimeEl) { halfTermTimeEl.textContent = '–'; halfTermTimeEl.dataset.code = ''; }
             if (sidebarHalfTermTimeEl) { sidebarHalfTermTimeEl.textContent = '–'; sidebarHalfTermTimeEl.dataset.code = ''; }
             if (halfTermLabelEl) { halfTermLabelEl.textContent = ''; }
@@ -1978,6 +1981,7 @@ function updateSidebarTimers() {
         }
     } else {
         if (halfTermBoxEl) halfTermBoxEl.style.display = 'none';
+        if (sidebarHalfTermBoxEl) sidebarHalfTermBoxEl.style.display = 'none';
         if (halfTermTimeEl) { halfTermTimeEl.textContent = '–'; halfTermTimeEl.dataset.code = ''; }
         if (sidebarHalfTermTimeEl) { sidebarHalfTermTimeEl.textContent = '–'; sidebarHalfTermTimeEl.dataset.code = ''; }
         if (halfTermLabelEl) { halfTermLabelEl.textContent = ''; }
