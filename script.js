@@ -1426,6 +1426,8 @@ function renderMultiMonthCalendar(list, active, filtered) {
             examDiv.style.borderLeftColor = color;
         }
         
+        const examPercent = getExamPercentage(ex);
+        
         examDiv.innerHTML = `<span class="cal-exam-subject">${ex.subject}</span><span class="cal-exam-component">${ex.component}</span>`;
         examDiv.innerHTML += `<div class="cal-exam-tooltip" style="border-left-color: ${color}">
             <div class="cal-tooltip-top">
@@ -1441,6 +1443,7 @@ function renderMultiMonthCalendar(list, active, filtered) {
                 <span class="badge"><i class="fas fa-code"></i> ${ex.code}</span>
                 <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
                 <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
+                <span class="badge"><i class="${getExamPercentageIconClass(examPercent)}"></i> ${examPercent}%</span>
             </div>
             ${makeCountdownBlock(ex, state, now, color, ex.code)}
         </div>`;
@@ -1627,6 +1630,8 @@ function renderExams(){
                                     examDiv.style.borderLeftColor = color;
                                 }
                                 
+                                const examPercent = getExamPercentage(ex);
+                                
                                 examDiv.innerHTML = `<span class="cal-exam-subject">${ex.subject}</span><span class="cal-exam-component">${ex.component}</span>`;
                                 examDiv.innerHTML += `<div class="cal-exam-tooltip" style="border-left-color: ${color}">
                                     <div class="cal-tooltip-top">
@@ -1642,6 +1647,7 @@ function renderExams(){
                                         <span class="badge"><i class="fas fa-code"></i> ${ex.code}</span>
                                         <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
                                         <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
+                                        <span class="badge">${examPercent}%</span>
                                     </div>
                                     ${makeCountdownBlock(ex, state, now, color, ex.code)}
                                 </div>`;
@@ -1664,6 +1670,28 @@ function renderExams(){
     if (displayMode === DISPLAY_MODE_PROGRESS) renderProgressTracker();
 }
 
+function getExamPercentage(exam) {
+    const allExams = activeFilters.size === 0 ? exams : currentFiltered;
+    const totalWeight = MFL_SUBJECTS.includes(exam.subject) ? 4 : (allExams.filter(e => e.subject === exam.subject).reduce((sum, e) => sum + (Number(e.weight) || 1), 0));
+    const examWeight = Number(exam.weight) || 1;
+    return totalWeight > 0 ? Number(((examWeight / totalWeight) * 100).toFixed(1)) : 0;
+}
+
+function getExamPercentageIconClass(percent) {
+    const iconMap = {
+        0: 'fa-regular fa-circle',
+        50: 'fa-solid fa-circle-half-stroke',
+        100: 'fa-solid fa-circle'
+    };
+
+    const normalized = Number(percent);
+    const closest = [0, 50, 100].reduce((best, value) => {
+        return Math.abs(value - normalized) <= Math.abs(best - normalized) ? value : best;
+    }, 0);
+
+    return iconMap[closest];
+}
+
 function makeCard(ex,idx){
     const now=Date.now(),state=getState(ex.start,ex.end,now),msLeft=ex.start-now;
     const color=state==='upcoming'?fracToColor(getFrac(msLeft)):state==='inprogress'?'#a855f7':'#3b82f6';
@@ -1675,6 +1703,7 @@ function makeCard(ex,idx){
     const statusBadge=state==='inprogress'
         ?`<span class="status-badge inprogress">● IN PROGRESS</span>`
         :state==='over'?`<span class="status-badge over">EXAM OVER</span>`:'';
+    const examPercent = getExamPercentage(ex);
     card.innerHTML=`
         <div class="exam-top">
             <div class="exam-title-block">
@@ -1689,6 +1718,7 @@ function makeCard(ex,idx){
             <span class="badge"><i class="fas fa-code"></i> ${ex.code}</span>
             <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
             <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
+            <span class="badge"><i class="${getExamPercentageIconClass(examPercent)}"></i> ${examPercent}%</span>
         </div>
         ${makeCountdownBlock(ex, state, now, color, ex.code)}
         <div class="card-hover-tooltip">
@@ -1705,6 +1735,7 @@ function makeCard(ex,idx){
                 <span class="badge"><i class="fas fa-code"></i> ${ex.code}</span>
                 <span class="badge"><i class="fas fa-clock"></i> ${fmtTime(ex.start)} – ${fmtTime(ex.end)}</span>
                 <span class="badge"><i class="fas fa-hourglass"></i> ${fmtDuration(ex.durationMin)}</span>
+                <span class="badge"><i class="${getExamPercentageIconClass(examPercent)}"></i> ${examPercent}%</span>
             </div>
             ${makeCountdownBlock(ex, state, now, color, `${ex.code}-hover`)}
         </div>`;
@@ -1737,7 +1768,7 @@ function renderProgressTracker() {
         }
     });
 
-    // Always include MFL subjects in progress mode and treat the speaking exam as completed when it exists.
+    // Always treat the speaking exam as completed when it exists.
     MFL_SUBJECTS.forEach(subject => {
         if (activeFilters.size === 0 || activeFilters.has(subject)) {
             if (!subjectStats[subject]) {
@@ -1755,7 +1786,7 @@ function renderProgressTracker() {
     const subjects = Object.keys(subjectStats);
     const numSubjects = subjects.length;
 
-                let overallFrac = 0;
+    let overallFrac = 0;
     subjects.forEach(subject => {
         const stats = subjectStats[subject];
         const cwPct = COURSEWORK[subject] || 0;
@@ -1767,10 +1798,10 @@ function renderProgressTracker() {
     });
     const percent = numSubjects > 0 ? Number((overallFrac * 100).toFixed(1)) : 0;
 
-        const completedPapers = allExams.filter(e => getState(e.start, e.end, now) === 'over').length;
+    const completedPapers = allExams.filter(e => getState(e.start, e.end, now) === 'over').length;
     const totalPapers = allExams.length;
 
-        const lastExam = allExams[allExams.length - 1];
+    const lastExam = allExams[allExams.length - 1];
     const daysRemaining = lastExam ? Math.max(0, Math.ceil((lastExam.end - now) / (1000 * 60 * 60 * 24))) : 0;
 
     document.getElementById('progressCircleLabel').textContent = `of ${numSubjects} GCSEs`;
