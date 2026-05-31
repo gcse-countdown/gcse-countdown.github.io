@@ -1671,8 +1671,7 @@ function renderExams(){
 }
 
 function getExamPercentage(exam) {
-    const allExams = activeFilters.size === 0 ? exams : currentFiltered;
-    const totalWeight = MFL_SUBJECTS.includes(exam.subject) ? 4 : (allExams.filter(e => e.subject === exam.subject).reduce((sum, e) => sum + (Number(e.weight) || 1), 0));
+    const totalWeight = MFL_SUBJECTS.includes(exam.subject) ? 4 : (exams.filter(e => e.subject === exam.subject).reduce((sum, e) => sum + (Number(e.weight) || 1), 0));
     const examWeight = Number(exam.weight) || 1;
     return totalWeight > 0 ? Number(((examWeight / totalWeight) * 100).toFixed(1)) : 0;
 }
