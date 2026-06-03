@@ -3185,3 +3185,36 @@ updateClock();
 setInterval(updateClock,100);
 setInterval(updateTime, 100);
 setInterval(tick,100);
+
+const FUN_FACTS = [
+    "Science: Water expands by roughly 9% when it freezes into ice.",
+    "Maths: A 'googol' is the number 1 followed by 100 zeros.",
+    "English: 'I am' is the shortest complete sentence in the English language.",
+    "Science: About 20% of the Earth's oxygen is produced by the Amazon rainforest.",
+    "Maths: Every odd number contains the letter 'E' when spelled out.",
+    "English: The word 'alphabet' comes from the first two letters of the Greek alphabet: alpha and beta.",
+    "Science: A day on Venus is longer than a whole year on Venus.",
+    "Maths: Pi ($\pi$) cannot be expressed as a fraction, making it an irrational number.",
+    "English: The word 'typewriter' is the longest word you can type using only the top row of a standard QWERTY keyboard.",
+    "History: GCSEs were invented in 1986 just so your parents could say 'well back in my day O-Levels were harder'.",
+    "Maths: One absolute legend actually took 28 GCSEs in a single year, final proof that main character energy exists.",
+    "English: The government literally made a law saying you cannot escape Shakespeare, it is mandatory.",
+    "Science: Astronomy is an actual GCSE option, meaning you can officially get school credit for staring into the abyss.",
+    "Languages: Language examiners have a secret cheat sheet of allowed words, if you use a word outside it they just pretend it does not exist.",
+    "Geography: You can lose actual marks in Geography just because your handwriting looks like a doctor's prescription.",
+    "Maths: Missing a passing grade in Maths means you get a mandatory speedrun ticket to the November retakes.",
+    "Science: Foundation tier locks your max level cap at Grade 5, no matter how hard you try to min-max the paper.",
+    "History: Home Economics is an extinct GCSE subject, meaning you used to be able to get a qualification in cooking beans on toast.",
+    "General: Grade 9 was added purely because the exam boards decided the old A* was not gatekeeping hard enough.",
+    "General: Grade boundaries are not real until after the exams are marked, the boundaries move based on how much everyone collectively panicked."
+];
+
+function initFunFactTicker() {
+    const track = document.getElementById('factTickerTrack');
+    if (!track) return;
+    const itemsHTML = FUN_FACTS.map(fact => `<div class="fact-item">${fact}</div>`).join('');
+
+    track.innerHTML = itemsHTML + itemsHTML;
+}
+
+document.addEventListener('DOMContentLoaded', initFunFactTicker);
