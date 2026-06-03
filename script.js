@@ -39,15 +39,6 @@ const CATEGORIES = [
     { name: "Creatives",    subjects: ["Music", "Drama", "Art", "Electronics", "S&C / PD", "Computer Science"] },
 ];
 
-const COURSEWORK = {
-    "S&C / PD": 50,
-    "Electronics": 20,
-    "History": 30,
-    "Music": 60,
-    "Art": 100,
-    "Drama": 60,
-};
-
 const FILTERS_KEY = 'filters_v3';
 const DISPLAY_MODE_KEY = 'display_mode_v1';
 const LEGACY_CAL_KEY = 'legacy_calendar_mode';
@@ -623,10 +614,11 @@ function getProgressPercent() {
     let overallFrac = 0;
     subjects.forEach(subject => {
         const stats = subjectStats[subject];
-        const cwPct = COURSEWORK[subject] || 0;
-        const writtenPct = 100 - cwPct;
-        const writtenDoneFrac = stats.totalWeight > 0 ? (stats.completedWeight / stats.totalWeight) : 0;
-        const subjectFrac = (cwPct + writtenDoneFrac * writtenPct) / 100;
+        const cwWeight = Number(COURSEWORK[subject] || 0);
+        const examTotalWeight = stats.totalWeight || 0;
+        const completedExamWeight = stats.completedWeight || 0;
+        const totalWeight = cwWeight + examTotalWeight;
+        const subjectFrac = totalWeight > 0 ? ((cwWeight + completedExamWeight) / totalWeight) : 0;
         overallFrac += subjectFrac / subjects.length;
     });
 
@@ -1671,7 +1663,9 @@ function renderExams(){
 }
 
 function getExamPercentage(exam) {
-    const totalWeight = MFL_SUBJECTS.includes(exam.subject) ? 4 : (exams.filter(e => e.subject === exam.subject).reduce((sum, e) => sum + (Number(e.weight) || 1), 0));
+    const cwWeight = Number(COURSEWORK[exam.subject] || 0);
+    const examWeights = exams.filter(e => e.subject === exam.subject).reduce((sum, e) => sum + (Number(e.weight) || 1), 0);
+    const totalWeight = MFL_SUBJECTS.includes(exam.subject) ? 4 : (cwWeight + examWeights);
     const examWeight = Number(exam.weight) || 1;
     return totalWeight > 0 ? Number(((examWeight / totalWeight) * 100).toFixed(1)) : 0;
 }
@@ -1788,11 +1782,11 @@ function renderProgressTracker() {
     let overallFrac = 0;
     subjects.forEach(subject => {
         const stats = subjectStats[subject];
-        const cwPct = COURSEWORK[subject] || 0;
-        const writtenPct = 100 - cwPct;
-        const writtenDoneFrac = stats.totalWeight > 0 ? (stats.completedWeight / stats.totalWeight) : 0;
-        // subject's contribution = (cw always done + written proportion done) / 100, weighted 1/N
-        const subjectFrac = (cwPct + writtenDoneFrac * writtenPct) / 100;
+        const cwWeight = Number(COURSEWORK[subject] || 0);
+        const examTotalWeight = stats.totalWeight || 0;
+        const completedExamWeight = stats.completedWeight || 0;
+        const totalWeight = cwWeight + examTotalWeight;
+        const subjectFrac = totalWeight > 0 ? ((cwWeight + completedExamWeight) / totalWeight) : 0;
         overallFrac += subjectFrac / numSubjects;
     });
     const percent = numSubjects > 0 ? Number((overallFrac * 100).toFixed(1)) : 0;
@@ -1894,19 +1888,26 @@ function renderProgressTracker() {
 
     subjectsList.innerHTML = '';
     Object.entries(subjectStats).sort((a, b) => a[0].localeCompare(b[0])).forEach(([subject, stats]) => {
-        const cwPct = COURSEWORK[subject] || 0;
-        const writtenPct = 100 - cwPct;
-        const writtenFillPct = stats.totalWeight > 0 ? (stats.completedWeight / stats.totalWeight) * writtenPct : 0;
-        const countText = Number((writtenFillPct + cwPct).toFixed(1)) + '%';
+        const cwWeight = Number(COURSEWORK[subject] || 0);
+        const examTotalWeight = stats.totalWeight || 0;
+        const completedExamWeight = stats.completedWeight || 0;
+        const totalWeight = cwWeight + examTotalWeight;
+        const subjectPercent = totalWeight > 0 ? ((completedExamWeight + cwWeight) / totalWeight) * 100 : 0;
+
+        const cwDoneBarWidth = totalWeight > 0 ? (cwWeight / totalWeight) * 100 : 0;
+        const examDoneBarWidth = totalWeight > 0 ? (completedExamWeight / totalWeight) * 100 : 0;
+
+        const countText = Number(subjectPercent.toFixed(1)) + '%';
 
         let html = '<div class="subject-progress-item">' +
             '<div class="subject-progress-label">' + subject + '</div>' +
             '<div class="subject-progress-bar-track">';
 
-        if (cwPct > 0) {
-            html += '<div class="subject-progress-fill cw-fill" style="width:' + cwPct.toFixed(1) + '%"></div>';
+        if (cwWeight > 0) {
+            // show coursework completed portion within the bar
+            html += '<div class="subject-progress-fill cw-fill" style="width:' + cwDoneBarWidth.toFixed(1) + '%"></div>';
         }
-        html += '<div class="subject-progress-fill exam-fill" style="width:' + writtenFillPct.toFixed(1) + '%"></div>';
+        html += '<div class="subject-progress-fill exam-fill" style="width:' + examDoneBarWidth.toFixed(1) + '%"></div>';
 
         html += '</div>' +
             '<div class="subject-progress-count">' + countText + '</div>' +
@@ -2310,12 +2311,13 @@ function calcPredictions() {
             results[subject] = { pct, grade: pctToGrade(pct), priority: 5 };
         } else {
             const examPct = results[subject].pct;
-            const cwWeight = COURSEWORK[subject] || 0;
-            const examWeight = 100 - cwWeight;
-            if (examWeight <= 0) {
+            const cwWeight = Number(COURSEWORK[subject] || 0);
+            const examWeight = getPapersForSubject(subject).reduce((s, e) => s + (Number(e.weight) || 1), 0);
+            const totalWeight = cwWeight + examWeight;
+            if (totalWeight <= 0) {
                 results[subject].pct = pct;
             } else {
-                results[subject].pct = (cwWeight * pct + examWeight * examPct) / 100;
+                results[subject].pct = (cwWeight * pct + examWeight * examPct) / totalWeight;
             }
             results[subject].grade = pctToGrade(results[subject].pct);
         }
