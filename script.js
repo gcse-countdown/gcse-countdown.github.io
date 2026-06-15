@@ -3100,9 +3100,9 @@ function makeConfetti(coord_x) {
 }
 
 window.addEventListener("load", (e) => {
+    const isMobile = window.innerWidth <= 768;
     if (activeFilters.size > 0) {
         let lastsavedfinished = load(FINISHED_EXAMS_KEY);
-        const isMobile = window.innerWidth <= 768;
         let finishedExams = new Set();
         for (const exam in currentFiltered) {
             ex = (currentFiltered[exam]);
@@ -3163,6 +3163,22 @@ window.addEventListener("load", (e) => {
         }
     } else {
         setSeaEffect(seaEffectEnabled);
+    }
+    const last = currentFiltered.length ? currentFiltered[currentFiltered.length - 1] : null;
+    if (last.end && last.end < Date.now()) {
+        setInterval(() => { if (!isMobile){
+                makeConfetti(0);
+                makeConfetti(0.125);
+                makeConfetti(0.25);
+            }
+            makeConfetti(0.375);
+            makeConfetti(0.5);
+            makeConfetti(0.625);
+            if (!isMobile) {
+                makeConfetti(0.75);
+                makeConfetti(0.875);
+                makeConfetti(1);
+            }}, 1500);
     }
 });
 
