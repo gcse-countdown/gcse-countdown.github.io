@@ -3345,3 +3345,47 @@ html.light #popupCloseBtn {
         background-position: 200% center;
     }
 }
+
+.fact-ticker-wrap {
+    width: 100%;
+    overflow: hidden;
+    background: var(--ticker-bg, #1e1b4b);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 0;
+    font-family: sans-serif;
+}
+
+.fact-ticker-track {
+    display: flex;
+    width: max-content;
+    animation: scrollTicker 200s linear infinite;
+}
+
+.fact-ticker-track:hover {
+    animation-play-state: paused;
+}
+
+.fact-item {
+    padding: 0 40px;
+    font-size: 0.95rem;
+    color: #e0e7ff;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+}
+
+.fact-item::after {
+    content: "•";
+    margin-left: 40px;
+    color: #818cf8;
+}
+
+@keyframes scrollTicker {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+    100% {
+        transform: translate3d(-50%, 0, 0)
+    }
+}
